@@ -10,7 +10,7 @@ module.exports = (bot, botHelper) => {
     if (msg && msg.caption) {
       try {
         const links = msg.caption.match(/http:\/\/amp(.*?)(\n|$)/gi);
-        const gr = parseInt(process.env.TGGROUP) * -1;
+        const gr = process.env.TGGROUP;
         links.map(ll => {
           let l = ll.trim();
           const r = request(l);
