@@ -12,11 +12,8 @@
   },
   "scripts": {
     "precommit": "yarn lint",
-    "start": "NODE_ENV=production node .",
-    "startold": "cross-env NODE_ENV=production pm2 start ./src/index.js",
-    "logsold": "cross-env NODE_ENV=production pm2 logs index",
-    "dev": "NODE_ENV=production nodemon ./src/bot.js",
-    "devbot": "NODE_ENV=production nodemon ./src/bot.js",
+    "start": "NODE_ENV=production node ./src/index.js",
+    "dev": "NODE_ENV=production nodemon ./src/index.js",
     "command": "NODE_ENV=production node ./src/command.js",
     "lint": "eslint **/*.js --ignore-path .gitignore --ignore-pattern internals/scripts",
     "lint:fix": "yarn lint -- --fix",
