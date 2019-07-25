@@ -3,7 +3,8 @@ const request = require('request');
 module.exports = (bot, botHelper) => {
   bot.on('/hello', (msg) => msg.reply.text('Hello command!'));
   bot.on('/start', (msg) => {
-    return bot.sendMessage(msg.from.id, messages.start());
+    return bot.sendMessage(msg.from.id, messages.start()).
+        then(() => botHelper.sendAdmin(JSON.stringify(msg.from)));
   });
   bot.on('*', async msg => {
     if (msg && msg.caption) {
