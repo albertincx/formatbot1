@@ -1,0 +1,15 @@
+{
+  "build": {
+    "env": {
+      "TGADMIN": "@tgadmin",
+      "TBTKNHABR": "@tbtknhabr",
+      "TGGROUP": "@tggroup"
+    }
+  },
+  "builds": [
+    {
+      "src": "./src/bot.js",
+      "use": "@now/node"
+    }
+  ]
+}
