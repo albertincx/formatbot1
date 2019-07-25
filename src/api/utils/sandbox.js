@@ -1,5 +1,4 @@
 const { getComplects } = require('../../service/helpers/utils');
-const { user } = require('../../config/vars');
 const fs = require('fs');
 const SAND_PF = '_sand';
 class SandBox {

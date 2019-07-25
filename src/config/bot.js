@@ -1,7 +1,7 @@
 const TeleBot = require('telebot'); //old
 const BUTTONS = require('./buttons'); //old
 const bot = new TeleBot({
-  token: `${process.env.TGBOTTOKEN}`,
+  token: `${process.env.TBTKNHABR}`,
   usePlugins: ['namedButtons'],
   pluginConfig: {
     namedButtons: {
