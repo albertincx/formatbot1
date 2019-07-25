@@ -12,7 +12,7 @@
   },
   "scripts": {
     "precommit": "yarn lint",
-    "start": "NODE_ENV=production node ./src/index.js",
+    "start": "NODE_ENV=production node ./src/bot.js",
     "startold": "cross-env NODE_ENV=production pm2 start ./src/index.js",
     "logsold": "cross-env NODE_ENV=production pm2 logs index",
     "dev": "NODE_ENV=production nodemon ./src/bot.js",
