@@ -66,18 +66,6 @@ class BotHelper {
       return this.sendToUser(msg);
     }
   };
-
-  startCmd(msg, cmd) {
-    // let cmd = text.split(' ')[1];
-    // let params = msg.text.split(cmd)[1];
-    let res = `${cmd}:`;
-    const tasks = [];
-    if (this.isAdmin(msg.chat.id)) {
-      const runcmd = require(`../../service/commands/${cmd}`);
-      tasks.push(runcmd.run({}));
-    }
-    return Promise.all(tasks).then(result => `${res}${result}`);
-  }
 }
 
 module.exports = BotHelper;
