@@ -2,6 +2,7 @@ const TeleBot = require('telebot'); //old
 const BUTTONS = require('./buttons'); //old
 const bot = new TeleBot({
   token: `${process.env.TBTKNHABR}`,
+  webhook: { url: process.env.W_URL },
   usePlugins: ['namedButtons'],
   pluginConfig: {
     namedButtons: {
