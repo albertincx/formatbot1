@@ -2,7 +2,7 @@ const TeleBot = require('telebot'); //old
 const BUTTONS = require('./buttons'); //old
 const bot = new TeleBot({
   token: `${process.env.TBTKNHABR}`,
-  webhook: { url: 'http://formatbot1.herokuapp.com' },
+  // webhook: { url: 'http://formatbot1.herokuapp.com' },
   usePlugins: ['namedButtons'],
   pluginConfig: {
     namedButtons: {
