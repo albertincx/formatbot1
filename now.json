@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "build": {
     "env": {
       "TGADMIN": "@tgadmin",
@@ -8,7 +9,6 @@
   },
   "builds": [
     {
-      "src": "./src/bot.js",
       "use": "@now/node"
     }
   ]
