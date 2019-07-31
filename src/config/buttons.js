@@ -1,17 +1,17 @@
 const BUTTONS = {
   hello: {
-    label: '👋 Настройки',
-    command: '/settings',
+    label: '👋 Help',
+    command: '/help',
   },
   world: {
-    label: '🌍 Status',
-    command: '/status',
+    label: '🌍 Add short link',
+    command: '/addshort',
   },
   hide: {
     label: '⌨️ Hide keyboard',
     command: '/hide',
   },
-  enable: {
+  /*enable: {
     label: 'Включить кликер',
     command: '/enable',
   },
@@ -22,6 +22,6 @@ const BUTTONS = {
   back: {
     label: 'Back',
     command: '/start',
-  },
+  },*/
 };
 module.exports = BUTTONS;

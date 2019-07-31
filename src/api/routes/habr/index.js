@@ -1,13 +1,31 @@
 const messages = require('../../messages/habr');
 const request = require('request');
+const keyboards = require('./keyboards');
+
+const addShrtLnkStatus = {};
 module.exports = (bot, botHelper) => {
-  bot.on('/hello', (msg) => msg.reply.text('Hello command!'));
-  bot.on('/start', (msg) => {
-    return bot.sendMessage(msg.from.id, messages.start()).
+  // bot.on('/hello', (msg) => msg.reply.text('Hello command!'));
+  bot.on(['/start', '/help'], (msg) => {
+    return bot.sendMessage(msg.from.id, messages.start(), keyboards.start(bot)).
         then(() => botHelper.sendAdmin(JSON.stringify(msg.from)));
   });
+  // Hide keyboard
+  bot.on('/hide', msg => {
+    return bot.sendMessage(
+        msg.from.id, 'Type /help to show.',
+        { replyMarkup: 'hide' },
+    );
+  });
+// Hide keyboard
+  bot.on('/addshort', msg => {
+    return bot.sendMessage(msg.from.id, messages.sendMe()).
+        then(() => {
+          addShrtLnkStatus[msg.from.id] = 1;
+          return botHelper.sendAdmin(`link: ${msg.text}`);
+        });
+  });
 
-  function isLinked(text) {
+  function isLinkedText(text) {
     var urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     /*return text.replace(urlRegex, function(url) {
       return '<a href="' + url + '">' + url + '</a>';
@@ -21,6 +39,19 @@ module.exports = (bot, botHelper) => {
       txt = msg.caption;
     }
     if (msg && txt) {
+      let isLinked = isLinkedText(txt);
+      if (addShrtLnkStatus[msg.from.id] === 1) {
+        let mess = '';
+        if (isLinked) {
+        } else {
+          mess = 'Canceled, link not found';
+        }
+        return bot.sendMessage(msg.from.id, mess || messages.thx()).
+            then(() => {
+              delete addShrtLnkStatus[msg.from.id];
+              return botHelper.sendAdmin(`link: ${txt}`);
+            });
+      }
       try {
         const links = txt.match(/http:\/\/amp(.*?)(\n|$)/gi) || [];
         const gr = process.env.TGGROUP;
@@ -38,8 +69,8 @@ module.exports = (bot, botHelper) => {
             }).catch(console.log);
           });
         });
-        console.log(txt);
-        if (isLinked(txt)) {
+        // console.log(txt);
+        if (isLinked) {
           return botHelper.sendToUser(`${txt}`,
               gr, false);
         }
