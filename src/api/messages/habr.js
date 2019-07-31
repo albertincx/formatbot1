@@ -1,5 +1,7 @@
 const File = {
-  start: (filename) => (`добро пожаловать, перешли через "Forward" мне любой пост из канала`),
+  start: (filename) => (`Hi, send to me any message (contains short link): 
+  1. from channel by "Forward". 
+  2. type text`),
 };
 module.exports = File;
 

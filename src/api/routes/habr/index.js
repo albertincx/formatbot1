@@ -6,10 +6,23 @@ module.exports = (bot, botHelper) => {
     return bot.sendMessage(msg.from.id, messages.start()).
         then(() => botHelper.sendAdmin(JSON.stringify(msg.from)));
   });
+
+  function isLinked(text) {
+    var urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    /*return text.replace(urlRegex, function(url) {
+      return '<a href="' + url + '">' + url + '</a>';
+    })*/
+    return text.match(urlRegex);
+  }
+
   bot.on('*', async msg => {
-    if (msg && msg.caption) {
+    let txt = msg.text;
+    if (msg.caption) {
+      txt = msg.caption;
+    }
+    if (msg && txt) {
       try {
-        const links = msg.caption.match(/http:\/\/amp(.*?)(\n|$)/gi);
+        const links = txt.match(/http:\/\/amp(.*?)(\n|$)/gi);
         const gr = process.env.TGGROUP;
         links.map(ll => {
           let l = ll.trim();
@@ -25,6 +38,10 @@ module.exports = (bot, botHelper) => {
             }).catch(console.log);
           });
         });
+        if (isLinked(txt)) {
+          return botHelper.sendToUser(`${txt}`,
+              gr, false);
+        }
       } catch (e) {
         console.log(e);
       }
