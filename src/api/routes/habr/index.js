@@ -22,7 +22,7 @@ module.exports = (bot, botHelper) => {
     }
     if (msg && txt) {
       try {
-        const links = txt.match(/http:\/\/amp(.*?)(\n|$)/gi);
+        const links = txt.match(/http:\/\/amp(.*?)(\n|$)/gi) || [];
         const gr = process.env.TGGROUP;
         links.map(ll => {
           let l = ll.trim();
@@ -38,6 +38,7 @@ module.exports = (bot, botHelper) => {
             }).catch(console.log);
           });
         });
+        console.log(txt);
         if (isLinked(txt)) {
           return botHelper.sendToUser(`${txt}`,
               gr, false);
