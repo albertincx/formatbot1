@@ -11,7 +11,7 @@ const BUTTONS = {
     label: '⌨️ Hide keyboard',
     command: '/hide',
   },
-  /*enable: {
+  /* enable: {
     label: 'Включить кликер',
     command: '/enable',
   },
@@ -22,6 +22,6 @@ const BUTTONS = {
   back: {
     label: 'Back',
     command: '/start',
-  },*/
+  }, */
 };
 module.exports = BUTTONS;

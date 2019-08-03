@@ -15,7 +15,7 @@
     "start": "NODE_ENV=production node ./src/index.js",
     "dev": "NODE_ENV=production nodemon ./src/index.js",
     "command": "NODE_ENV=production node ./src/command.js",
-    "lint": "eslint **/*.js --ignore-path .gitignore --ignore-pattern internals/scripts",
+    "lint": "eslint --ext .js,.json src",
     "lint:fix": "yarn lint -- --fix",
     "lint:watch": "yarn lint -- --watch",
     "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --timeout 20000 --recursive src/api/tests",
