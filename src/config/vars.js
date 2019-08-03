@@ -35,8 +35,8 @@ module.exports = {
     images_pass: process.env.MONGO_PASS_IMAGES,
   },
   user: {
-    uid: parseInt(process.env.UID),
-    gid: parseInt(process.env.GID),
+    uid: parseInt(process.env.UID, 10),
+    gid: parseInt(process.env.GID, 10),
   },
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
   experimental: process.env.EXPERIMENTAL,
