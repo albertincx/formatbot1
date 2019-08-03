@@ -80,6 +80,7 @@
   },
   "devDependencies": {
     "bcryptjs": "2.4.3",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
     "redis-mock": "^0.44.0",
