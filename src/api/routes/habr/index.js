@@ -4,7 +4,6 @@ const keyboards = require('./keyboards');
 
 const addShrtLnkStatus = {};
 module.exports = (bot, botHelper) => {
-  // bot.on('/hello', (msg) => msg.reply.text('Hello command!'));
   bot.on(['/start', '/help'], (msg) => {
     return bot.sendMessage(msg.from.id, messages.start(), keyboards.start(bot)).
         then(() => botHelper.sendAdmin(JSON.stringify(msg.from)));
@@ -27,9 +26,6 @@ module.exports = (bot, botHelper) => {
 
   function isLinkedText(text) {
     var urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    /*return text.replace(urlRegex, function(url) {
-      return '<a href="' + url + '">' + url + '</a>';
-    })*/
     return text.match(urlRegex);
   }
 
@@ -69,7 +65,6 @@ module.exports = (bot, botHelper) => {
             }).catch(console.log);
           });
         });
-        // console.log(txt);
         if (isLinked) {
           return botHelper.sendToUser(`${txt}`,
               gr, false);

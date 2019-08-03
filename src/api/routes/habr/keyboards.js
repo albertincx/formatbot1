@@ -37,7 +37,6 @@ function successType(bot, key, type) {
   let arrows = [arrowQ];
   const keyBoard = [
     arrows,
-    // [arrowS]
   ];
   if (type === 't') {
     let arrowS = bot.inlineButton('Сгенерировать задания',
