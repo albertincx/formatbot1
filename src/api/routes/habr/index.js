@@ -5,6 +5,12 @@ const keyboards = require('./keyboards');
 
 const addShrtLnkStatus = {};
 
+function isLinkedText(text) {
+  const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
+
+  return text.match(urlRegex);
+}
+
 module.exports = (bot, botHelper) => {
   bot.on(
     ['/start', '/help'],
@@ -25,12 +31,6 @@ module.exports = (bot, botHelper) => {
       addShrtLnkStatus[msg.from.id] = 1;
       return botHelper.sendAdmin(`link: ${msg.text}`);
     }));
-
-  function isLinkedText(text) {
-    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
-
-    return text.match(urlRegex);
-  }
 
   bot.on('*', async (msg) => {
     let txt = msg.text;
@@ -57,12 +57,8 @@ module.exports = (bot, botHelper) => {
         links.map((link) => {
           const changedLink = link.trim();
           const newRequest = request(changedLink);
-          // const headers = {};
-
           return newRequest.on('response', (response) => {
-            // headers = response.headers;
             newRequest.abort();
-
             return botHelper.sendToUser(
               `${response.request.uri.href} `,
               group,

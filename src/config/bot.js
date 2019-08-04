@@ -1,9 +1,9 @@
-const TeleBot = require('telebot'); // old
+const TeleBot = require('telebot');
+
 const BUTTONS = require('./buttons');
-// old
+
 const bot = new TeleBot({
   token: `${process.env.TBTKNHABR}`,
-  // webhook: { url: 'http://formatbot1.herokuapp.com' },
   usePlugins: ['namedButtons'],
   pluginConfig: {
     namedButtons: {
@@ -11,6 +11,4 @@ const bot = new TeleBot({
     },
   },
 });
-const botName = 'fotobank';
-bot.botName = botName;
 module.exports = bot;
