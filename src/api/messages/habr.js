@@ -1,9 +1,8 @@
-const File = {
-  start: (filename) => (`Hi, send to me any message (contains short link): 
-  1. from channel by "Forward". 
-  2. type text`),
-  thx: () => (`Thank you!`),
-  sendMe: () => (`Send me any short link`),
-};
-module.exports = File;
+module.exports = {
+  start: () => `Hi, send me any message which contains a short links:
 
+- From a channel/group by "Forward" a message links.
+- By a direct text message links to me.`,
+  thx: () => 'Thank you!',
+  sendMe: () => 'Send me any short link',
+};

@@ -6,7 +6,7 @@ module.exports = (bot) => {
   const botHelper = new BotHelper(bot);
   const ha = require('./habr');
   ha(bot, botHelper);
-  bot.on('/srv', msg => msg.reply.text(JSON.stringify(msg)));
+  bot.on('/srv', msg => botHelper.sendAdmin(`link: ${JSON.stringify(msg)}`));
   bot.start();
   botHelper.botMes(AL_ID, 'started');
   return router;
