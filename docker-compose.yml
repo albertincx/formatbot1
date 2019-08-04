@@ -3,42 +3,11 @@ services:
   nodebot:
     image: node:11
     restart: always
-#    user: "${UID}:${GID}"
     working_dir: /app
     environment:
       - NODE_ENV=production
-      - TGBOTTOKEN=${TBTKN}
     volumes:
       - ./:/app
     ports:
       - 47417:3000
     command: tail -f /dev/null
-    links:
-      - mongodb
-  nodebothabr:
-    image: node:11
-    restart: always
-    #    user: "${UID}:${GID}"
-    working_dir: /app
-    environment:
-      - NODE_ENV=production
-      - TGBOTTOKEN=${TBTKNHABR}
-    volumes:
-      - ./:/app
-    command: tail -f /dev/null
-    links:
-      - mongodb
-  mongodb:
-    image: mongo:latest
-    environment:
-      - MONGO_DATA_DIR=/data/db
-      - MONGO_LOG_DIR=/dev/null
-    restart: always
-    volumes:
-      - ./data/mongodb:/data/db
-      - ./data/backup:/data/backup
-      - './data/conf/mongod.conf:/etc/mongod.conf'
-      - ./data/logs/mongodb:/var/log/mongodb
-    ports:
-      - '47027:27017'
-    command: mongod --smallfiles --logpath=/dev/null # --quiet
