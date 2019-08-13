@@ -11,6 +11,8 @@ function isLinkedText(text) {
   return text.match(urlRegex);
 }
 
+const sites = require('./sites');
+
 module.exports = (bot, botHelper) => {
   bot.on(
     ['/start', '/help'],
@@ -50,9 +52,14 @@ module.exports = (bot, botHelper) => {
             return botHelper.sendAdmin(`link: ${txt}`);
           });
       }
+      const group = process.env.TGGROUP;
+
       try {
-        const links = txt.match(/http:\/\/amp(.*?)(\n|$)/gi) || [];
-        const group = process.env.TGGROUP;
+        let links = [];
+        sites.map(reg => {
+          const l = txt.match(reg) || [];
+          links = links.concat(l);
+        });
 
         links.map((link) => {
           const changedLink = link.trim();
