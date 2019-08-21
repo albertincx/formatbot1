@@ -11,6 +11,6 @@ module.exports = (bot) => {
   ha(bot, botHelper);
   bot.on('/srv', msg => botHelper.sendAdmin(`link: ${JSON.stringify(msg)}`));
   bot.start();
-  botHelper.botMes(AL_ID, 'started');
+  botHelper.botMes(AL_ID, 'started' + `👍🏻`);
   return router;
 };
