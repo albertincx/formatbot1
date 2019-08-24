@@ -60,6 +60,7 @@
     "starter project"
   ],
   "dependencies": {
+    "@postlight/mercury-parser": "^2.1.1",
     "bluebird": "^3.5.3",
     "co": "^4.6.0",
     "cors": "^2.8.5",
