@@ -37,7 +37,8 @@ module.exports = (bot, botHelper) => {
 
   bot.on('*', async (msg) => {
     let txt = msg.text;
-
+    const { reply_to_message } = msg;
+    if (reply_to_message) return;
     if (msg.caption) {
       txt = msg.caption;
     }
