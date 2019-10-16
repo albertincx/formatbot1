@@ -1,5 +1,5 @@
-// const fs = require('fs');
 const Mercury = require('@postlight/mercury-parser');
+const sanitizeHtml = require('sanitize-html');
 
 exports.get = async (req, res, next) => {
   const { url, json } = req.query;
@@ -7,17 +7,15 @@ exports.get = async (req, res, next) => {
     return res.json({ msg: 'no url' });
   }
   try {
-    return Mercury.parse(url).then(result => {
-      if (json) {
-        return res.json(result);
-      }
-      // console.log(result);
-      return res.send(result.content);
-
-    });
-    /*then(result => fs.writeFileSync('./app/site.json',
-        JSON.stringify(result), 'utf8'));*/
-    // then(() => console.log(`${execSync('python3 app/pip.py')}`));
+    const result = await Mercury.parse(url);
+    if (json) {
+      return res.json(result);
+    }
+    let c = result.content;
+    if (c.length > 65000) {
+      c = sanitizeHtml(c);
+    }
+    return res.send(c);
   } catch (e) {
     next(e);
   }
