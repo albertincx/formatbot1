@@ -8,13 +8,17 @@ const make = async (url, isJson = false, san = false) => {
     return result;
   }
   let { title, content } = result;
-  if (content.length > 65000 || san) {
+  if (content && (content.length > 65000 || san)) {
     content = sanitizeHtml(content);
+  } else {
+    content = '';
   }
-  content = sanitizeHtmlForce(content);
+  if (content) {
+    content = sanitizeHtmlForce(content);
+  }
   return {
     title,
-    content
+    content,
   };
 };
 
