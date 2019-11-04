@@ -44,7 +44,7 @@ function domToNode(domNode) {
   return nodeElement;
 }
 
-exports.makeIvLink = async (txt, msg, isLinked, tg) => {
+exports.makeIvLink = async (txt, msg, linkFromText, tg) => {
   try {
     let links = [];
     sites.map(reg => {
@@ -54,8 +54,8 @@ exports.makeIvLink = async (txt, msg, isLinked, tg) => {
     let link;
     if (links.length) {
       link = await getFromShort(links[0]);
-    } else if (isLinked.length) {
-      link = isLinked[0];
+    } else if (linkFromText) {
+      link = linkFromText;
     }
     if (tg) {
       const { title, content } = await make(link, false, true);
