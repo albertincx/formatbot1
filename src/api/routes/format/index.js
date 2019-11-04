@@ -65,6 +65,7 @@ module.exports = (bot, botHelper) => {
               message.message_id,
             ))
             .catch(error => console.log(error));
+          botHelper.sendAdmin(`orig: ${txt}`);
         } else if (isLinked) {
           botHelper.sendToUser(`${txt}`, group, false);
         }
