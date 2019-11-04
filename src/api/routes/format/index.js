@@ -41,10 +41,14 @@ module.exports = (bot, botHelper) => {
       txt = msg.caption;
     }
     if (msg && txt) {
-      const isLinked = isLinkedText(txt);
+      const linksFromText = isLinkedText(txt);
+      let linkFromText = '';
+      if (linksFromText && linksFromText.length) {
+        linkFromText = linksFromText[0];
+      }
       const tgph = botHelper.config.telegraph === 'On';
       if (addShrtLnkStatus[msg.from.id] === 1) {
-        const mess = isLinked ? '' : 'Canceled, link not found';
+        const mess = linkFromText ? '' : 'Canceled, link not found';
 
         bot.sendMessage(msg.from.id, mess || messages.thx())
           .then(() => {
@@ -52,7 +56,7 @@ module.exports = (bot, botHelper) => {
             return botHelper.sendAdmin(`link: ${txt}`);
           });
       } else {
-        const link = await controller.makeIvLink(txt, msg, isLinked, tgph);
+        const link = await controller.makeIvLink(txt, msg, linkFromText, tgph);
         if (link) {
           botHelper.sendToUser(
             `${link} `,
@@ -65,7 +69,8 @@ module.exports = (bot, botHelper) => {
               message.message_id,
             ))
             .catch(error => console.log(error));
-        } else if (isLinked) {
+          botHelper.sendAdmin(`orig: ${txt}`);
+        } else if (linkFromText) {
           botHelper.sendToUser(`${txt}`, group, false);
         }
       }
