@@ -1,6 +1,6 @@
 {
   "name": "express-rest-es2017-boilerplate",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Express boilerplate for building RESTful APIs",
   "author": "Daniel Sousa <sousa.dfs@gmail.com>",
   "main": "src/index.js",
@@ -72,16 +72,16 @@
     "express-rate-limit": "^5.0.0",
     "http-status": "^1.4.0",
     "https-proxy-agent": "^3.0.1",
+    "isomorphic-fetch": "^2.2.1",
     "jsbn": "^1.1.0",
     "node-fetch": "^2.6.0",
     "puppeteer": "^2.0.0",
-    "request": "^2.88.0",
     "sanitize-html": "^1.20.1",
     "socks-proxy-agent": "^4.0.2",
     "socks5-http-client": "^1.0.4",
     "telebot": "^1.2.6",
     "uniqid": "^5.1.0",
-    "jsdom": "^15.2.1"
+    "xmldom": "^0.1.27"
   },
   "devDependencies": {
     "bcryptjs": "2.4.3",
