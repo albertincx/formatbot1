@@ -80,7 +80,7 @@
     "socks-proxy-agent": "^4.0.2",
     "socks5-http-client": "^1.0.4",
     "telebot": "^1.2.6",
-    "uniqid": "^5.0.3",
+    "uniqid": "^5.1.0",
     "jsdom": "^15.2.1"
   },
   "devDependencies": {

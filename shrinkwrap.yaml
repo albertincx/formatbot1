@@ -20,7 +20,7 @@ dependencies:
   socks-proxy-agent: 4.0.2
   socks5-http-client: 1.0.4
   telebot: 1.2.6
-  uniqid: 5.0.3
+  uniqid: 5.1.0
 devDependencies:
   bcryptjs: 2.4.3
   eslint: 5.16.0
@@ -2847,10 +2847,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
-  /uniqid/5.0.3:
+  /uniqid/5.1.0:
     dev: false
     resolution:
-      integrity: sha512-R2qx3X/LYWSdGRaluio4dYrPXAJACTqyUjuyXHoJLBUOIfmMcnYOyY2d6Y4clZcIz5lK6ZaI0Zzmm0cPfsIqzQ==
+      integrity: sha512-iBt38h8uFnbDFrRK4E7vdzjtynBii5aSwGZ27gle7xnbYSIZzJ5x5BqughgUvMNCZ1cMhtnpcF+w7XGbqm6d9Q==
   /unpipe/1.0.0:
     dev: false
     engines:
@@ -3076,4 +3076,4 @@ specifiers:
   socks5-https-client: ^1.2.1
   supertest: ^4.0.2
   telebot: ^1.2.6
-  uniqid: ^5.0.3
+  uniqid: ^5.1.0
