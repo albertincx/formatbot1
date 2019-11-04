@@ -1,5 +1,6 @@
 const request = require('request');
 const jsdom = require('jsdom');
+const fs = require('fs');
 const { JSDOM } = jsdom;
 const { make } = require('./mercury.controller');
 const makeTelegaph = require('../utils/makeTelegaph');
@@ -57,10 +58,16 @@ exports.makeIvLink = async (txt, msg, linkFromText, tg) => {
     } else if (linkFromText) {
       link = linkFromText;
     }
-    if (tg) {
+    if (tg && link) {
       const { title, content } = await make(link, false, true);
+      if (process.env.DEV) {
+        fs.writeFileSync('.conf/config2.json', content);
+      }
       let dom = new JSDOM(`<!DOCTYPE html>${content}`);
       dom = domToNode(dom.window.document.body).children;
+      if (process.env.DEV) {
+        fs.writeFileSync('.conf/config3.json', JSON.stringify(dom));
+      }
       const d = await makeTelegaph(title, JSON.stringify(dom));
       return d;
     }
