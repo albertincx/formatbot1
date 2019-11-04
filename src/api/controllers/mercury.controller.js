@@ -44,7 +44,7 @@ exports.get = async (req, res, next) => {
     return res.json({ msg: 'no url' });
   }
   try {
-    const { title, content: c } = await make(url, json);
+    const { content: c } = await make(url, json);
     if (json) {
       return res.json(c);
     }
