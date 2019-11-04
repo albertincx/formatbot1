@@ -1,5 +1,6 @@
 const Mercury = require('@postlight/mercury-parser');
 const sanitizeHtml = require('sanitize-html');
+const sanitizeHtmlForce = require('../utils/sanitize');
 
 const make = async (url, isJson = false, san = false) => {
   const result = await Mercury.parse(url);
@@ -10,6 +11,7 @@ const make = async (url, isJson = false, san = false) => {
   if (content.length > 65000 || san) {
     content = sanitizeHtml(content);
   }
+  content = sanitizeHtmlForce(content);
   return {
     title,
     content
