@@ -17,7 +17,7 @@ const make = async (url, isJson = false, san = false) => {
   if (process.env.DEV) {
     fs.writeFileSync('.conf/config4.html', content);
   }
-  const imgs1 = imgs(content);
+  const imgs1 = imgs(content) || [];
   for (let img of imgs1) {
     content = content.replace(img, '##@#IMG#@##');
   }
