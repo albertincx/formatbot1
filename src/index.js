@@ -13,7 +13,6 @@ app.get('/', (req, res) => res.json({ code: 200 }));
 app.use('/mercury', mercury);
 
 if (!process.env.NOBOT) {
-  // console.log('BOT START');
   const bot = require('./config/bot');
   app.use('/bot', botroute(bot));
 }
