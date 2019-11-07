@@ -1,21 +1,9 @@
-const request = require('request');
 const jsdom = require('jsdom');
-const fs = require('fs');
-const { JSDOM } = jsdom;
 const { make } = require('./mercury.controller');
 const makeTelegaph = require('../utils/makeTelegaph');
-const sites = require('../routes/format/sites');
+const logger = require('../utils/logger');
 
-function getFromShort(link) {
-  const changedLink = link.trim();
-  return new Promise((resolve) => {
-    const newRequest = request(changedLink);
-    newRequest.on('response', (response) => {
-      newRequest.abort();
-      resolve(response.request.uri.href);
-    });
-  });
-}
+const { JSDOM } = jsdom;
 
 function domToNode(domNode) {
   if (domNode.nodeType == domNode.TEXT_NODE) {
@@ -45,34 +33,17 @@ function domToNode(domNode) {
   return nodeElement;
 }
 
-exports.makeIvLink = async (txt, msg, linkFromText, tg) => {
-  try {
-    let links = [];
-    sites.map(reg => {
-      const l = txt.match(reg) || [];
-      links = links.concat(l);
-    });
-    let link;
-    if (links.length) {
-      link = await getFromShort(links[0]);
-    } else if (linkFromText) {
-      link = linkFromText;
-    }
-    if (tg && link) {
-      const { title, content } = await make(link, false, true);
-      if (process.env.DEV) {
-        fs.writeFileSync('.conf/config2.json', content);
-      }
-      let dom = new JSDOM(`<!DOCTYPE html>${content}`);
-      dom = domToNode(dom.window.document.body).children;
-      if (process.env.DEV) {
-        fs.writeFileSync('.conf/config3.json', JSON.stringify(dom));
-      }
-      const d = await makeTelegaph(title, JSON.stringify(dom));
-      return d;
-    }
-    return link;
-  } catch (error) {
-    console.log(error);
+const makeIvLink = async (link) => {
+  let telegraphLink = '';
+  const { title, content } = await make(link, false, true);
+  let dom = new JSDOM(`<!DOCTYPE html>${content}`);
+  const domEd = domToNode(dom.window.document.body).children;
+  dom = JSON.stringify(domEd);
+  logger(dom, 'domed.html');
+  if (dom && dom.length) {
+    logger(`domed ${dom.length}`);
+    telegraphLink = await makeTelegaph(title, dom);
   }
+  return telegraphLink;
 };
+exports.makeIvLink = makeIvLink;
