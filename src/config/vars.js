@@ -10,9 +10,6 @@ module.exports = {
   env: process.env.NODE_ENV,
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
   DEV_API: process.env.DEV_API || '',
-<<<<<<< HEAD
-=======
   PORT: process.env.PORT || 5000,
   NOBOT: process.env.NOBOT || '',
->>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
 };

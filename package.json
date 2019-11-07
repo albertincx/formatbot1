@@ -1,15 +1,8 @@
 {
-<<<<<<< HEAD
-  "name": "express-rest-es2017-boilerplate",
-  "version": "1.7.2",
-  "description": "Express boilerplate for building RESTful APIs",
-  "author": "Daniel Sousa <sousa.dfs@gmail.com>",
-=======
   "name": "InstantViewBot",
   "version": "1.0.0",
   "description": "Telegram Bot For InstantView",
   "author": "Al <albertincx@gmail.com>",
->>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
   "main": "src/index.js",
   "private": false,
   "license": "MIT",
@@ -20,36 +13,11 @@
   "scripts": {
     "precommit": "yarn lint",
     "start": "NODE_ENV=production node ./src/index.js",
-<<<<<<< HEAD
-    "dev": "NODE_ENV=production nodemon ./src/index.js",
-    "command": "NODE_ENV=production node ./src/command.js",
-    "lint": "eslint --ext .js,.json src",
-    "lint:fix": "yarn lint -- --fix",
-    "lint:watch": "yarn lint -- --watch",
-    "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --timeout 20000 --recursive src/api/tests",
-    "test:unit": "cross-env NODE_ENV=test mocha --require babel-register --compilers js:babel-core/register src/api/tests/unit",
-    "test:integration": "cross-env NODE_ENV=test mocha --require babel-register --compilers js:babel-core/register --timeout 20000 src/api/tests/integration",
-    "test:watch": "cross-env NODE_ENV=test mocha --require babel-register --compilers js:babel-core/register --watch src/api/tests/unit",
-    "postcoverage": "opn coverage/lcov-report/index.html",
-    "validate": "yarn lint && yarn test",
-    "postpublish": "git push --tags",
-    "deploy": "sh ./deploy.sh",
-    "docs": "apidoc -i src -o ./public/docs",
-    "docker:start": "cross-env NODE_ENV=production pm2-docker start ./src/index.js",
-    "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
-    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
-    "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:danielfsousa/express-rest-es2017-boilerplate.git"
-=======
     "dev": "NODE_ENV=production nodemon ./src/index.js"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:/albertincx/formatbot1.git"
->>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
   },
   "keywords": [
     "express",
@@ -75,24 +43,6 @@
     "starter project"
   ],
   "dependencies": {
-<<<<<<< HEAD
-    "@postlight/mercury-parser": "^2.2.0",
-    "bluebird": "^3.7.1",
-    "co": "^4.6.0",
-    "cors": "^2.8.5",
-    "cron": "^1.7.2",
-    "cross-env": "^6.0.3",
-    "date-format": "^3.0.0",
-    "dotenv-safe": "^8.1.0",
-    "express": "^4.16.4",
-    "express-rate-limit": "^5.0.0",
-    "http-status": "^1.4.0",
-    "https-proxy-agent": "^3.0.1",
-    "isomorphic-fetch": "^2.2.1",
-    "jsbn": "^1.1.0",
-    "node-fetch": "^2.6.0",
-    "puppeteer": "^2.0.0",
-=======
     "@postlight/mercury-parser": "^2.1.1",
     "amqplib": "^0.5.5",
     "bluebird": "^3.5.3",
@@ -110,16 +60,11 @@
     "jsbn": "^1.1.0",
     "node-fetch": "^2.3.0",
     "puppeteer": "^1.19.0",
->>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
     "sanitize-html": "^1.20.1",
     "socks-proxy-agent": "^4.0.2",
     "socks5-http-client": "^1.0.4",
     "telebot": "^1.2.6",
-<<<<<<< HEAD
-    "uniqid": "^5.1.0",
-=======
     "uniqid": "^5.0.3",
->>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
@@ -131,8 +76,4 @@
     "socks5-https-client": "^1.2.1",
     "supertest": "^4.0.2"
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
