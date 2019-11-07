@@ -8,7 +8,7 @@ function imgs(content) {
   return content.match(urlRegex);
 }
 
-const make = async (url, isJson = false, san = false) => {
+const parse = async (url, isJson = false, san = false) => {
   let result = '';
   try {
     result = await Mercury.parse(url);
@@ -60,7 +60,7 @@ exports.get = async (req, res, next) => {
     return res.json({ msg: 'no url' });
   }
   try {
-    const { content: c } = await make(url, json);
+    const { content: c } = await parse(url, json);
     if (json) {
       return res.json(c);
     }
@@ -70,4 +70,4 @@ exports.get = async (req, res, next) => {
   }
 };
 
-exports.make = (u, j, s) => make(u, j, s);
+exports.parse = (u, j, s) => parse(u, j, s);
