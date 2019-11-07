@@ -1,11 +1,11 @@
 const fetch = require('isomorphic-fetch');
 
-const makeTelegraph = async (article, content) => {
+const makeTelegraph = async ({ title, url }, content) => {
   const body = {
     access_token: process.env.TGPHTOKEN,
-    title: article,
-    author_name: 'FormatBot',
-    author_url: 'https://t.me/CorsaBot',
+    title,
+    author_name: 'From',
+    author_url: url,
     content,
     return_content: false,
   };

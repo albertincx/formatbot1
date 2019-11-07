@@ -67,18 +67,22 @@ module.exports = (bot, botHelper) => {
       } else {
         const link = await findLink(text, sites) || firstLink;
         if (link) {
-          const { message_id } = await botHelper.sendToUser('Waiting for instantView...', chatId);
-          const rabbitMes = {
-            message_id,
-            link,
-            chatId,
-          };
-          await rchannel.sendToQueue('tasks',
-            Buffer.from(JSON.stringify(rabbitMes)), {
-              contentType: 'application/json',
-              persistent: true,
-            });
-          botHelper.sendAdmin(`orig: ${text}`);
+          try {
+            const { message_id } = await botHelper.sendToUser('Waiting for instantView...', chatId);
+            const rabbitMes = {
+              message_id,
+              link,
+              chatId,
+            };
+            await rchannel.sendToQueue('tasks',
+              Buffer.from(JSON.stringify(rabbitMes)), {
+                contentType: 'application/json',
+                persistent: true,
+              });
+            botHelper.sendAdmin(`orig: ${text}`);
+          } catch (e) {
+            botHelper.sendAdmin(`error: ${e}`);
+          }
         } else if (firstLink) {
           botHelper.sendToUser(`${text}`, group, false);
         }
