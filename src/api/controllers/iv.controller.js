@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const request = require('request');
 const jsdom = require('jsdom');
 const fs = require('fs');
@@ -16,6 +17,14 @@ function getFromShort(link) {
     });
   });
 }
+=======
+const jsdom = require('jsdom');
+const { make } = require('./mercury.controller');
+const makeTelegaph = require('../utils/makeTelegaph');
+const logger = require('../utils/logger');
+
+const { JSDOM } = jsdom;
+>>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
 
 function domToNode(domNode) {
   if (domNode.nodeType == domNode.TEXT_NODE) {
@@ -45,6 +54,7 @@ function domToNode(domNode) {
   return nodeElement;
 }
 
+<<<<<<< HEAD
 exports.makeIvLink = async (txt, msg, linkFromText, tg) => {
   try {
     let links = [];
@@ -76,3 +86,19 @@ exports.makeIvLink = async (txt, msg, linkFromText, tg) => {
     console.log(error);
   }
 };
+=======
+const makeIvLink = async (link) => {
+  let telegraphLink = '';
+  const { title, content } = await make(link, false, true);
+  let dom = new JSDOM(`<!DOCTYPE html>${content}`);
+  const domEd = domToNode(dom.window.document.body).children;
+  dom = JSON.stringify(domEd);
+  logger(dom, 'domed.html');
+  if (dom && dom.length) {
+    logger(`domed ${dom.length}`);
+    telegraphLink = await makeTelegaph(title, dom);
+  }
+  return telegraphLink;
+};
+exports.makeIvLink = makeIvLink;
+>>>>>>> 93256cf33bd782082c910abb27f225e7ca8dc5af
