@@ -93,7 +93,7 @@ module.exports = (bot, botHelper) => {
         chatId,
         messageId,
       }, `[InstantView](${iVlink}) from [Source](${link})`, { parseMode: 'Markdown' });
-      await bot.forwardMessage(chatId, group, messageId);
+      await bot.forwardMessage(group, chatId, messageId);
     } catch (e) {
       console.log(e);
       return botHelper.sendAdmin(`broken link ${link} ${e.toString()}`);
