@@ -79,7 +79,7 @@ module.exports = (bot, botHelper) => {
                 contentType: 'application/json',
                 persistent: true,
               });
-            botHelper.sendAdmin(`orig: ${text}`);
+            botHelper.sendAdmin(`[orig](${text})`);
           } catch (e) {
             botHelper.sendAdmin(`error: ${e}`);
           }
