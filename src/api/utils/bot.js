@@ -18,14 +18,11 @@ class BotHelper {
 
   botMes(chatId, text, mark = true) {
     let opts = {};
-    if (parseInt(chatId, 10) < 0 && mark) {
+    if (mark) {
       opts = { parseMode: 'Markdown' };
     }
     return this.bot.sendMessage(chatId, text, opts)
-      .catch(e => {
-        console.log(e, chatId, text);
-        return this.sendAdmin(JSON.stringify(e));
-      });
+      .catch(e => this.sendAdmin(JSON.stringify(e)));
   }
 
   sendAdmin(text) {
