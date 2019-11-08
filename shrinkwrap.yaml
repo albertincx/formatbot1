@@ -74,7 +74,7 @@ packages:
       iconv-lite: 0.5.0
       moment: 2.24.0
       moment-parseformat: 3.0.0
-      postman-request: 2.88.1-postman.15
+      postman-request: 2.88.1-postman.16
       request-promise: 4.2.5
       string-direction: 0.1.2
       turndown: 5.0.3
@@ -2012,7 +2012,7 @@ packages:
       node: '>=6.0.0'
     resolution:
       integrity: sha512-uIFtJElxJo29QC753JzhidoAhvp/e/Exezkdhfmt8AymWT6/5B7W1WmponYWkHk2eg6sONyTch0A3nkMPun3SQ==
-  /postman-request/2.88.1-postman.15:
+  /postman-request/2.88.1-postman.16:
     dependencies:
       '@postman/tunnel-agent': 0.6.3
       aws-sign2: 0.7.0
@@ -2040,7 +2040,7 @@ packages:
     engines:
       node: '>= 6'
     resolution:
-      integrity: sha512-g319MZ0BDZ8efpyZYyJQ3f2b+hHX0InvDUXzMNuO+CHoxx+wbo6+iKgG1+1ReZ2sKxTUINbrHSSMqB+t1XCcHQ==
+      integrity: sha512-qXIK9aQ8JzAZA/VBWtyajEdAQNbPuVVRXuzhzXUuPcdaFYeZgj2PUZXkml6KhGB8zg8FP6/l53gHLA56IRV7Cw==
   /postman-url-encoder/1.0.1:
     dev: false
     resolution:
@@ -2991,7 +2991,7 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
-  '@postlight/mercury-parser': ^2.1.1
+  '@postlight/mercury-parser': 2.2.0
   amqplib: ^0.5.5
   bcryptjs: 2.4.3
   bluebird: ^3.5.3
