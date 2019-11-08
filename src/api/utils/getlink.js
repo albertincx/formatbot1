@@ -2,11 +2,15 @@ const request = require('request');
 
 function getFromShort(link) {
   const changedLink = link.trim();
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const newRequest = request(changedLink);
     newRequest.on('response', (response) => {
       newRequest.abort();
       resolve(response.request.uri.href);
+    });
+    newRequest.on('error', (response) => {
+      newRequest.abort();
+      reject(response.request.uri.href);
     });
   });
 }
