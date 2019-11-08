@@ -4,10 +4,10 @@ const sanitizeHtmlForce = require('../utils/sanitize');
 const logger = require('../utils/logger');
 const imgFixer = require('../utils/fixImages');
 
-const parse = async (url, isJson = false, san = false) => {
+const parse = async (userUrl, isJson = false, san = false) => {
   let result = '';
   try {
-    result = await Mercury.parse(url);
+    result = await Mercury.parse(userUrl);
   } catch (e) {
     return {
       title: '',
@@ -17,7 +17,7 @@ const parse = async (url, isJson = false, san = false) => {
   if (isJson) {
     return result;
   }
-  let { title, content } = result;
+  let { title, content, url: source } = result;
   if (content) {
     logger(content, 'mercury.html');
     const imgs = imgFixer.findImages(content);
@@ -39,6 +39,7 @@ const parse = async (url, isJson = false, san = false) => {
   return {
     title,
     content,
+    source,
   };
 };
 
