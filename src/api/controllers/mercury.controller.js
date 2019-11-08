@@ -2,11 +2,7 @@ const Mercury = require('@postlight/mercury-parser');
 const sanitizeHtml = require('sanitize-html');
 const sanitizeHtmlForce = require('../utils/sanitize');
 const logger = require('../utils/logger');
-
-function imgs(content) {
-  const urlRegex = /<img [^>]+\/?>/g;
-  return content.match(urlRegex);
-}
+const imgFixer = require('../utils/fixImages');
 
 const parse = async (url, isJson = false, san = false) => {
   let result = '';
@@ -22,31 +18,23 @@ const parse = async (url, isJson = false, san = false) => {
     return result;
   }
   let { title, content } = result;
-
-  logger(content, 'mercury.html');
-
-  const imgs1 = imgs(content) || [];
-  for (let img of imgs1) {
-    content = content.replace(img, '##@#IMG#@##');
-  }
-
-  logger(`before san ${content.length}`);
-
-  if (content && (content.length > 65000 || san)) {
-    content = sanitizeHtml(content);
-  } else {
-    content = '';
-  }
   if (content) {
+    logger(content, 'mercury.html');
+    const imgs = imgFixer.findImages(content);
+    imgFixer.replaceImages(content, imgs);
+
+    logger(`before san ${content.length}`);
+
+    if ((content.length > 65000 || san)) {
+      content = sanitizeHtml(content);
+    } else {
+      content = '';
+    }
     content = sanitizeHtmlForce(content);
+    imgFixer.restoreImages(content, imgs);
+    logger(content, 'tg_content.html');
+    logger(`after san ${content.length}`);
   }
-
-  for (let img of imgs1) {
-    content = content.replace('##@#IMG#@##', img);
-  }
-
-  logger(content, 'tg_content.html');
-  logger(`after san ${content.length}`);
 
   return {
     title,
@@ -70,4 +58,4 @@ exports.get = async (req, res, next) => {
   }
 };
 
-exports.parse = (u, j, s) => parse(u, j, s);
+module.exports.parse = parse;

@@ -1,5 +1,5 @@
 const jsdom = require('jsdom');
-const { parse } = require('./mercury.controller');
+const parser = require('./mercury.controller');
 const makeTelegaph = require('../utils/makeTelegaph');
 const logger = require('../utils/logger');
 
@@ -35,7 +35,9 @@ function domToNode(domNode) {
 
 const makeIvLink = async (url) => {
   let telegraphLink = '';
-  const { title, content } = await parse(url, false, true);
+  const { title, content } = await parser.parse(url, false, true);
+  if (!content) throw 'empty content';
+
   let dom = new JSDOM(`<!DOCTYPE html>${content}`);
   const domEd = domToNode(dom.window.document.body).children;
   dom = JSON.stringify(domEd);
@@ -47,6 +49,7 @@ const makeIvLink = async (url) => {
       url
     }, dom);
   }
+  if (!telegraphLink) throw 'empty ivlink';
   return telegraphLink;
 };
 exports.makeIvLink = makeIvLink;

@@ -95,15 +95,23 @@ module.exports = (bot, botHelper) => {
   });
 
   const jobMessage = async ({ chatId, message_id: messageId, link }) => {
+    let error = '';
+    let RESULT = 'Sorry Your link is broken, restricted, or not found, or forbidden';
     try {
       const iVlink = await controller.makeIvLink(link);
-      await bot.editMessageText({
-        chatId,
-        messageId,
-      }, `[InstantView](${iVlink}) from [Source](${link})`, { parseMode: 'Markdown' });
-      await bot.forwardMessage(group, chatId, messageId);
+      RESULT = `[InstantView](${iVlink}) from [Source](${link})`;
     } catch (e) {
-      return botHelper.sendAdmin(`broken link ${link} ${e}`);
+      error = `broken [link](${link}) ${e}`;
+    }
+    const user = {
+      chatId,
+      messageId,
+    };
+    await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
+    if (!error) {
+      await bot.forwardMessage(group, chatId, messageId);
+    } else {
+      botHelper.sendAdmin(error);
     }
   };
 
