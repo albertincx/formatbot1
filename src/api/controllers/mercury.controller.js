@@ -44,7 +44,9 @@ const parse = async (userUrl, isJson = false, san = false) => {
     }
     content = sanitizeHtmlForce(content);
     content = imgFixer.restoreImages(content, imgs);
-    content = imgFixer.insertYoutube(content, iframe);
+    if (iframe && Array.isArray(iframe)) {
+      content = imgFixer.insertYoutube(content, iframe);
+    }
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
   }
