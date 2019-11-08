@@ -1,6 +1,6 @@
 const amqp = require('amqplib');
 
-const start = async (botHelper, job) => {
+const start = async (job) => {
   const connection = await amqp.connect(process.env.MESSAGE_QUEUE);
 
   const channel = await connection.createChannel();

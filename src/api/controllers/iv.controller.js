@@ -35,7 +35,7 @@ function domToNode(domNode) {
 
 const makeIvLink = async (url) => {
   let telegraphLink = '';
-  const { title, content } = await parser.parse(url, false, true);
+  const { title, content, source } = await parser.parse(url, false, true);
   if (!content) throw 'empty content';
 
   let dom = new JSDOM(`<!DOCTYPE html>${content}`);
@@ -44,12 +44,16 @@ const makeIvLink = async (url) => {
   logger(dom, 'domed.html');
   if (dom && dom.length) {
     logger(`domed ${dom.length}`);
-    telegraphLink = await makeTelegaph({
+    const obj = {
       title,
-      url
-    }, dom);
+      url,
+    };
+    telegraphLink = await makeTelegaph(obj, dom);
   }
   if (!telegraphLink) throw 'empty ivlink';
-  return telegraphLink;
+  return {
+    iv: telegraphLink,
+    source,
+  };
 };
 exports.makeIvLink = makeIvLink;
