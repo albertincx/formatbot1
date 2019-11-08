@@ -1,22 +1,17 @@
 const messages = require('../../messages/format');
 const keyboards = require('./keyboards');
-
-const sites = require('./sites');
-const findLink = require('../../utils/getlink');
+const controller = require('../../controllers/iv.controller');
 
 const rabbit = require('../../../service/rabbit');
 const rabbitmq = require('../../../service/rabbitmq');
 
-const controller = require('../../controllers/iv.controller');
-
-const addShrtLnkStatus = {};
 let rchannel = null;
 rabbit.start()
   .then(c => rchannel = c);
 
 function getAllLinks(text) {
   const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
-  return text.match(urlRegex);
+  return text.match(urlRegex) || [];
 }
 
 const group = process.env.TGGROUP;
@@ -36,59 +31,30 @@ module.exports = (bot, botHelper) => {
     { replyMarkup: 'hide' },
   ));
 
-  // Hide keyboard
-  bot.on('/addshort',
-    msg => bot.sendMessage(msg.from.id, messages.sendMe())
-      .then(() => {
-        addShrtLnkStatus[msg.from.id] = 1;
-        return botHelper.sendAdmin(`link: ${msg.text}`);
-      }));
-
   bot.on('*', async (msg) => {
-    let { text, chat: { id: chatId } } = msg;
     const { reply_to_message } = msg;
     if (reply_to_message) return;
-    if (msg.caption) {
-      text = msg.caption;
-    }
+
+    const { chat: { id: chatId }, caption } = msg;
+    let { text } = msg;
+    if (caption) text = caption;
     if (msg && text) {
-      const allLinks = getAllLinks(text);
-      let firstLink = '';
-      if (allLinks && allLinks.length) {
-        firstLink = allLinks[0];
-      }
-      if (addShrtLnkStatus[msg.from.id] === 1) {
-        const mess = firstLink ? '' : 'Canceled, link not found';
-        bot.sendMessage(msg.from.id, mess || messages.thx())
-          .then(() => {
-            delete addShrtLnkStatus[msg.from.id];
-            return botHelper.sendAdmin(`link: ${text}`);
-          });
-      } else {
+      const [link = ''] = getAllLinks(text);
+      if (link) {
         try {
-          const link = await findLink(text, sites) || firstLink;
-          if (link) {
-            try {
-              const { message_id } = await botHelper.sendToUser('Waiting for instantView...', chatId);
-              const rabbitMes = {
-                message_id,
-                link,
-                chatId,
-              };
-              await rchannel.sendToQueue('tasks',
-                Buffer.from(JSON.stringify(rabbitMes)), {
-                  contentType: 'application/json',
-                  persistent: true,
-                });
-              botHelper.sendAdmin(`[orig](${text})`);
-            } catch (e) {
-              botHelper.sendAdmin(`error: ${e}`);
-            }
-          } else if (firstLink) {
-            botHelper.sendToUser(`${text}`, group, false);
-          }
+          const { message_id } = await botHelper.sendToUser('Waiting for instantView...', chatId);
+          const rabbitMes = {
+            message_id,
+            chatId,
+            link,
+          };
+          await rchannel.sendToQueue('tasks',
+            Buffer.from(JSON.stringify(rabbitMes)), {
+              contentType: 'application/json',
+              persistent: true,
+            });
         } catch (e) {
-          botHelper.sendAdmin(`cantreachlink: ${e}`);
+          botHelper.sendAdmin(`error: ${e}`);
         }
       }
     }
@@ -99,8 +65,8 @@ module.exports = (bot, botHelper) => {
     let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
     Or Content Too big (we are working with this)`;
     try {
-      const iVlink = await controller.makeIvLink(link);
-      RESULT = `[InstantView](${iVlink}) from [Source](${link})`;
+      const { iv, source } = await controller.makeIvLink(link);
+      RESULT = `[InstantView](${iv}) from [Source](${source})`;
     } catch (e) {
       error = `broken [link](${link}) ${e}`;
     }
@@ -117,6 +83,6 @@ module.exports = (bot, botHelper) => {
   };
 
   setTimeout(() => {
-    rabbitmq.start(botHelper, jobMessage);
+    rabbitmq.start(jobMessage);
   }, 5000);
 };
