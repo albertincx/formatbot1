@@ -96,7 +96,8 @@ module.exports = (bot, botHelper) => {
 
   const jobMessage = async ({ chatId, message_id: messageId, link }) => {
     let error = '';
-    let RESULT = 'Sorry Your link is broken, restricted, or not found, or forbidden';
+    let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
+    Or Content Too big (we are working with this)`;
     try {
       const iVlink = await controller.makeIvLink(link);
       RESULT = `[InstantView](${iVlink}) from [Source](${link})`;
