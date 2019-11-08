@@ -10,7 +10,7 @@ function getFromShort(link) {
     });
     newRequest.on('error', (response) => {
       newRequest.abort();
-      reject(response.request.uri.href);
+      reject(`cantreach ${link}`);
     });
   });
 }
