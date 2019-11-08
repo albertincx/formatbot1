@@ -9,7 +9,7 @@ const replaceImages = (content, imgs) => {
 
 const findImages = (content) => {
   const urlRegex = /<img [^>]+\/?>/g;
-  return content.match(urlRegex);
+  return content.match(urlRegex) || [];
 };
 
 const restoreImages = (content, imgs) => {
