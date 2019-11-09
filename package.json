@@ -43,7 +43,7 @@
     "starter project"
   ],
   "dependencies": {
-    "@postlight/mercury-parser": "2.2.0",
+    "@postlight/mercury-parser": "^2.2.0",
     "amqplib": "^0.5.5",
     "bluebird": "^3.5.3",
     "co": "^4.6.0",
