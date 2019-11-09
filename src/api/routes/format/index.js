@@ -17,7 +17,7 @@ function getAllLinks(text) {
 const group = process.env.TGGROUP;
 
 module.exports = (bot, botHelper) => {
-  bot.on(['/start', '/help'], async msg => {
+  bot.on(['/start', '/help'], (msg) => {
     let system = JSON.stringify(msg.from);
     try {
       bot.sendMessage(msg.from.id, messages.start(), keyboards.start(bot));

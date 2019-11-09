@@ -21,12 +21,19 @@ class BotHelper {
     if (mark) {
       opts = { parseMode: 'Markdown' };
     }
+
     return this.bot.sendMessage(chatId, text, opts)
-      .catch(e => this.sendAdmin(JSON.stringify(e)));
+      .catch(e => {
+        const o = {
+          chatId,
+          text,
+        };
+        return this.sendAdmin(`${e}${JSON.stringify(o)}`);
+      });
   }
 
   sendAdmin(text) {
-    this.botMes(AL_ID, `service: ${text}`);
+    this.bot.sendMessage(AL_ID, `service: ${text}`);
   }
 
   sendToUser(text, uid, mark = true) {
