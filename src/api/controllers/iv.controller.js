@@ -35,7 +35,7 @@ function domToNode(domNode) {
 
 const makeIvLink = async (url) => {
   let telegraphLink = '';
-  const { title, content, source } = await parser.parse(url, false, true);
+  const { title, content, source } = await parser.parse(url);
   if (!content) throw 'empty content';
 
   let dom = new JSDOM(`<!DOCTYPE html>${content}`);
