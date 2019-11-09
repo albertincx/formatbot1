@@ -5,29 +5,20 @@ const logger = require('../utils/logger');
 const imgFixer = require('../utils/fixImages');
 
 const parse = async (userUrl, isJson = false, san = false) => {
-  let result = '';
-  try {
-    const matches = userUrl.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
-    const domain = matches && matches[1];
-    if (domain) {
-      var customExtractor = {
-        domain,
-        extend: {
-          iframe: {
-            selectors: [['iframe[src*=youtube]', 'src']],
-            allowMultiple: true,
-          },
+  const matches = userUrl.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+  const domain = matches && matches[1];
+  if (domain) {
+    Mercury.addExtractor({
+      domain,
+      extend: {
+        iframe: {
+          selectors: [['iframe[src*=youtube]', 'src']],
+          allowMultiple: true,
         },
-      };
-      Mercury.addExtractor(customExtractor);
-    }
-    result = await Mercury.parse(userUrl);
-  } catch (e) {
-    return {
-      title: '',
-      content: result,
-    };
+      },
+    });
   }
+  let result = await Mercury.parse(userUrl);
   if (isJson) {
     return result;
   }
