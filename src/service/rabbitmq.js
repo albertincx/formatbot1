@@ -8,16 +8,12 @@ const start = async (job) => {
     await channel.assertQueue('tasks', { durable: true });
     await channel.prefetch(1);
     channel.consume('tasks', async (message) => {
-      try {
-        const content = message.content.toString();
-        const task = JSON.parse(content);
-        if (task.chatId && job) {
-          await job(task);
-        }
-        channel.ack(message);
-      } catch (e) {
-        console.log(e);
+      const content = message.content.toString();
+      const task = JSON.parse(content);
+      if (task.chatId && job) {
+        await job(task);
       }
+      channel.ack(message);
     });
   } catch (e) {
     console.log(e);
