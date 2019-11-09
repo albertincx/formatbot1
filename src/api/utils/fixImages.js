@@ -48,18 +48,28 @@ const replaceTags = (content, imgs, replaceWith) => {
   return content;
 };
 
-const restoreTags = (content, imgs, replaceFrom) => {
+const restoreTags = (content, imgs, replaceFrom, domain) => {
   for (let img of imgs) {
     if (replaceFrom === imgReplacer) {
       img = findSrcSet(img);
     }
-    if (!img.match(/src=.https?/)) img = '';
+    if (!img.match(/src=.https?/)) {
+      if (domain) {
+        img = img.replace(' src="', ` src="${domain}`);
+      } else {
+        img = '';
+      }
+    }
     content = content.replace(imgReplacer, img);
   }
   return content;
 };
 
 module.exports.findImages = findImages;
-module.exports.replaceImages = (content, imgs) => replaceTags(content, imgs, imgReplacer);
-module.exports.restoreImages = (content, imgs) => restoreTags(content, imgs, imgReplacer);
+const replaceImages = (content, imgs) => replaceTags(content, imgs, imgReplacer);
+const restoreImages = (content, imgs, domain) => restoreTags(content, imgs, imgReplacer, domain);
+
+module.exports.replaceImages = replaceImages;
+module.exports.restoreImages = restoreImages;
 module.exports.insertYoutube = insertYoutube;
+module.exports.replaceTags = replaceTags;
