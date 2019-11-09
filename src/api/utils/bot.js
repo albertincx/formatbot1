@@ -32,8 +32,16 @@ class BotHelper {
       });
   }
 
-  sendAdmin(text) {
-    this.bot.sendMessage(AL_ID, `service: ${text}`);
+  sendAdmin(text, mark = false) {
+    let opts = {};
+    if (mark) {
+      opts = { parseMode: 'Markdown' };
+    }
+    this.bot.sendMessage(AL_ID, `service: ${text}`, opts);
+  }
+
+  sendAdminMark(text) {
+    this.sendAdmin(text, true);
   }
 
   sendToUser(text, uid, mark = true) {
