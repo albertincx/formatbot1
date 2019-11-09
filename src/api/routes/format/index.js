@@ -48,11 +48,16 @@ module.exports = (bot, botHelper) => {
             chatId,
             link,
           };
-          await rchannel.sendToQueue('tasks',
-            Buffer.from(JSON.stringify(rabbitMes)), {
-              contentType: 'application/json',
-              persistent: true,
-            });
+          if (rchannel) {
+            await rchannel.sendToQueue('tasks',
+              Buffer.from(JSON.stringify(rabbitMes)), {
+                contentType: 'application/json',
+                persistent: true,
+              })
+              .catch(e => {
+                botHelper.sendAdmin(`error: ${e}`);
+              });
+          }
         } catch (e) {
           botHelper.sendAdmin(`error: ${e}`);
         }
@@ -82,7 +87,11 @@ module.exports = (bot, botHelper) => {
     }
   };
 
-  setTimeout(() => {
-    rabbitmq.start(jobMessage);
-  }, 5000);
+  try {
+    setTimeout(() => {
+      rabbitmq.start(jobMessage);
+    }, 5000);
+  } catch (e) {
+    botHelper.sendAdmin(`error: ${e}`);
+  }
 };
