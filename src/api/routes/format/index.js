@@ -90,15 +90,11 @@ module.exports = (bot, botHelper) => {
         await bot.forwardMessage(group, chatId, messageId);
       }
     } catch (e) {
-      error = `task error: ${e} ${JSON.stringify({
-        chatId,
-        message_id: messageId,
-        link,
-      })}`;
+      error = `[link](${link}) task error: ${e} ${chatId} ${messageId}`;
     }
 
     if (error) {
-      botHelper.sendAdmin(error);
+      botHelper.sendAdminMark(error);
     }
   };
 
