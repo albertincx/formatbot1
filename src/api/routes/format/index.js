@@ -69,9 +69,7 @@ module.exports = (bot, botHelper) => {
   const jobMessage = async (task) => {
     const { chatId, message_id: messageId, link } = task;
     let error = '';
-    if (!messageId) {
-      error = `error: mId empty ${JSON.stringify(task)}`;
-    } else {
+    try {
       let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
     Or Content Too big (we are working with this)`;
       try {
@@ -85,6 +83,8 @@ module.exports = (bot, botHelper) => {
         messageId,
       };
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
+    } catch (e) {
+      error = `task error: ${e} ${JSON.stringify(task)}`;
     }
 
     if (!error) {
