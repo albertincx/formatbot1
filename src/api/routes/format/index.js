@@ -17,12 +17,15 @@ function getAllLinks(text) {
 const group = process.env.TGGROUP;
 
 module.exports = (bot, botHelper) => {
-  bot.on(
-    ['/start', '/help'],
-    msg => bot.sendMessage(msg.from.id, messages.start(),
-      keyboards.start(bot))
-      .then(() => botHelper.sendAdmin(JSON.stringify(msg.from))),
-  );
+  bot.on(['/start', '/help'], async msg => {
+    let system = JSON.stringify(msg.from);
+    try {
+      bot.sendMessage(msg.from.id, messages.start(), keyboards.start(bot));
+    } catch (e) {
+      system = `${e}${system}`;
+    }
+    botHelper.sendAdmin(system);
+  });
 
   // Hide keyboard
   bot.on('/hide', msg => bot.sendMessage(
