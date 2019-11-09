@@ -66,21 +66,27 @@ module.exports = (bot, botHelper) => {
     }
   });
 
-  const jobMessage = async ({ chatId, message_id: messageId, link }) => {
+  const jobMessage = async (task) => {
+    const { chatId, message_id: messageId, link } = task;
     let error = '';
-    let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
+    if (!messageId) {
+      error = `error: mId empty ${JSON.stringify(task)}`;
+    } else {
+      let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
     Or Content Too big (we are working with this)`;
-    try {
-      const { iv, source } = await controller.makeIvLink(link);
-      RESULT = `[InstantView](${iv}) from [Source](${source})`;
-    } catch (e) {
-      error = `broken [link](${link}) ${e}`;
+      try {
+        const { iv, source } = await controller.makeIvLink(link);
+        RESULT = `[InstantView](${iv}) from [Source](${source})`;
+      } catch (e) {
+        error = `broken [link](${link}) ${e}`;
+      }
+      const user = {
+        chatId,
+        messageId,
+      };
+      await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
     }
-    const user = {
-      chatId,
-      messageId,
-    };
-    await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
+
     if (!error) {
       await bot.forwardMessage(group, chatId, messageId);
     } else {
