@@ -2991,7 +2991,7 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
-  '@postlight/mercury-parser': 2.2.0
+  '@postlight/mercury-parser': ^2.2.0
   amqplib: ^0.5.5
   bcryptjs: 2.4.3
   bluebird: ^3.5.3
