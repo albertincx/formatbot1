@@ -53,6 +53,7 @@ const restoreTags = (content, imgs, replaceFrom) => {
     if (replaceFrom === imgReplacer) {
       img = findSrcSet(img);
     }
+    if (!img.match(/src=.https?/)) img = '';
     content = content.replace(imgReplacer, img);
   }
   return content;
