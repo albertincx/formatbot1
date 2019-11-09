@@ -1,10 +1,15 @@
 const Mercury = require('@postlight/mercury-parser');
 const sanitizeHtml = require('sanitize-html');
+const url = require('url');
+
 const sanitizeHtmlForce = require('../utils/sanitize');
 const logger = require('../utils/logger');
 const imgFixer = require('../utils/fixImages');
 
 const parse = async (userUrl) => {
+  const { host, protocol } = url.parse(userUrl);
+  const baseUrl = `${protocol}//${host}`;
+
   const matches = userUrl.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
   const domain = matches && matches[1];
   if (domain) {
@@ -27,7 +32,7 @@ const parse = async (userUrl) => {
     logger(`before san ${content.length}`);
     content = sanitizeHtml(content);
     content = sanitizeHtmlForce(content);
-    content = imgFixer.restoreImages(content, imgs);
+    content = imgFixer.restoreImages(content, imgs, baseUrl);
     if (iframe && Array.isArray(iframe)) {
       content = imgFixer.insertYoutube(content, iframe);
     }
