@@ -83,7 +83,9 @@ module.exports = (bot, botHelper) => {
         messageId,
       };
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
-      await bot.forwardMessage(group, chatId, messageId);
+      if (!error) {
+        await bot.forwardMessage(group, chatId, messageId);
+      }
     } catch (e) {
       error = `task error: ${e} ${JSON.stringify({
         chatId,
