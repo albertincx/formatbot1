@@ -84,7 +84,11 @@ module.exports = (bot, botHelper) => {
       };
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
     } catch (e) {
-      error = `task error: ${e} ${JSON.stringify(task)}`;
+      error = `task error: ${e} ${JSON.stringify({
+        chatId,
+        message_id: messageId,
+        link
+      })}`;
     }
 
     if (!error) {
