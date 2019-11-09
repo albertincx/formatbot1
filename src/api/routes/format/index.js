@@ -49,14 +49,15 @@ module.exports = (bot, botHelper) => {
             link,
           };
           if (rchannel) {
-            await rchannel.sendToQueue('tasks',
-              Buffer.from(JSON.stringify(rabbitMes)), {
-                contentType: 'application/json',
-                persistent: true,
-              })
-              .catch(e => {
-                botHelper.sendAdmin(`error: ${e}`);
-              });
+            try {
+              await rchannel.sendToQueue('tasks',
+                Buffer.from(JSON.stringify(rabbitMes)), {
+                  contentType: 'application/json',
+                  persistent: true,
+                });
+            } catch (e) {
+              botHelper.sendAdmin(`error: ${e}`);
+            }
           }
         } catch (e) {
           botHelper.sendAdmin(`error: ${e}`);
