@@ -7,5 +7,5 @@ You can find this bot by keywords such as “InstantViewBot”
 - [x] Extract link from amp,clck,bit.ly
 - [x] Create IW from any full link
 - [x] Compress Content
+- [x] Add pagination for too long content
 - [ ] Better parse images
-- [ ] Add pagination for too long content

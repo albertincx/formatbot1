@@ -49,5 +49,6 @@ jspm_packages
 public/dist/
 public/static/
 public/admin/
+.conf/test.txt
 yarn.lock
 count.txt
