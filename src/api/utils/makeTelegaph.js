@@ -90,7 +90,11 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
 
 const makeTelegaph = async (obj, parsedHtml) => {
   let telegraphLink = '';
-  const domEd = toDom(parsedHtml);
+  let domEd = toDom(parsedHtml);
+  if (domEd.length === 1) {
+    domEd = domEd[0].children;
+  }
+
   const content = JSON.stringify(domEd);
   const bytes = lengthInUtf8Bytes(content);
   logger(content, 'domed.html');
@@ -101,8 +105,8 @@ const makeTelegaph = async (obj, parsedHtml) => {
   if (content.length) {
     if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
       isLong = true;
-      logger(`is too big ${content.length}`);
-      const chunksLen = Math.ceil(content.length / MAX_LENGHT_CONTENT);
+      logger(`is too big ${bytes.length}`);
+      const chunksLen = Math.ceil(bytes.length / MAX_LENGHT_CONTENT);
       telegraphLink = await makeTelegaphMany(obj, domEd, chunksLen + 1);
     } else {
       telegraphLink = await makeTelegraphLink(obj, content);
