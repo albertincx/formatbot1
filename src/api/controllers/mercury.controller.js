@@ -19,7 +19,11 @@ const parse = async (userUrl) => {
   }
   const extractor = htmlFixer.getExtracktor();
   if (extractor) Mercury.addExtractor(extractor);
-  result = await Mercury.parse(userUrl, opts);
+  try {
+    result = await Mercury.parse(userUrl, opts);
+  } catch (e) {
+    throw new Error('Mercury didnt');
+  }
   let { title, content, url: source, iframe } = result;
   if (content) {
     logger(content, 'mercury.html');
