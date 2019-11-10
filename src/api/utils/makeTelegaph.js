@@ -5,7 +5,9 @@ const { toDom } = require('../utils/dom');
 const logger = require('../utils/logger');
 
 const MAX_LENGHT_CONTENT = 65000;
+
 function lengthInUtf8Bytes(str) {
+  if (!str) return 0;
   // Matches only the 10.. bytes that are non-initial characters in a multi-byte sequence.
   const m = encodeURIComponent(str)
     .match(/%[89ABab]/g);
@@ -99,10 +101,10 @@ const makeTelegaph = async (obj, parsedHtml) => {
   const bytes = lengthInUtf8Bytes(content);
   logger(content, 'domed.html');
   logger(`length ${parsedHtml.length}`);
-  logger(`domed ${content.length}`);
-  logger(`bytes ${lengthInUtf8Bytes(content)}`);
+  logger(`bytes ${bytes}`);
   let isLong = false;
-  if (content.length) {
+  if (content && content.length) {
+    logger(`domed ${content.length}`);
     if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
       isLong = true;
       logger(`is too big ${bytes.length}`);
