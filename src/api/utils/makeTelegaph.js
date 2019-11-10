@@ -1,6 +1,11 @@
+const { chunk } = require('lodash');
 const fetch = require('isomorphic-fetch');
 
-const makeTelegraph = async ({ title, url }, content) => {
+const { toDom } = require('../utils/dom');
+const logger = require('../utils/logger');
+
+const MAX_LENGHT_CONTENT = 65000;
+const makeTelegraphLink = async ({ title, url }, content) => {
   const body = {
     access_token: process.env.TGPHTOKEN,
     title,
@@ -29,4 +34,49 @@ const makeTelegraph = async ({ title, url }, content) => {
         });
     });
 };
-module.exports = makeTelegraph;
+
+const makeLink = (obj, dom, link) => {
+  if (link) {
+    dom.push(toDom(`<br /><p align="center"><a href="${link}">Read Next page</a></p>`));
+  }
+  const content = JSON.stringify(dom);
+  logger(`part content ${content.length}`);
+  return makeTelegraphLink(obj, content);
+};
+
+function timeout(s) {
+  const tm = r => setTimeout(() => r(true), s * 1000);
+  return new Promise(r => tm(r));
+}
+
+const makeTelegaphMany = async (obj, dom, chunksLen) => {
+  const parts = chunk(dom, dom.length / chunksLen);
+  let link = '';
+  for (let i = parts.length - 1; i > 0; i -= 1) {
+    const domed = parts[i];
+    await timeout(3);
+    link = await makeLink(obj, domed, link);
+  }
+  await timeout(3);
+  link = await makeLink(obj, parts[0], link);
+  return link;
+};
+
+const makeTelegaph = async (obj, content) => {
+  let telegraphLink = '';
+  const domEd = toDom(content);
+  const tgContent = JSON.stringify(domEd);
+  logger(tgContent, 'domed.html');
+  logger(`domed ${tgContent.length}`);
+  if (tgContent.length) {
+    if (tgContent.length > MAX_LENGHT_CONTENT) {
+      const chunksLen = Math.ceil(tgContent.length / MAX_LENGHT_CONTENT, 10);
+      telegraphLink = await makeTelegaphMany(obj, domEd, chunksLen);
+    } else {
+      telegraphLink = await makeTelegraphLink(obj, tgContent);
+    }
+  }
+  return telegraphLink;
+};
+
+module.exports = makeTelegaph;
