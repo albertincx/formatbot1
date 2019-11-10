@@ -77,10 +77,10 @@ module.exports = (bot, botHelper) => {
       let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
     Or Content Too big (we are working with this)`;
       try {
-        const { iv, source } = await controller.makeIvLink(link);
-        RESULT = `[InstantView](${iv}) from [Source](${source})`;
+        const { iv, source, isLong } = await controller.makeIvLink(link);
+        RESULT = `${isLong ? 'Long' : ''} [InstantView](${iv}) from [Source](${source})`;
       } catch (e) {
-        logger(e)
+        logger(e);
         error = `broken [link](${link}) ${e}`;
       }
       const user = {
@@ -92,7 +92,7 @@ module.exports = (bot, botHelper) => {
         await bot.forwardMessage(group, chatId, messageId);
       }
     } catch (e) {
-      logger(e)
+      logger(e);
       error = `[link](${link}) task error: ${e} ${chatId} ${messageId}`;
     }
 
