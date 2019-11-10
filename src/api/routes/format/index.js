@@ -1,3 +1,5 @@
+const url = require('url');
+
 const messages = require('../../messages/format');
 const keyboards = require('./keyboards');
 const controller = require('../../controllers/iv.controller');
@@ -46,6 +48,11 @@ module.exports = (bot, botHelper) => {
       const [link = ''] = getAllLinks(text);
       if (link) {
         try {
+          const parsed = url.parse(link);
+          if (parsed.pathname.match(/\..{2,4}$/)) {
+            botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
+            return;
+          }
           const { message_id } = await botHelper.sendToUser('Waiting for instantView...', chatId);
           const rabbitMes = {
             message_id,
