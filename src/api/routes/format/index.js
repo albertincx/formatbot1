@@ -2,6 +2,7 @@ const messages = require('../../messages/format');
 const keyboards = require('./keyboards');
 const controller = require('../../controllers/iv.controller');
 
+const logger = require('../../utils/logger');
 const rabbit = require('../../../service/rabbit');
 const rabbitmq = require('../../../service/rabbitmq');
 
@@ -79,6 +80,7 @@ module.exports = (bot, botHelper) => {
         const { iv, source } = await controller.makeIvLink(link);
         RESULT = `[InstantView](${iv}) from [Source](${source})`;
       } catch (e) {
+        logger(e)
         error = `broken [link](${link}) ${e}`;
       }
       const user = {
@@ -90,6 +92,7 @@ module.exports = (bot, botHelper) => {
         await bot.forwardMessage(group, chatId, messageId);
       }
     } catch (e) {
+      logger(e)
       error = `[link](${link}) task error: ${e} ${chatId} ${messageId}`;
     }
 
