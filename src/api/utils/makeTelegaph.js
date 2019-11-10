@@ -52,13 +52,17 @@ function timeout(s) {
 const makeTelegaphMany = async (obj, dom, chunksLen) => {
   const parts = chunk(dom, dom.length / chunksLen);
   let link = '';
-  for (let i = parts.length - 1; i > 0; i -= 1) {
-    const domed = parts[i];
+  try {
+    for (let i = parts.length - 1; i > 0; i -= 1) {
+      const domed = parts[i];
+      await timeout(3);
+      link = await makeLink(obj, domed, link);
+    }
     await timeout(3);
-    link = await makeLink(obj, domed, link);
+    link = await makeLink(obj, parts[0], link);
+  } catch (e) {
+
   }
-  await timeout(3);
-  link = await makeLink(obj, parts[0], link);
   return link;
 };
 
