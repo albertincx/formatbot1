@@ -40,7 +40,7 @@ class FixHtml {
   }
 
   checkCustom() {
-    if (this.host.match(/facebook\.com/)) {
+    if (this.host.match(/facebook\.com|t\.co/)) {
       this.fb = true;
       return true;
     }
