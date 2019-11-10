@@ -82,8 +82,7 @@ module.exports = (bot, botHelper) => {
     const { chatId, message_id: messageId, link } = task;
     let error = '';
     try {
-      let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
-    Or Content Too big (we are working with this)`;
+      let RESULT = 'Sorry, but your link is broken, restricted, or content is empty';
       try {
         const { iv, source, isLong } = await ivMaker.makeIvLink(link);
         RESULT = `${isLong ? 'Long' : ''} [InstantView](${iv}) from [Source](${source})`;
