@@ -2,9 +2,10 @@ const url = require('url');
 
 const messages = require('../../messages/format');
 const keyboards = require('./keyboards');
-const controller = require('../../controllers/iv.controller');
 
 const logger = require('../../utils/logger');
+const ivMaker = require('../../utils/ivMaker');
+
 const rabbit = require('../../../service/rabbit');
 const rabbitmq = require('../../../service/rabbitmq');
 
@@ -84,7 +85,7 @@ module.exports = (bot, botHelper) => {
       let RESULT = `Sorry Your link is broken, restricted, or not found, or forbidden
     Or Content Too big (we are working with this)`;
       try {
-        const { iv, source, isLong } = await controller.makeIvLink(link);
+        const { iv, source, isLong } = await ivMaker.makeIvLink(link);
         RESULT = `${isLong ? 'Long' : ''} [InstantView](${iv}) from [Source](${source})`;
       } catch (e) {
         logger(e);
