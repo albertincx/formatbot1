@@ -1,29 +1,25 @@
 const Mercury = require('@postlight/mercury-parser');
 const sanitizeHtml = require('sanitize-html');
-const url = require('url');
 
 const sanitizeHtmlForce = require('../utils/sanitize');
 const logger = require('../utils/logger');
 const imgFixer = require('../utils/fixImages');
+const FixHtml = require('../utils/fixHtml');
 
 const parse = async (userUrl) => {
-  const { host, protocol } = url.parse(userUrl);
-  const baseUrl = `${protocol}//${host}`;
+  const htmlFixer = new FixHtml(userUrl);
+  const baseUrl = htmlFixer.websiteUrl;
 
-  const matches = userUrl.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
-  const domain = matches && matches[1];
-  if (domain) {
-    Mercury.addExtractor({
-      domain,
-      extend: {
-        iframe: {
-          selectors: [['iframe[src*=youtube]', 'src']],
-          allowMultiple: true,
-        },
-      },
-    });
+  let result = {};
+  const opts = {};
+  if (htmlFixer.checkCustom()) {
+    const html = await htmlFixer.fetchHtml();
+    logger(html, 'fixedFetched.html');
+    opts.html = Buffer.from(html);
   }
-  let result = await Mercury.parse(userUrl);
+  const extractor = htmlFixer.getExtracktor();
+  if (extractor) Mercury.addExtractor(extractor);
+  result = await Mercury.parse(userUrl, opts);
   let { title, content, url: source, iframe } = result;
   if (content) {
     logger(content, 'mercury.html');
