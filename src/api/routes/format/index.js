@@ -49,7 +49,7 @@ module.exports = (bot, botHelper) => {
       if (link) {
         try {
           const parsed = url.parse(link);
-          if (parsed.pathname.match(/\..{2,4}$/)) {
+          if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.html?/)) {
             botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
             return;
           }
