@@ -107,7 +107,7 @@ const makeTelegaph = async (obj, parsedHtml) => {
     logger(`domed ${content.length}`);
     if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
       isLong = true;
-      logger(`is too big ${bytes.length}`);
+      logger(`is too big ${bytes}`);
       const chunksLen = Math.ceil(bytes.length / MAX_LENGHT_CONTENT);
       telegraphLink = await makeTelegaphMany(obj, domEd, chunksLen + 1);
     } else {
