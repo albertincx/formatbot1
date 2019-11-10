@@ -7,13 +7,14 @@ const makeIvLink = async (url) => {
   if (!content) throw 'empty content';
   const obj = {
     title,
-    url,
+    author_url: url,
   };
-  const telegraphLink = await makeTelegaph(obj, content);
+  const { telegraphLink, isLong } = await makeTelegaph(obj, content);
   if (!telegraphLink) throw 'empty ivlink';
   return {
     iv: telegraphLink,
     source,
+    isLong,
   };
 };
 exports.makeIvLink = makeIvLink;
