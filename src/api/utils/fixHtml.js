@@ -6,7 +6,8 @@ class FixHtml {
   constructor(link) {
     const matches = link.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
     this.domain = matches && matches[1];
-    const { host, protocol } = url.parse(link);
+    this.parsed = url.parse(link);
+    const { host, protocol } = this.parsed;
     this.websiteUrl = `${protocol}//${host}`;
     this.link = link;
     this.host = host;
