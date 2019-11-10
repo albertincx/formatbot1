@@ -50,7 +50,11 @@ function timeout(s) {
 }
 
 const makeTelegaphMany = async (obj, dom, chunksLen) => {
-  const parts = chunk(dom, dom.length / chunksLen);
+  if (dom.length === 1) {
+    dom = dom[0].children;
+  }
+  const partsLen = Math.ceil(dom.length / chunksLen);
+  const parts = chunk(dom, partsLen);
   let link = '';
   try {
     for (let i = parts.length - 1; i > 0; i -= 1) {
@@ -75,7 +79,7 @@ const makeTelegaph = async (obj, content) => {
   if (tgContent.length) {
     if (tgContent.length > MAX_LENGHT_CONTENT) {
       const chunksLen = Math.ceil(tgContent.length / MAX_LENGHT_CONTENT, 10);
-      telegraphLink = await makeTelegaphMany(obj, domEd, chunksLen);
+      telegraphLink = await makeTelegaphMany(obj, domEd, chunksLen + 1);
     } else {
       telegraphLink = await makeTelegraphLink(obj, tgContent);
     }
