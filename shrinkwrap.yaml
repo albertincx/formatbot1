@@ -14,6 +14,7 @@ dependencies:
   https-proxy-agent: 2.2.4
   isomorphic-fetch: 2.2.1
   jsbn: 1.1.0
+  lodash: 4.17.15
   node-fetch: 2.6.0
   puppeteer: 1.20.0
   sanitize-html: 1.20.1
@@ -2985,6 +2986,7 @@ packages:
     dev: false
     name: difflib
     resolution:
+      registry: 'https://registry.npmjs.org/'
       tarball: 'https://codeload.github.com/postlight/difflib.js/tar.gz/32e8e38c7fcd935241b9baab71bb432fd9b166ed'
     version: 0.2.6
 registry: 'https://registry.npmjs.org/'
@@ -3010,6 +3012,7 @@ specifiers:
   https-proxy-agent: ^2.2.4
   isomorphic-fetch: ^2.2.1
   jsbn: ^1.1.0
+  lodash: ^4.17.15
   node-fetch: ^2.3.0
   puppeteer: ^1.19.0
   redis-mock: ^0.44.0
