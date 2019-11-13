@@ -43,7 +43,7 @@ const makeTelegraphLink = async (obj, content) => {
     });
 };
 
-const makeLink = (obj, dom, link) => {
+const makeLink = (obj, dom, link, index) => {
   try {
     let content = JSON.stringify(dom);
     const bytes = lengthInUtf8Bytes(content);
@@ -56,7 +56,7 @@ const makeLink = (obj, dom, link) => {
       dom.push(...toDom(`<p align="center"><br /><br /><a href="${link}">Read Next page</a></p>`)[0].children);
     }
     content = JSON.stringify(dom);
-    logger(content, 'withnext.json');
+    logger(content, `page${index}.json`);
 
     return makeTelegraphLink(obj, content);
   } catch (e) {
@@ -80,10 +80,10 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
     for (let i = parts.length - 1; i > 0; i -= 1) {
       const domed = parts[i];
       await timeout(3);
-      link = await makeLink(obj, domed, link);
+      link = await makeLink(obj, domed, link, i);
     }
     await timeout(3);
-    link = await makeLink(obj, parts[0], link);
+    link = await makeLink(obj, parts[0], link, 0);
   } catch (e) {
     logger(e);
   }
@@ -99,7 +99,7 @@ const makeTelegaph = async (obj, parsedHtml) => {
 
   const content = JSON.stringify(domEd);
   const bytes = lengthInUtf8Bytes(content);
-  logger(content, 'domed.html');
+  logger(content, 'domed.json');
   logger(`length ${parsedHtml.length}`);
   logger(`bytes ${bytes}`);
   let isLong = false;
