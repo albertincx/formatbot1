@@ -48,7 +48,7 @@ class FixHtml {
   }
 
   async fetchHtml() {
-    let content = await fetch(this.link)
+    let content = await fetch(this.link, { timeout: 5000 })
       .then(r => r.text());
     logger(content, 'fetchContent.html');
     if (this.fb) {

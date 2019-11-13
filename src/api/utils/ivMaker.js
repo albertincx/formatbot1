@@ -18,11 +18,20 @@ const parse = async (userUrl) => {
     logger(html, 'fixedFetched.html');
     opts.html = Buffer.from(html);
   }
+  logger('merc');
   const extractor = htmlFixer.getExtracktor();
   if (extractor) Mercury.addExtractor(extractor);
   try {
     result = await Mercury.parse(userUrl, opts);
   } catch (e) {
+    /*try {
+      const html = await htmlFixer.fetchHtml();
+      logger(html, 'fixedFetchedSec.html');
+      opts.html = Buffer.from(html);
+      result = await Mercury.parse(userUrl, opts);
+    } catch (e) {
+      throw new Error('Mercury didnt from html');
+    }*/
     throw new Error('Mercury didnt');
   }
   let { title, content, url: source, iframe } = result;
