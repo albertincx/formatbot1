@@ -1,6 +1,5 @@
 const url = require('url');
-
-const messages = require('../../messages/format');
+const messages = require('../../../messages/format');
 const keyboards = require('./keyboards');
 
 const logger = require('../../utils/logger');
@@ -19,6 +18,10 @@ function getAllLinks(text) {
 }
 
 const group = process.env.TGGROUP;
+
+function showIvMessage(...args) {
+  return `${args[0]} [InstantView](${args[1]}) from [Source](${args[2]})`;
+}
 
 module.exports = (bot, botHelper) => {
   bot.on(['/start', '/help'], (msg) => {
@@ -46,17 +49,28 @@ module.exports = (bot, botHelper) => {
     let { text } = msg;
     if (caption) text = caption;
     if (msg && text) {
-      const [link = ''] = getAllLinks(text);
+      let [link = ''] = getAllLinks(text);
       if (link) {
         try {
           const parsed = url.parse(link);
-          if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.html?/)) {
+          if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
+            botHelper.sendToUser(showIvMessage('', link, link), chatId);
+            return;
+          }
+          if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+            const l = link.match(/url=(.*?)($|&)/);
+            if (l && l[1]) link = l[1];
+          }
+          if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js)/)) {
             botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
             return;
           }
-          const { message_id } = await botHelper.sendToUser('Waiting for instantView...', chatId);
+          const res = await botHelper.sendToUser('Waiting for instantView...', chatId);
+          if (!res.message_id) {
+            throw new Error('blocked');
+          }
           const rabbitMes = {
-            message_id,
+            message_id: res.message_id,
             chatId,
             link,
           };
@@ -82,10 +96,10 @@ module.exports = (bot, botHelper) => {
     const { chatId, message_id: messageId, link } = task;
     let error = '';
     try {
-      let RESULT = 'Sorry, but your link is broken, restricted, or content is empty';
+      let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
         const { iv, source, isLong } = await ivMaker.makeIvLink(link);
-        RESULT = `${isLong ? 'Long' : ''} [InstantView](${iv}) from [Source](${source})`;
+        RESULT = showIvMessage(isLong ? 'Long' : '', iv, source);
       } catch (e) {
         logger(e);
         error = `broken [link](${link}) ${e}`;
