@@ -25,20 +25,26 @@ class BotHelper {
       .catch(e => this.sendAdmin(`error: ${JSON.stringify(e)} ${chatId}${text}`));
   }
 
-  sendAdmin(text, mark = false) {
+  sendAdmin(text, chatId = TGADMIN, mark = false) {
     let opts = {};
     if (mark) {
-      opts = { parseMode: 'Markdown' };
+      opts = {
+        parseMode: 'Markdown',
+        webPreview: false,
+      };
     }
-    this.bot.sendMessage(TGADMIN, `service: ${text}`, opts);
+    if (chatId === TGADMIN) {
+      text = `service: ${text}`;
+    }
+    return this.bot.sendMessage(chatId, text, opts);
   }
 
-  sendAdminMark(text) {
-    this.sendAdmin(text, true);
+  sendAdminMark(text, chatId) {
+    return this.sendAdmin(text, chatId, true);
   }
 
-  sendToUser(text, uid, mark = true) {
-    return this.botMes(uid || TGADMIN, text, mark);
+  sendToUser(text, uid = TGADMIN, mark = true) {
+    return this.botMes(uid, text, mark);
   }
 
   toggleConfig(configFile, msg) {
