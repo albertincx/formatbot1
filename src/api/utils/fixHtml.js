@@ -14,6 +14,7 @@ class FixHtml {
     this.iframe = null;
     this.imgs = [];
     this.fb = false;
+    this.sites = {};
   }
 
   getExtracktor() {
@@ -27,10 +28,16 @@ class FixHtml {
         },
       },
     };
+    let selectors = null;
     if (this.fb) {
-      e.content = {
-        selectors: ['.userContentWrapper']
-      };
+      selectors = ['.userContentWrapper'];
+    }
+
+    if (this.sites.vk) {
+      selectors = ['.wall_text'];
+    }
+    if (selectors) {
+      e.content = { selectors };
     }
     return { ...e };
   }
@@ -43,6 +50,9 @@ class FixHtml {
     if (this.host.match(/facebook\.com|t\.co/)) {
       this.fb = true;
       return true;
+    }
+    if (this.host.match(/vk\.com/)) {
+      this.sites.vk = true;
     }
     return false;
   }
