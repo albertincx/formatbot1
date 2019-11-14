@@ -1,5 +1,5 @@
 const fs = require('fs');
-const AL_ID = parseInt(process.env.TGADMIN);
+const TGADMIN = parseInt(process.env.TGADMIN);
 
 class BotHelper {
   constructor(bot) {
@@ -13,7 +13,7 @@ class BotHelper {
   }
 
   isAdmin(chatId) {
-    return chatId === AL_ID;
+    return chatId === TGADMIN;
   }
 
   botMes(chatId, text, mark = true) {
@@ -21,15 +21,8 @@ class BotHelper {
     if (mark) {
       opts = { parseMode: 'Markdown' };
     }
-
     return this.bot.sendMessage(chatId, text, opts)
-      .catch(e => {
-        const o = {
-          chatId,
-          text,
-        };
-        return this.sendAdmin(`${e}${JSON.stringify(o)}`);
-      });
+      .catch(e => this.sendAdmin(`error: ${JSON.stringify(e)} ${chatId}${text}`));
   }
 
   sendAdmin(text, mark = false) {
@@ -37,7 +30,7 @@ class BotHelper {
     if (mark) {
       opts = { parseMode: 'Markdown' };
     }
-    this.bot.sendMessage(AL_ID, `service: ${text}`, opts);
+    this.bot.sendMessage(TGADMIN, `service: ${text}`, opts);
   }
 
   sendAdminMark(text) {
@@ -45,7 +38,7 @@ class BotHelper {
   }
 
   sendToUser(text, uid, mark = true) {
-    return this.botMes(uid || AL_ID, text, mark);
+    return this.botMes(uid || TGADMIN, text, mark);
   }
 
   toggleConfig(configFile, msg) {
@@ -60,7 +53,7 @@ class BotHelper {
     }
     this.config[configFile] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
-    return this.botMes(AL_ID, content);
+    return this.botMes(TGADMIN, content);
   }
 }
 

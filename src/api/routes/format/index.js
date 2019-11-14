@@ -65,7 +65,7 @@ module.exports = (bot, botHelper) => {
             botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
             return;
           }
-          const res = await botHelper.sendToUser('Waiting for instantView...', chatId);
+          const res = await botHelper.sendToUser('Waiting for instantView...', chatId) || {};
           if (!res.message_id) {
             throw new Error('blocked');
           }
