@@ -110,7 +110,7 @@ module.exports = (bot, botHelper) => {
       };
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
       if (!error) {
-        await bot.forwardMessage(group, chatId, messageId);
+        botHelper.sendAdminMark(RESULT, group);
       }
     } catch (e) {
       logger(e);
