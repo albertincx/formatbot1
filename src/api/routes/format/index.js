@@ -4,6 +4,7 @@ const keyboards = require('./keyboards');
 
 const logger = require('../../utils/logger');
 const ivMaker = require('../../utils/ivMaker');
+const puppet = require('../../utils/puppet');
 
 const rabbit = require('../../../service/rabbit');
 const rabbitmq = require('../../../service/rabbitmq');
@@ -40,6 +41,7 @@ module.exports = (bot, botHelper) => {
     'Type /help to show.',
     { replyMarkup: 'hide' },
   ));
+  bot.on('/config', msg => botHelper.toggleConfig(msg));
 
   bot.on('*', async (msg) => {
     const { reply_to_message } = msg;
@@ -92,13 +94,23 @@ module.exports = (bot, botHelper) => {
     }
   });
 
+  let browserWs = null;
+  if (botHelper.config.puppeteer) {
+    puppet.getBrowser()
+      .then(ws => {
+        browserWs = ws;
+      });
+  }
+  // Store the endpoint to be able to reconnect to Chromium
+
   const jobMessage = async (task) => {
     const { chatId, message_id: messageId, link } = task;
     let error = '';
     try {
       let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
-        const { iv, source, isLong } = await ivMaker.makeIvLink(link);
+        bot.sendAction(chatId, 'typing');
+        const { iv, source, isLong } = await ivMaker.makeIvLink(link, browserWs);
         RESULT = showIvMessage(isLong ? 'Long' : '', iv, source);
       } catch (e) {
         logger(e);
