@@ -47,17 +47,19 @@ class BotHelper {
     return this.botMes(uid, text, mark);
   }
 
-  toggleConfig(configFile, msg) {
-    if (!this.isAdmin(msg.chat.id)) {
-      return Promise.resolve();
+  toggleConfig(msg) {
+    const param = msg.text.replace('/config', '')
+      .trim();
+    if (!param || !this.isAdmin(msg.chat.id)) {
+      return Promise.resolve('no param or forbidden');
     }
     let content = '';
-    if (this.config[configFile] === 'On') {
+    if (this.config[param] === 'On') {
       content = 'Off';
     } else {
       content = 'On';
     }
-    this.config[configFile] = content;
+    this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
     return this.botMes(TGADMIN, content);
   }
