@@ -2,50 +2,45 @@ const Mercury = require('@postlight/mercury-parser');
 const sanitizeHtml = require('sanitize-html');
 
 const makeTelegaph = require('./makeTelegaph');
-const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
 const imgFixer = require('./fixImages');
-const FixHtml = require('./fixHtml');
+const mercury = require('./mercury');
+const ParseHelper = require('./parseHelper');
+const puppet = require('./puppet');
 
-const parse = async (userUrl) => {
-  const htmlFixer = new FixHtml(userUrl);
-  const baseUrl = htmlFixer.websiteUrl;
-
-  let result = {};
+const parse = async (userUrl, browserWs) => {
+  const parseHelper = new ParseHelper(userUrl);
   const opts = {};
-  if (htmlFixer.checkCustom()) {
-    const html = await htmlFixer.fetchHtml();
+  if (parseHelper.checkCustom()) {
+    const html = await parseHelper.fetchHtml();
     logger(html, 'fixedFetched.html');
     opts.html = Buffer.from(html);
   }
-  logger('merc');
-  const extractor = htmlFixer.getExtracktor();
+
+  let result = await mercury(userUrl, opts);
+  logger(result.content, 'mercury.html');
+  const extractor = parseHelper.getExtractor();
+  //console.log(extractor);
   if (extractor) Mercury.addExtractor(extractor);
-  try {
-    result = await Mercury.parse(userUrl, opts);
-  } catch (e) {
-    /*try {
-      const html = await htmlFixer.fetchHtml();
-      logger(html, 'fixedFetchedSec.html');
-      opts.html = Buffer.from(html);
-      result = await Mercury.parse(userUrl, opts);
-    } catch (e) {
-      throw new Error('Mercury didnt from html');
-    }*/
-    throw new Error('Mercury didnt');
-  }
-  let { title, content, url: source, iframe } = result;
-  if (content) {
-    logger(content, 'mercury.html');
-    const imgs = imgFixer.findImages(content);
-    content = imgFixer.replaceImages(content, imgs);
-    logger(`before san ${content.length}`);
-    content = sanitizeHtml(content);
-    content = sanitizeHtmlForce(content);
-    content = imgFixer.restoreImages(content, imgs, baseUrl);
-    if (iframe && Array.isArray(iframe)) {
-      content = imgFixer.insertYoutube(content, iframe);
+  let { content } = result;
+  const preContent = sanitizeHtml(content)
+    .trim();
+  logger(preContent, 'preContent.html');
+  if (browserWs && preContent.length === 0) {
+    //try to puppeteer
+    logger(browserWs);
+    const html = await puppet(userUrl, browserWs);
+    logger(html, 'asyncContent.html');
+    if (html) {
+      result = await mercury(userUrl, { html });
+      logger(result.content, 'mercuryAsyncContent.html');
     }
+  }
+  let { title, url: source, iframe } = result;
+  content = result.content;
+  if (content && preContent) {
+    logger(content, 'mercury.html');
+    content = imgFixer.fixHtml(content, iframe, parseHelper.websiteUrl);
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
   }
@@ -57,8 +52,9 @@ const parse = async (userUrl) => {
 
   return res;
 };
-const makeIvLink = async (url) => {
-  const { title, content, source } = await parse(url);
+
+const makeIvLink = async (url, browserWs) => {
+  const { title, content, source } = await parse(url, browserWs);
   if (!content) throw 'empty content';
   const obj = {
     title,

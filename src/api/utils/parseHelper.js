@@ -17,7 +17,7 @@ class FixHtml {
     this.sites = {};
   }
 
-  getExtracktor() {
+  getExtractor() {
     if (!this.domain) return false;
     const e = {
       domain: this.domain,

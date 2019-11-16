@@ -1,3 +1,6 @@
+const sanitizeHtml = require('sanitize-html');
+const sanitizeHtmlForce = require('./sanitize');
+const logger = require('./logger');
 const setRegex = /srcset="/;
 const imgReplacer = '##@#IMG#@##';
 
@@ -69,7 +72,18 @@ module.exports.findImages = findImages;
 const replaceImages = (content, imgs) => replaceTags(content, imgs, imgReplacer);
 const restoreImages = (content, imgs, domain) => restoreTags(content, imgs, imgReplacer, domain);
 
-module.exports.replaceImages = replaceImages;
-module.exports.restoreImages = restoreImages;
-module.exports.insertYoutube = insertYoutube;
-module.exports.replaceTags = replaceTags;
+const fixHtml = (content, iframe, baseUrl) => {
+  const imgs = findImages(content);
+  content = replaceImages(content, imgs);
+  logger(`before san ${content.length}`);
+  content = sanitizeHtml(content);
+  content = sanitizeHtmlForce(content);
+  content = restoreImages(content, imgs, baseUrl);
+  if (iframe && Array.isArray(iframe)) {
+    content = insertYoutube(content, iframe);
+  }
+
+  return content;
+};
+
+module.exports.fixHtml = fixHtml;
