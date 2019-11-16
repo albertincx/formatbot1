@@ -32,6 +32,7 @@ const parse = async (userUrl, browserWs) => {
     const html = await puppet(userUrl, browserWs);
     logger(html, 'asyncContent.html');
     if (html) {
+      html = Buffer.from(html);
       result = await mercury(userUrl, { html });
       logger(result.content, 'mercuryAsyncContent.html');
     }
