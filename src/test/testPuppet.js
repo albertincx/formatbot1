@@ -156,7 +156,7 @@ test('bot.TelegraphLinkAsync', async (t) => {
   return bot.sendMessage(USER, 'wait')
     .then(async (re) => {
       let browserWs = await puppet.getBrowser();
-      let url = process.env.TEST_LINK_ASYNC;
+      let url = 'https://theinitium.com/article/20191113-hongkong-cuhk-protest-police/';
       const ivMaker = require('../api/utils/ivMaker');
       const { iv, source, isLong } = await ivMaker.makeIvLink(url, browserWs);
       const chatId = USER;
