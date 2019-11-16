@@ -42,6 +42,7 @@ module.exports = (bot, botHelper) => {
     { replyMarkup: 'hide' },
   ));
   bot.on('/config', msg => botHelper.toggleConfig(msg));
+  bot.on('/showconfig', msg => msg.reply.text(JSON.stringify(botHelper.config)));
 
   bot.on('*', async (msg) => {
     const { reply_to_message } = msg;
