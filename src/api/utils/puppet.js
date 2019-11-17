@@ -34,8 +34,6 @@ const puppet = async (url, ws) => {
     }
     const content = await page.content();
     page.close();
-    // Close Chromium
-    //await browser.close();
     return content;
   } catch (e) {
     logger(e);
@@ -44,3 +42,4 @@ const puppet = async (url, ws) => {
 };
 module.exports = puppet;
 module.exports.getBrowser = getBrowser;
+
