@@ -115,8 +115,8 @@ module.exports = (bot, botHelper) => {
       let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
         bot.sendAction(chatId, 'typing');
-        const { iv, source, isLong } = await ivMaker.makeIvLink(link, browserWs);
-        RESULT = showIvMessage(isLong ? 'Long' : '', iv, source);
+        const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs);
+        RESULT = showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
       } catch (e) {
         logger(e);
         error = `broken [link](${link}) ${e}`;
