@@ -116,8 +116,8 @@ module.exports = (bot, botHelper) => {
       try {
         //botHelper.sendAdmin(browserWs)
         bot.sendAction(chatId, 'typing');
-        const { iv, source, isLong } = await ivMaker.makeIvLink(link, browserWs);
-        RESULT = showIvMessage(isLong ? 'Long' : '', iv, source);
+        const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs);
+        RESULT = showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
       } catch (e) {
         logger(e);
         error = `broken [link](${link}) ${e}`;

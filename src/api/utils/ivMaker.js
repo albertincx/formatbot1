@@ -60,12 +60,14 @@ const makeIvLink = async (url, browserWs) => {
     title,
     author_url: url,
   };
-  const { telegraphLink, isLong } = await makeTelegaph(obj, content);
+  const { telegraphLink, isLong, pages, push } = await makeTelegaph(obj, content);
   if (!telegraphLink) throw 'empty ivlink';
   return {
     iv: telegraphLink,
     source,
     isLong,
+    pages,
+    push,
   };
 };
 exports.makeIvLink = makeIvLink;
