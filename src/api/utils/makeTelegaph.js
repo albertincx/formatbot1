@@ -5,6 +5,8 @@ const { toDom } = require('../utils/dom');
 const logger = require('../utils/logger');
 
 const MAX_LENGHT_CONTENT = 65000;
+let pages = 0;
+let push = 0;
 
 function lengthInUtf8Bytes(str) {
   if (!str) return 0;
@@ -53,6 +55,7 @@ const makeLink = (obj, dom, link, index) => {
     }
     if (link) {
       logger(`push ${link}`);
+      push += 1;
       dom.push(...toDom(`<p align="center"><br /><br /><a href="${link}">Read Next page</a></p>`)[0].children);
     }
     content = JSON.stringify(dom);
@@ -80,6 +83,7 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
     for (let i = parts.length - 1; i > 0; i -= 1) {
       const domed = parts[i];
       await timeout(3);
+      pages += 1;
       link = await makeLink(obj, domed, link, i);
     }
     await timeout(3);
@@ -103,6 +107,8 @@ const makeTelegaph = async (obj, parsedHtml) => {
   logger(`length ${parsedHtml.length}`);
   logger(`bytes ${bytes}`);
   let isLong = false;
+  pages = 0;
+  push = 0;
   if (content && content.length) {
     logger(`domed ${content.length}`);
     if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
@@ -117,6 +123,8 @@ const makeTelegaph = async (obj, parsedHtml) => {
   return {
     telegraphLink,
     isLong,
+    pages,
+    push,
   };
 };
 
