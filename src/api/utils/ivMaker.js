@@ -37,6 +37,7 @@ const parse = async (userUrl, browserWs) => {
     }
   }
   let { title, url: source, iframe } = result;
+  if (parseHelper.title) title = parseHelper.title;
   content = result.content;
   if (content && preContent) {
     logger(content, 'mercury.html');
