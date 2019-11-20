@@ -18,6 +18,13 @@ function getAllLinks(text) {
   return text.match(urlRegex) || [];
 }
 
+let start = process.hrtime();
+const elapsedTime = (note = '') => {
+  let elapsed = process.hrtime(start)[1] / 1000000;
+  elapsed = `${process.hrtime(start)[0]}s, ${elapsed.toFixed(0)}`;
+  start = process.hrtime(); // reset the timer
+  return `${elapsed}ms ${note}`;
+};
 const group = process.env.TGGROUP;
 
 function showIvMessage(...args) {
@@ -115,6 +122,7 @@ module.exports = (bot, botHelper) => {
       let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
         bot.sendAction(chatId, 'typing');
+        elapsedTime()
         const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs);
         RESULT = showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
       } catch (e) {
@@ -125,9 +133,10 @@ module.exports = (bot, botHelper) => {
         chatId,
         messageId,
       };
+      const t = elapsedTime();
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
       if (!error) {
-        botHelper.sendAdminMark(RESULT, group);
+        botHelper.sendAdminMark(`${RESULT}\n${t}`, group);
       }
     } catch (e) {
       logger(e);
