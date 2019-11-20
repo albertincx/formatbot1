@@ -15,6 +15,7 @@ class FixHtml {
     this.imgs = [];
     this.fb = false;
     this.sites = {};
+    this.title = '';
   }
 
   getExtractor() {
@@ -62,6 +63,10 @@ class FixHtml {
       .then(r => r.text());
     logger(content, 'fetchContent.html');
     if (this.fb) {
+      let title = content.match(/<title.*>([^<]+\/?)/);
+      if (title && title[1]) {
+        this.title = title[1];
+      }
       content = content.replace(/\<!-- \</g, '<');
       content = content.replace(/\> --!\>/g, '>');
     }
