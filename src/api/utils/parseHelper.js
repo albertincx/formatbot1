@@ -65,7 +65,7 @@ class FixHtml {
     if (this.fb) {
       let title = content.match(/<title.*>([^<]+\/?)/);
       if (title && title[1]) {
-        this.title = title[1];
+        this.title = title[1].substring(0, 100);
       }
       content = content.replace(/\<!-- \</g, '<');
       content = content.replace(/\> --!\>/g, '>');
