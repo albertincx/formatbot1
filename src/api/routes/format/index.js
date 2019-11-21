@@ -75,7 +75,7 @@ module.exports = (bot, botHelper) => {
             const l = link.match(/url=(.*?)($|&)/);
             if (l && l[1]) link = l[1];
           }
-          if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js)/)) {
+          if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php)/)) {
             botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
             return;
           }
