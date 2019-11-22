@@ -65,7 +65,7 @@ class BotHelper {
   }
 
   sendError(e, text = '') {
-    return this.sendAdmin(`error: ${JSON.stringify(e)} ${text}`);
+    return this.sendAdmin(`error: ${JSON.stringify(e)} ${e.toString()} ${text}`);
   }
 }
 
