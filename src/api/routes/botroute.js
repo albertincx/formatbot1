@@ -11,7 +11,18 @@ let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 
 module.exports = (bot) => {
   const botHelper = new BotHelper(bot);
-
+  // Hide keyboard
+  bot.on('/hide', msg => bot.sendMessage(
+    msg.from.id,
+    'Type /help to show.',
+    { replyMarkup: 'hide' },
+  ));
+  bot.on('/config', msg => botHelper.toggleConfig(msg));
+  bot.on('/showconfig', msg => {
+    if (botHelper.isAdmin(msg.chat.id)) {
+      msg.reply.text(JSON.stringify(botHelper.config));
+    }
+  });
   format(bot, botHelper);
   bot.on('/srv', msg => botHelper.sendAdmin(`link: ${JSON.stringify(msg)}`));
   bot.start();

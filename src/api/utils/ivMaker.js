@@ -54,12 +54,13 @@ const parse = async (userUrl, browserWs) => {
   return res;
 };
 
-const makeIvLink = async (url, browserWs) => {
+const makeIvLink = async (url, browserWs, q) => {
   const { title, content, source } = await parse(url, browserWs);
   if (!content) throw 'empty content';
   const obj = {
     title,
     author_url: url,
+    q,
   };
   const { telegraphLink, isLong, pages, push } = await makeTelegaph(obj, content);
   if (!telegraphLink) throw 'empty ivlink';
