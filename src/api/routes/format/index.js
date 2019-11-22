@@ -127,12 +127,9 @@ module.exports = (bot, botHelper) => {
       }
     } catch (e) {
       logger(e);
-      error = `[link](${link}) task error: ${e} ${chatId} ${messageId}`;
+      error = `[link](${link}) task error: ${JSON.stringify(e)} ${e.toString()} ${chatId} ${messageId}`;
     }
-
-    if (error) {
-      botHelper.sendAdminMark(error);
-    }
+    if (error) botHelper.sendAdminMark(error);
   };
 
   try {
