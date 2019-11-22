@@ -6,12 +6,8 @@ const logger = require('../../utils/logger');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
 
-const rabbit = require('../../../service/rabbit');
 const rabbitmq = require('../../../service/rabbitmq');
-
-let rchannel = null;
-rabbit.start()
-  .then(c => rchannel = c);
+rabbitmq.createChannel();
 
 function getAllLinks(text) {
   const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
@@ -19,10 +15,11 @@ function getAllLinks(text) {
 }
 
 let start = process.hrtime();
-const elapsedTime = (note = '') => {
+const elapsedSec = () => process.hrtime(start)[0];
+const elapsedTime = (note = '', reset = true) => {
   let elapsed = process.hrtime(start)[1] / 1000000;
   elapsed = `${process.hrtime(start)[0]}s, ${elapsed.toFixed(0)}`;
-  start = process.hrtime(); // reset the timer
+  if (reset) start = process.hrtime(); // reset the timer
   return `${elapsed}ms ${note}`;
 };
 const group = process.env.TGGROUP;
@@ -42,19 +39,6 @@ module.exports = (bot, botHelper) => {
     botHelper.sendAdmin(system);
   });
 
-  // Hide keyboard
-  bot.on('/hide', msg => bot.sendMessage(
-    msg.from.id,
-    'Type /help to show.',
-    { replyMarkup: 'hide' },
-  ));
-  bot.on('/config', msg => botHelper.toggleConfig(msg));
-  bot.on('/showconfig', msg => {
-    if (botHelper.isAdmin(msg.chat.id)) {
-      msg.reply.text(JSON.stringify(botHelper.config));
-    }
-  });
-
   bot.on('*', async (msg) => {
     const { reply_to_message } = msg;
     if (reply_to_message) return;
@@ -63,6 +47,7 @@ module.exports = (bot, botHelper) => {
     let { text } = msg;
     if (caption) text = caption;
     if (msg && text) {
+      if (text.startsWith('/')) return;
       let [link = ''] = getAllLinks(text);
       if (link) {
         try {
@@ -88,19 +73,19 @@ module.exports = (bot, botHelper) => {
             chatId,
             link,
           };
-          if (rchannel) {
-            try {
-              await rchannel.sendToQueue('tasks',
-                Buffer.from(JSON.stringify(rabbitMes)), {
-                  contentType: 'application/json',
-                  persistent: true,
-                });
-            } catch (e) {
-              botHelper.sendAdmin(`error: ${e}`);
+          try {
+            const el = elapsedTime('test', false);
+            let queue;
+            if (elapsedSec() > 15) {
+              queue = rabbitmq.getSecond();
             }
+            logger(el);
+            await rabbitmq.addToQueue(rabbitMes, queue);
+          } catch (e) {
+            botHelper.sendError(e);
           }
         } catch (e) {
-          botHelper.sendAdmin(`error: ${e}`);
+          botHelper.sendError(e);
         }
       }
     }
@@ -116,14 +101,16 @@ module.exports = (bot, botHelper) => {
   // Store the endpoint to be able to reconnect to Chromium
 
   const jobMessage = async (task) => {
-    const { chatId, message_id: messageId, link } = task;
+    const { chatId, message_id: messageId, link, q } = task;
     let error = '';
     try {
       let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
+        logger(`queue job ${q}`);
         bot.sendAction(chatId, 'typing');
-        elapsedTime()
-        const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs);
+        elapsedTime();
+        //if (q === 'tasks') await new Promise(resolve => setTimeout(() => resolve(), 120000));
+        const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs, q);
         RESULT = showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
       } catch (e) {
         logger(e);
@@ -136,7 +123,7 @@ module.exports = (bot, botHelper) => {
       const t = elapsedTime();
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
       if (!error) {
-        botHelper.sendAdminMark(`${RESULT}\n${t}`, group);
+        botHelper.sendAdminMark(`${RESULT} from ${q}\n${t}`, group);
       }
     } catch (e) {
       logger(e);
@@ -150,9 +137,10 @@ module.exports = (bot, botHelper) => {
 
   try {
     setTimeout(() => {
-      rabbitmq.start(jobMessage);
+      rabbitmq.run(jobMessage);
+      rabbitmq.runSecond(jobMessage);
     }, 5000);
   } catch (e) {
-    botHelper.sendAdmin(`error: ${e}`);
+    botHelper.sendError(e);
   }
 };

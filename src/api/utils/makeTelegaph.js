@@ -17,8 +17,13 @@ function lengthInUtf8Bytes(str) {
 }
 
 const makeTelegraphLink = async (obj, content) => {
+  let access_token = process.env.TGPHTOKEN;
+  if (obj.q) {
+    access_token = process.env.TGPHTOKEN2;
+  }
+  logger(`access ${access_token}`);
   const body = Object.assign(obj, {
-    access_token: process.env.TGPHTOKEN,
+    access_token,
     author_name: 'From',
     return_content: false,
     content,
