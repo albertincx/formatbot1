@@ -22,7 +22,7 @@ class BotHelper {
       opts = { parseMode: 'Markdown' };
     }
     return this.bot.sendMessage(chatId, text, opts)
-      .catch(e => this.sendAdmin(`error: ${JSON.stringify(e)} ${chatId}${text}`));
+      .catch(e => this.sendError(e, `${chatId}${text}`));
   }
 
   sendAdmin(text, chatId = TGADMIN, mark = false) {
@@ -62,6 +62,10 @@ class BotHelper {
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
     return this.botMes(TGADMIN, content);
+  }
+
+  sendError(e, text = '') {
+    return this.sendAdmin(`error: ${JSON.stringify(e)} ${text}`);
   }
 }
 
