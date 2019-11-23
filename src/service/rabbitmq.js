@@ -22,7 +22,7 @@ const run = async (job, queueName = TASKS_CHANNEL) => {
     channel.consume(queueName, async (message) => {
       const content = message.content.toString();
       const task = JSON.parse(content);
-      task.q = queueName;
+      if (queueName !== TASKS_CHANNEL) task.q = queueName;
       await job(task);
       channel.ack(message);
     });

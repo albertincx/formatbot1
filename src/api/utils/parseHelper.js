@@ -4,6 +4,9 @@ const logger = require('./logger');
 
 class FixHtml {
   constructor(link) {
+    if (!link.match(/^http/)) {
+      link = `http://${link}`;
+    }
     const matches = link.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
     this.domain = matches && matches[1];
     this.parsed = url.parse(link);
@@ -16,6 +19,7 @@ class FixHtml {
     this.fb = false;
     this.sites = {};
     this.title = '';
+    this.custom = this.checkCustom();
   }
 
   getExtractor() {
@@ -55,6 +59,9 @@ class FixHtml {
     if (this.host.match(/vk\.com/)) {
       this.sites.vk = true;
     }
+    if (this.host.match(/cnn\.com/)) {
+      this.sites.cnn = true;
+    }
     return false;
   }
 
@@ -71,6 +78,17 @@ class FixHtml {
       content = content.replace(/\> --!\>/g, '>');
     }
     return content;
+  }
+
+  fixImages(c) {
+    if (this.sites.cnn) {
+      const match = /cnn\/(.*?)\/http/g;
+      const replaces = c.match(match);
+      if (replaces) {
+        c = c.replace(match, 'cnn/q_auto,w_720,c_fit/http');
+      }
+    }
+    return c;
   }
 }
 

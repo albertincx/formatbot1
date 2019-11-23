@@ -24,10 +24,6 @@ const elapsedTime = (note = '', reset = true) => {
 };
 const group = process.env.TGGROUP;
 
-function showIvMessage(...args) {
-  return `${args[0]} [InstantView](${args[1]}) from [Source](${args[2]})`;
-}
-
 module.exports = (bot, botHelper) => {
   bot.on(['/start', '/help'], (msg) => {
     let system = JSON.stringify(msg.from);
@@ -53,7 +49,7 @@ module.exports = (bot, botHelper) => {
         try {
           const parsed = url.parse(link);
           if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
-            botHelper.sendToUser(showIvMessage('', link, link), chatId);
+            botHelper.sendToUser(messages.showIvMessage('', link, link), chatId);
             return;
           }
           if (link.match(/^(https?:\/\/)?(www.)?google/)) {
@@ -98,8 +94,6 @@ module.exports = (bot, botHelper) => {
         browserWs = ws;
       });
   }
-  // Store the endpoint to be able to reconnect to Chromium
-
   const jobMessage = async (task) => {
     const { chatId, message_id: messageId, link, q } = task;
     let error = '';
@@ -111,7 +105,8 @@ module.exports = (bot, botHelper) => {
         elapsedTime();
         //if (q === 'tasks') await new Promise(resolve => setTimeout(() => resolve(), 120000));
         const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs, q);
-        RESULT = showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
+        RESULT = messages.showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
+        // RESULT = 'skip';
       } catch (e) {
         logger(e);
         error = `broken [link](${link}) ${e}`;
@@ -123,7 +118,7 @@ module.exports = (bot, botHelper) => {
       const t = elapsedTime();
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
       if (!error) {
-        botHelper.sendAdminMark(`${RESULT} from ${q}\n${t}`, group);
+        botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`, group);
       }
     } catch (e) {
       logger(e);
