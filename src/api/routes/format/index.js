@@ -15,11 +15,19 @@ function getAllLinks(text) {
 }
 
 let start = process.hrtime();
+let availableOne = true;
+let start2 = process.hrtime();
 const elapsedSec = () => process.hrtime(start)[0];
 const elapsedTime = (note = '', reset = true) => {
   let elapsed = process.hrtime(start)[1] / 1000000;
   elapsed = `${process.hrtime(start)[0]}s, ${elapsed.toFixed(0)}`;
   if (reset) start = process.hrtime(); // reset the timer
+  return `${elapsed}ms ${note}`;
+};
+const elapsedTime2 = (note = '', reset = true) => {
+  let elapsed = process.hrtime(start2)[1] / 1000000;
+  elapsed = `${process.hrtime(start2)[0]}s, ${elapsed.toFixed(0)}`;
+  if (reset) start2 = process.hrtime(); // reset the timer
   return `${elapsed}ms ${note}`;
 };
 const group = process.env.TGGROUP;
@@ -52,10 +60,6 @@ module.exports = (bot, botHelper) => {
             botHelper.sendToUser(messages.showIvMessage('', link, link), chatId);
             return;
           }
-          if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-            const l = link.match(/url=(.*?)($|&)/);
-            if (l && l[1]) link = l[1];
-          }
           if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
             botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
             return;
@@ -72,7 +76,7 @@ module.exports = (bot, botHelper) => {
           try {
             const el = elapsedTime('test', false);
             let queue;
-            if (elapsedSec() > 15) {
+            if (!availableOne && elapsedSec() > 15) {
               queue = rabbitmq.getSecond();
             }
             logger(el);
@@ -100,11 +104,17 @@ module.exports = (bot, botHelper) => {
     try {
       let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
+        const source = `${link}`;
         logger(`queue job ${q}`);
         bot.sendAction(chatId, 'typing');
-        elapsedTime();
-        //if (q === 'tasks') await new Promise(resolve => setTimeout(() => resolve(), 120000));
-        const { iv, source, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs, q);
+        if (!q) {
+          elapsedTime();
+          availableOne = false;
+          // await new Promise(resolve => setTimeout(() => resolve(), 120000));
+        } else {
+          elapsedTime2();
+        }
+        const { iv, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs, q);
         RESULT = messages.showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
         // RESULT = 'skip';
       } catch (e) {
@@ -115,7 +125,13 @@ module.exports = (bot, botHelper) => {
         chatId,
         messageId,
       };
-      const t = elapsedTime();
+      let t;
+      if (!q) {
+        t = elapsedTime();
+        availableOne = true;
+      } else {
+        t = elapsedTime2();
+      }
       await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`, group);
