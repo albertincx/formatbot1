@@ -85,7 +85,7 @@ class FixHtml {
       const match = /cnn\/(.*?)\/http/g;
       const replaces = c.match(match);
       if (replaces) {
-        c = c.replace(match, 'cnn/q_auto,w_720,c_fit/http');
+        c = c.replace(match, 'cnn/q_auto,w_727,c_fit/http');
       }
     }
     return c;
