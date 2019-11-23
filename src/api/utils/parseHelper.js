@@ -2,10 +2,14 @@ const url = require('url');
 const fetch = require('isomorphic-fetch');
 const logger = require('./logger');
 
-class FixHtml {
+class ParseHelper {
   constructor(link) {
+    link = this.parseServices(link);
     if (!link.match(/^http/)) {
       link = `http://${link}`;
+    }
+    if (link.match(/%3A/)) {
+      link = decodeURIComponent(link);
     }
     const matches = link.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
     this.domain = matches && matches[1];
@@ -90,6 +94,18 @@ class FixHtml {
     }
     return c;
   }
+
+  parseServices(link) {
+    if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+      const l = link.match(/url=(.*?)($|&)/);
+      if (l && l[1]) return l[1];
+    }
+    if (link.match(/\/turbo\?text=/)) {
+      const l = link.match(/text=(.*?)($|&)/);
+      if (l && l[1]) return l[1];
+    }
+    return link;
+  }
 }
 
-module.exports = FixHtml;
+module.exports = ParseHelper;

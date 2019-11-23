@@ -10,6 +10,7 @@ const puppet = require('./puppet');
 
 const parse = async (userUrl, browserWs) => {
   const parseHelper = new ParseHelper(userUrl);
+  userUrl = parseHelper.link;
   const opts = {};
   if (parseHelper.custom) {
     const html = await parseHelper.fetchHtml();
@@ -56,18 +57,18 @@ const parse = async (userUrl, browserWs) => {
 };
 
 const makeIvLink = async (url, browserWs, q) => {
-  const { title, content, source } = await parse(url, browserWs);
+  const authorUrl = `${url}`;
+  const { title, content } = await parse(url, browserWs);
   if (!content) throw 'empty content';
   const obj = {
     title,
-    author_url: url,
+    author_url: authorUrl,
     q,
   };
   const { telegraphLink, isLong, pages, push } = await makeTelegaph(obj, content);
   if (!telegraphLink) throw 'empty ivlink';
   return {
     iv: telegraphLink,
-    source,
     isLong,
     pages,
     push,
