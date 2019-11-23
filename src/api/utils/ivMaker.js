@@ -17,7 +17,7 @@ const parse = async (userUrl, browserWs) => {
     logger(html, 'fixedFetched.html');
     opts.html = Buffer.from(html);
   }
-
+  // console.log(userUrl);
   let result = await mercury(userUrl, opts);
   logger(result.content, 'mercury.html');
   const extractor = parseHelper.getExtractor();
