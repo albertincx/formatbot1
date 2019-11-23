@@ -11,7 +11,7 @@ const puppet = require('./puppet');
 const parse = async (userUrl, browserWs) => {
   const parseHelper = new ParseHelper(userUrl);
   const opts = {};
-  if (parseHelper.checkCustom()) {
+  if (parseHelper.custom) {
     const html = await parseHelper.fetchHtml();
     logger(html, 'fixedFetched.html');
     opts.html = Buffer.from(html);
@@ -42,6 +42,7 @@ const parse = async (userUrl, browserWs) => {
   if (content && preContent) {
     logger(content, 'mercury.html');
     content = imgFixer.fixHtml(content, iframe, parseHelper.websiteUrl);
+    content = parseHelper.fixImages(content);
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
   }
