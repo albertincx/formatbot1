@@ -7,5 +7,12 @@ You can find this bot by keywords such as “InstantViewBot”
 - [x] Extract link from amp,clck,bit.ly
 - [x] Create IW from any full link
 - [x] Compress Content
-- [x] Partially support  too long content
+- [x] Partially support too long content
+- [x] Second "process queue"
 - [ ] Better parse images
+- [ ] Multi links
+
+
+#### Dev requirements
+
+bash dev-install.txt
