@@ -9,6 +9,8 @@ const puppet = require('../../utils/puppet');
 const rabbitmq = require('../../../service/rabbitmq');
 rabbitmq.createChannel();
 
+const getLinkFromEntity = ({ offset, length }, txt) => txt.substr(offset, length);
+
 function getAllLinks(text) {
   const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
   return text.match(urlRegex) || [];
@@ -31,43 +33,48 @@ const elapsedTime2 = (note = '', reset = true) => {
   return `${elapsed}ms ${note}`;
 };
 const group = process.env.TGGROUP;
+const startOrHelp = ({ message, reply }, botHelper) => {
+  let system = JSON.stringify(message.from);
+  try {
+    reply(messages.start(), keyboards.start());
+  } catch (e) {
+    system = `${e}${system}`;
+  }
+  botHelper.sendAdmin(system);
+};
 
 module.exports = (bot, botHelper) => {
-  bot.on(['/start', '/help'], (msg) => {
-    let system = JSON.stringify(msg.from);
-    try {
-      bot.sendMessage(msg.from.id, messages.start(), keyboards.start(bot));
-    } catch (e) {
-      system = `${e}${system}`;
-    }
-    botHelper.sendAdmin(system);
-  });
+  bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
+  bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
+  bot.hears('⌨️ Hide keyboard', ({ reply }) => reply('Type /help to show.', keyboards.hide()));
 
-  bot.on('*', async (msg) => {
-    const { reply_to_message } = msg;
+  bot.hears(/.*/, async ({ message: msg, reply }) => {
+    const { reply_to_message, entities } = msg;
     if (reply_to_message) return;
-
     const { chat: { id: chatId }, caption } = msg;
     let { text } = msg;
     if (caption) text = caption;
     if (msg && text) {
-      if (text.startsWith('/')) return;
       let [link = ''] = getAllLinks(text);
+      if (!link && entities) {
+        link = getLinkFromEntity(entities[0], text);
+      }
       if (link) {
         try {
           const parsed = url.parse(link);
           if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
-            botHelper.sendToUser(messages.showIvMessage('', link, link), chatId);
+            reply(messages.showIvMessage('', link, link), { parse_mode: 'Markdown' });
             return;
           }
           if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
-            botHelper.sendToUser(`It looks like a file [link](${link})`, chatId);
+            reply(`It looks like a file [link](${link})`, { parse_mode: 'Markdown' });
             return;
           }
-          const res = await botHelper.sendToUser('Waiting for instantView...', chatId) || {};
-          if (!res.message_id) {
-            throw new Error('blocked');
+          if (!link.match(/^(https?|ftp|file)/)) {
+            link = `http://${link}`;
           }
+          const res = await reply('Waiting for instantView...') || {};
+          if (!res.message_id) throw new Error('blocked');
           const rabbitMes = {
             message_id: res.message_id,
             chatId,
@@ -106,7 +113,6 @@ module.exports = (bot, botHelper) => {
       try {
         const source = `${link}`;
         logger(`queue job ${q}`);
-        bot.sendAction(chatId, 'typing');
         if (!q) {
           elapsedTime();
           availableOne = false;
@@ -132,7 +138,7 @@ module.exports = (bot, botHelper) => {
       } else {
         t = elapsedTime2();
       }
-      await bot.editMessageText(user, RESULT, { parseMode: 'Markdown' });
+      await bot.telegram.editMessageText(chatId, messageId, null, RESULT, { parse_mode: 'Markdown' });
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`, group);
       }

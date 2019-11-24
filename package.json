@@ -37,7 +37,7 @@
     "node-fetch": "^2.3.0",
     "puppeteer": "^1.19.0",
     "sanitize-html": "^1.20.1",
-    "telebot": "^1.2.6"
+    "telegraf": "^3.33.3"
   },
   "devDependencies": {
     "ava": "^2.4.0",
