@@ -57,7 +57,7 @@ module.exports = (bot, botHelper) => {
     if (msg && text) {
       let [link = ''] = getAllLinks(text);
       if (!link && entities) {
-        link = getLinkFromEntity(entities[0], text);
+        link = entities[0].url || getLinkFromEntity(entities[0], text);
       }
       if (link) {
         try {
@@ -127,10 +127,6 @@ module.exports = (bot, botHelper) => {
         logger(e);
         error = `broken [link](${link}) ${e}`;
       }
-      const user = {
-        chatId,
-        messageId,
-      };
       let t;
       if (!q) {
         t = elapsedTime();
@@ -146,6 +142,7 @@ module.exports = (bot, botHelper) => {
       logger(e);
       error = `[link](${link}) task error: ${JSON.stringify(e)} ${e.toString()} ${chatId} ${messageId}`;
     }
+    logger(error);
     if (error) botHelper.sendAdminMark(error);
   };
 
