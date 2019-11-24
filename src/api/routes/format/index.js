@@ -61,7 +61,7 @@ module.exports = (bot, botHelper) => {
           link = entities[0].url || getLinkFromEntity(entities[0], text);
         }
         if (!link) {
-          return;
+          return; 
         }
         const parsed = url.parse(link);
         if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
