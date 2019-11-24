@@ -9,7 +9,7 @@ dependencies:
   node-fetch: 2.6.0
   puppeteer: 1.20.0
   sanitize-html: 1.20.1
-  telebot: 1.2.6
+  telegraf: 3.33.3
 devDependencies:
   ava: 2.4.0
   eslint: 5.16.0
@@ -426,6 +426,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
+  /@types/node/12.12.12:
+    dev: false
+    resolution:
+      integrity: sha512-MGuvYJrPU0HUwqF7LqvIj50RZUX23Z+m583KBygKYUZLlZ88n6w28XRNJRJgsHukLEnLz6w6SvxZoLgbr5wLqQ==
   /@types/node/12.12.8:
     dev: true
     resolution:
@@ -4209,6 +4213,12 @@ packages:
   /safer-buffer/2.1.2:
     resolution:
       integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
+  /sandwich-stream/2.0.2:
+    dev: false
+    engines:
+      node: '>= 0.10'
+    resolution:
+      integrity: sha512-jLYV0DORrzY3xaz/S9ydJL6Iz7essZeAfnAavsJ+zsJGZ1MOnsS52yRjU3uF3pJa/lla7+wisp//fxOwOH8SKQ==
   /sanitize-html/1.20.1:
     dependencies:
       chalk: 2.4.2
@@ -4594,14 +4604,22 @@ packages:
       node: '>=6.0.0'
     resolution:
       integrity: sha512-wmEc8m4fjnob4gt5riFRtTu/6+4rSe12TpAELNSqHMfF3IqnA+CH37USM6/YR3qRZv7e56kAEAtd6nKZaxe0Ug==
-  /telebot/1.2.6:
+  /telegraf/3.33.3:
     dependencies:
-      request: 2.88.0
+      '@types/node': 12.12.12
+      debug: 4.1.1
+      node-fetch: 2.6.0
+      sandwich-stream: 2.0.2
+      telegram-typings: 3.6.1
     dev: false
     engines:
-      node: '>= 6.0.0'
+      node: '>=8'
     resolution:
-      integrity: sha512-ebrfQCymJEklFvrxpBm1sQGBexsZfsIc6T+u1fWacGeZu4SBKFyYC7RBnGk6SgNZwB4UT4s0d3OxTAbV9c0CHQ==
+      integrity: sha512-ItSAeE9OjFH+X0rS8DeErccoUZRy2hBl+mDjFWDqyZWyRElxA5L178UpJV7tM6hCVN/leFY+9orfra2JtX4AyQ==
+  /telegram-typings/3.6.1:
+    dev: false
+    resolution:
+      integrity: sha512-njVv1EAhIZnmQVLocZEADYUyqA1WIXuVcDYlsp+mXua/XB0pxx+PKtMSPeZ/EE4wPWTw9h/hA9ASTT6yQelkiw==
   /term-size/1.2.0:
     dependencies:
       execa: 0.7.0
@@ -5084,4 +5102,4 @@ specifiers:
   node-fetch: ^2.3.0
   puppeteer: ^1.19.0
   sanitize-html: ^1.20.1
-  telebot: ^1.2.6
+  telegraf: ^3.33.3
