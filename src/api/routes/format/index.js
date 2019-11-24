@@ -56,44 +56,41 @@ module.exports = (bot, botHelper) => {
     if (caption) text = caption;
     if (msg && text) {
       let [link = ''] = getAllLinks(text);
-      if (!link && entities) {
-        link = entities[0].url || getLinkFromEntity(entities[0], text);
-      }
-      if (link) {
-        try {
-          const parsed = url.parse(link);
-          if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
-            reply(messages.showIvMessage('', link, link), { parse_mode: 'Markdown' });
-            return;
-          }
-          if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
-            reply(`It looks like a file [link](${link})`, { parse_mode: 'Markdown' });
-            return;
-          }
-          if (!link.match(/^(https?|ftp|file)/)) {
-            link = `http://${link}`;
-          }
-          const res = await reply('Waiting for instantView...') || {};
-          if (!res.message_id) throw new Error('blocked');
-          const rabbitMes = {
-            message_id: res.message_id,
-            chatId,
-            link,
-          };
-          try {
-            const el = elapsedTime('test', false);
-            let queue;
-            if (!availableOne && elapsedSec() > 15) {
-              queue = rabbitmq.getSecond();
-            }
-            logger(el);
-            await rabbitmq.addToQueue(rabbitMes, queue);
-          } catch (e) {
-            botHelper.sendError(e);
-          }
-        } catch (e) {
-          botHelper.sendError(e);
+      try {
+        if (!link && entities) {
+          link = entities[0].url || getLinkFromEntity(entities[0], text);
         }
+        if (!link) {
+          throw new Error('link not found');
+        }
+        const parsed = url.parse(link);
+        if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
+          reply(messages.showIvMessage('', link, link), { parse_mode: 'Markdown' });
+          return;
+        }
+        if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
+          reply(`It looks like a file [link](${link})`, { parse_mode: 'Markdown' });
+          return;
+        }
+        if (!link.match(/^(https?|ftp|file)/)) {
+          link = `http://${link}`;
+        }
+        const res = await reply('Waiting for instantView...') || {};
+        if (!res.message_id) throw new Error('blocked');
+        const rabbitMes = {
+          message_id: res.message_id,
+          chatId,
+          link,
+        };
+        const el = elapsedTime('test', false);
+        let queue;
+        if (!availableOne && elapsedSec() > 15) {
+          queue = rabbitmq.getSecond();
+        }
+        logger(el);
+        await rabbitmq.addToQueue(rabbitMes, queue);
+      } catch (e) {
+        botHelper.sendError(e);
       }
     }
   });
