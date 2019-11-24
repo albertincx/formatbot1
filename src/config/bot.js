@@ -1,14 +1,6 @@
-const TeleBot = require('telebot');
+const Telegraf = require('telegraf');
 
-const BUTTONS = require('./buttons');
+const opts = {};
 
-const bot = new TeleBot({
-  token: `${process.env.TBTKNHABR}`,
-  usePlugins: ['namedButtons'],
-  pluginConfig: {
-    namedButtons: {
-      buttons: BUTTONS,
-    },
-  },
-});
+const bot = new Telegraf(process.env.TBTKNHABR, opts);
 module.exports = bot;

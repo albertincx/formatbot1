@@ -19,7 +19,7 @@ class BotHelper {
   botMes(chatId, text, mark = true) {
     let opts = {};
     if (mark) {
-      opts = { parseMode: 'Markdown' };
+      opts = { parse_mode: 'Markdown' };
     }
     return this.bot.sendMessage(chatId, text, opts)
       .catch(e => this.sendError(e, `${chatId}${text}`));
@@ -29,8 +29,8 @@ class BotHelper {
     let opts = {};
     if (mark) {
       opts = {
-        parseMode: 'Markdown',
-        webPreview: false,
+        parse_mode: 'Markdown',
+        disable_web_page_preview: false,
       };
     }
     if (chatId === TGADMIN) {

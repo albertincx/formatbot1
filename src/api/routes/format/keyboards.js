@@ -1,13 +1,19 @@
 const BUTTONS = require('../../../config/buttons');
+const Extra = require('telegraf/extra');
+const Markup = require('telegraf/markup');
 
-function start(bot) {
-  const replyMarkup = bot.keyboard([
+function start() {
+  const replyMarkup = Markup.keyboard([
     [BUTTONS.hello.label],
     [BUTTONS.hide.label],
-  ], { resize: true });
-  return { replyMarkup };
+  ]);
+  return Extra.markup(replyMarkup);
 }
 
-module.exports = {
-  start,
-};
+function hide() {
+  const replyMarkup = Markup.removeKeyboard();
+  return Extra.markup(replyMarkup);
+}
+
+module.exports.hide = hide;
+module.exports.start = start;
