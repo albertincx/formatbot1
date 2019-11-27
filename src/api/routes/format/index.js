@@ -9,7 +9,20 @@ const puppet = require('../../utils/puppet');
 const rabbitmq = require('../../../service/rabbitmq');
 rabbitmq.createChannel();
 
-const getLinkFromEntity = ({ offset, length }, txt) => txt.substr(offset, length);
+const getLinkFromEntity = (entities, txt) => {
+  let link = '';
+  for (let i = 0; i < entities.length; i += 1) {
+    if (entities[i].url) {
+      link = entities[i].url;
+      break;
+    }
+    if (entities[i].type === 'url') {
+      link = txt.substr(entities[i].offset, entities[i].length);
+      break;
+    }
+  }
+  return link;
+};
 
 function getAllLinks(text) {
   const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
@@ -58,7 +71,7 @@ module.exports = (bot, botHelper) => {
       let [link = ''] = getAllLinks(text);
       try {
         if (!link && entities) {
-          link = entities[0].url || getLinkFromEntity(entities[0], text);
+          link = getLinkFromEntity(entities, text);
         }
         if (!link) {
           return;
@@ -68,6 +81,7 @@ module.exports = (bot, botHelper) => {
           reply(messages.showIvMessage('', link, link), { parse_mode: 'Markdown' });
           return;
         }
+        if (!parsed.pathname) return;
         if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
           reply(`It looks like a file [link](${link})`, { parse_mode: 'Markdown' });
           return;
