@@ -6,14 +6,18 @@ const logger = require('./logger');
 const setRegex = /srcset="/;
 const imgReplacer = '##@#IMG#@##';
 
-const checkImage = (img) => {
-  return new Promise(resolve => {
-    const r = request(img);
+const checkImage = (url) => {
+  return new Promise((resolve, reject) => {
+    const r = request({
+      url,
+      timeout: 5000,
+    });
     r.on('response', response => {
       const contentType = response.headers['content-type'];
       resolve(contentType.match('image'));
       r.abort();
     });
+    r.on('error', () => reject(null));
   });
 };
 const findSrcSet = (img) => {
