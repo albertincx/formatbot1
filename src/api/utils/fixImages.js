@@ -56,6 +56,10 @@ const findImages = (content) => {
           .then(isValid => ({
             isValid,
             i,
+          }))
+          .catch(() => ({
+            isValid: false,
+            i,
           })));
       }
     }
