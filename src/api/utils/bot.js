@@ -29,7 +29,7 @@ class BotHelper {
     let opts = {};
     if (mark) {
       opts = {
-        parse_mode: 'Markdown',
+        // parse_mode: 'Markdown',
         disable_web_page_preview: true,
       };
     }
