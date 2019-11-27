@@ -40,7 +40,7 @@ const parse = async (userUrl, browserWs) => {
   content = result.content;
   if (content && preContent) {
     logger(content, 'mercury.html');
-    content = imgFixer.fixHtml(content, iframe, parseHelper.websiteUrl);
+    content = await imgFixer.fixHtml(content, iframe, parseHelper.websiteUrl);
     content = parseHelper.fixImages(content);
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
