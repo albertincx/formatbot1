@@ -45,8 +45,9 @@ const parse = async (userUrl, browserWs) => {
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
   }
+  title = title || userUrl || 'Untitled article';
   const res = {
-    title: title || userUrl,
+    title,
     content,
     source,
   };
