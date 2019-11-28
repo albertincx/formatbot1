@@ -56,8 +56,11 @@ class ParseHelper {
   }
 
   checkCustom() {
-    if (this.host.match(/facebook\.com|(^t|https?:\/\/t)\.co/)) {
+    if (this.host.match(/facebook\.com/)) {
       this.fb = true;
+      return true;
+    }
+    if (this.host.match(/(^t|https?:\/\/t)\.co/)) {
       return true;
     }
     if (this.host.match(/vk\.com/)) {
