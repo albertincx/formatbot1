@@ -39,6 +39,10 @@ class BotHelper {
     return this.bot.sendMessage(chatId, text, opts);
   }
 
+  sendAdminOpts(text, opts) {
+    return this.bot.sendMessage(TGADMIN, text, opts);
+  }
+
   sendAdminMark(text, chatId) {
     return this.sendAdmin(text, chatId, true);
   }
