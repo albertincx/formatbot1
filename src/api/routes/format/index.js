@@ -17,8 +17,12 @@ const getLinkFromEntity = (entities, txt) => {
       break;
     }
     if (entities[i].type === 'url') {
-      link = txt.substr(entities[i].offset, entities[i].length);
-      break;
+      let checkFf = txt.substr(0, entities[i].length + 1)
+        .match(/[(.*?)]/);
+      if (!checkFf) {
+        link = txt.substr(entities[i].offset, entities[i].length);
+        break;
+      }
     }
   }
   return link;
@@ -61,12 +65,16 @@ module.exports = (bot, botHelper) => {
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('⌨️ Hide keyboard', ({ reply }) => reply('Type /help to show.', keyboards.hide()));
 
-  bot.hears(/.*/, async ({ message: msg, reply }) => {
-    const { reply_to_message, entities } = msg;
+  const addToQueue = async ({ message: msg, reply }) => {
+    logger(msg);
+    let { reply_to_message, entities, caption_entities } = msg;
     if (reply_to_message) return;
     const { chat: { id: chatId }, caption } = msg;
     let { text } = msg;
-    if (caption) text = caption;
+    if (caption) {
+      text = caption;
+      if (caption_entities) entities = caption_entities;
+    }
     if (msg && text) {
       let [link = ''] = getAllLinks(text);
       try {
@@ -107,7 +115,12 @@ module.exports = (bot, botHelper) => {
         botHelper.sendError(e);
       }
     }
-  });
+  };
+  bot.hears(/.*/, (ctx) => addToQueue(ctx));
+  bot.on('message', ({ update, reply }) => addToQueue({
+    ...update,
+    reply
+  }));
 
   let browserWs = null;
   if (botHelper.config.puppeteer) {
