@@ -2,14 +2,14 @@ const fs = require('fs');
 const test = require('ava');
 const TeleBot = require('telebot');
 const puppet = require('../api/utils/puppet');
-const { NOBOT, PORT } = require('../config/vars');
+require('../config/vars');
 // Globals
 var bot;
 
 // Enviroment data
 
 let {
-  TBTKNHABR: TOKEN,
+  TBTKN: TOKEN,
   TGADMIN: USER
 } = process.env;
 
