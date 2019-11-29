@@ -12,7 +12,20 @@ You can find this bot by keywords such as “InstantViewBot”
 - [ ] Better parse images
 - [ ] Multi links
 
+## 🔨 Installation
+**Required env:**
+- DEV=1 show logging
+- TBTKN=bot token
+- TGGROUP=group for logs
+- TGADMIN=admin telegram id
+- TGPHTOKEN= Telegra.ph token
+- MESSAGE_QUEUE=rabbitmq message queue connection, thanks [cloudamqp.com](cloudamqp.com)
 
-#### Dev requirements
+**dev:**
 
+```
 bash dev-install.txt
+npm install
+npm run dev
+```
+
