@@ -119,6 +119,8 @@ module.exports = (bot, botHelper) => {
   const jobMessage = async (task) => {
     const { chatId, message_id: messageId, link, q } = task;
     let error = '';
+    let isBroken = false;
+    let resolveMsgId = false;
     try {
       let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
       try {
@@ -133,9 +135,9 @@ module.exports = (bot, botHelper) => {
         }
         const { iv, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs, q);
         RESULT = messages.showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
-        // RESULT = 'skip';
       } catch (e) {
         logger(e);
+        isBroken = true;
         error = `broken [link](${link}) ${e}`;
       }
       let t;
@@ -145,8 +147,14 @@ module.exports = (bot, botHelper) => {
       } else {
         t = elapsedTime2();
       }
-      await bot.telegram.editMessageText(chatId, messageId, null, RESULT, { parse_mode: 'Markdown' });
+      const extra = { parse_mode: 'Markdown' };
+      const responseMsg = await bot.telegram.editMessageText(chatId, messageId, null, RESULT, extra);
       if (!error) {
+        if (responseMsg) {
+          const { message_id: reportMessageId } = responseMsg;
+          resolveMsgId = reportMessageId;
+          // await bot.telegram.editMessageText(chatId, messageId, null, `${RESULT}\n\n/report${reportMessageId}`, extra);
+        }
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`, group);
       }
     } catch (e) {
@@ -154,7 +162,13 @@ module.exports = (bot, botHelper) => {
       error = `[link](${link}) task error: ${JSON.stringify(e)} ${e.toString()} ${chatId} ${messageId}`;
     }
     logger(error);
-    if (error) botHelper.sendAdmin(error);
+    if (error) {
+      if (isBroken && resolveMsgId) {
+        botHelper.sendAdminOpts(error, keyboards.resolvedBtn(resolveMsgId, chatId));
+      } else {
+        botHelper.sendAdmin(error);
+      }
+    }
   };
 
   try {

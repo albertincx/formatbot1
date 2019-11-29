@@ -15,5 +15,22 @@ function hide() {
   return Extra.markup(replyMarkup);
 }
 
+function report() {
+  const replyMarkup = Markup.inlineKeyboard([
+    Markup.callbackButton('No images', 'no_img'),
+    Markup.callbackButton('No InstantViewButton', 'no_button'),
+  ]);
+  return Extra.markup(replyMarkup);
+}
+
+function resolvedBtn(rmsgId, chatId) {
+  const replyMarkup = Markup.inlineKeyboard([
+    Markup.callbackButton('Report Resolved', `r_${rmsgId}_${chatId}`),
+  ]);
+  return Extra.markup(replyMarkup);
+}
+
 module.exports.hide = hide;
 module.exports.start = start;
+module.exports.report = report;
+module.exports.resolvedBtn = resolvedBtn;

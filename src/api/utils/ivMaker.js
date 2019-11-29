@@ -61,9 +61,11 @@ const makeIvLink = async (url, browserWs, q) => {
   if (!content) throw 'empty content';
   const obj = {
     title,
-    author_url: authorUrl,
     q,
   };
+  if (authorUrl.length <= 255) {
+    obj.author_url = authorUrl;
+  }
   const { telegraphLink, isLong, pages, push } = await makeTelegaph(obj, content);
   if (!telegraphLink) throw 'empty ivlink';
   return {
