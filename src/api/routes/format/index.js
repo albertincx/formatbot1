@@ -149,12 +149,12 @@ module.exports = (bot, botHelper) => {
       }
       const extra = { parse_mode: 'Markdown' };
       const responseMsg = await bot.telegram.editMessageText(chatId, messageId, null, RESULT, extra);
+      if (responseMsg) {
+        const { message_id: reportMessageId } = responseMsg;
+        resolveMsgId = reportMessageId;
+        // await bot.telegram.editMessageText(chatId, messageId, null, `${RESULT}\n\n/report${reportMessageId}`, extra);
+      }
       if (!error) {
-        if (responseMsg) {
-          const { message_id: reportMessageId } = responseMsg;
-          resolveMsgId = reportMessageId;
-          // await bot.telegram.editMessageText(chatId, messageId, null, `${RESULT}\n\n/report${reportMessageId}`, extra);
-        }
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`, group);
       }
     } catch (e) {
