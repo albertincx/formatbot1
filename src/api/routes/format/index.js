@@ -90,7 +90,7 @@ module.exports = (bot, botHelper) => {
           return;
         }
         if (!parsed.pathname) return;
-        if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
+        if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp|cms)/)) {
           reply(`It looks like a file [link](${link})`, { parse_mode: 'Markdown' });
           return;
         }
