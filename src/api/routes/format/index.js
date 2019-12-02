@@ -61,9 +61,10 @@ const startOrHelp = ({ message, reply }, botHelper) => {
 };
 
 module.exports = (bot, botHelper) => {
+  
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
-  bot.hears('⌨️ Hide keyboard', ({ reply }) => reply('Type /help to show.', keyboards.hide()));
+  //bot.hears('⌨️ Hide keyboard', ({ reply }) => reply('Type /help to show.', keyboards.hide()).catch(console.log));
 
   const addToQueue = async ({ message: msg, reply }) => {
     logger(msg);
