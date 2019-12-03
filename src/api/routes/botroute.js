@@ -7,17 +7,26 @@ const router = express.Router();
 const filepath = 'count.txt';
 if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, 0);
 
-
 let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 
 module.exports = (bot) => {
   const botHelper = new BotHelper(bot.telegram);
-  // Hide keyboard
-  //bot.command('config', msg => botHelper.toggleConfig(msg));
-  bot.command('showconfig', ({ message, reply }) => {
-    //if (botHelper.isAdmin(message.chat.id)) reply(JSON.stringify(botHelper.config));
+  bot.command('config', ({ message }) => {
+    if (botHelper.isAdmin(message.chat.id)) {
+      botHelper.toggleConfig(message);
+    }
   });
-  bot.command('srv', ({ message }) => botHelper.sendAdmin(`link: ${JSON.stringify(message)}`));
+  bot.command('showconfig', ({ message, reply }) => {
+    if (botHelper.isAdmin(message.chat.id)) {
+      reply(JSON.stringify(botHelper.config));
+    }
+  });
+  bot.command('srv', ({ message }) => {
+    if (botHelper.isAdmin(message.chat.id)) {
+      botHelper.sendAdmin(`srv: ${JSON.stringify(message)}`);
+    }
+  });
+
   format(bot, botHelper);
   bot.launch();
 
