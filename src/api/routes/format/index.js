@@ -73,11 +73,16 @@ module.exports = (bot, botHelper) => {
     if (resolveDataMatch) {
       let [, msgId, userId] = resolveDataMatch;
       const extra = { reply_to_message_id: msgId };
+      let error = '';
       try {
         await bot.telegram.sendMessage(userId, messages.resolved(), extra);
       } catch (e) {
-        botHelper.sendError(e);
+        error = JSON.stringify(e);
       }
+      const { update: { callback_query } } = ctx;
+      const { message: { text, message_id }, from } = callback_query;
+      let RESULT = `${text}\nResolved! ${error}`;
+      await bot.telegram.editMessageText(from.id, message_id, null, RESULT);
     }
   });
 
