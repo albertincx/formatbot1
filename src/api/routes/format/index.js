@@ -83,6 +83,10 @@ module.exports = (bot, botHelper) => {
         if (!link && entities) link = getLinkFromEntity(entities, text);
         if (!link) return;
         const parsed = url.parse(link);
+        if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+          const l = link.match(/url=(.*?)($|&)/);
+          if (l && l[1]) link = decodeURIComponent(l[1]);
+        }
         if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
           reply(messages.showIvMessage('', link, link),
               { parse_mode: 'Markdown' });
