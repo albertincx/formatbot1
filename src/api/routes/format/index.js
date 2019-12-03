@@ -67,6 +67,20 @@ module.exports = (bot, botHelper) => {
         catch(e => botHelper.sendError(e));
   });
 
+  bot.action(/.*/, async (ctx) => {
+    const [data] = ctx.match;
+    const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
+    if (resolveDataMatch) {
+      let [, msgId, userId] = resolveDataMatch;
+      const extra = { reply_to_message_id: msgId };
+      try {
+        await bot.telegram.sendMessage(userId, messages.resolved(), extra);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
+    }
+  });
+
   const addToQueue = async ({ message: msg, reply }) => {
     logger(msg);
     let { reply_to_message, entities, caption_entities } = msg;
