@@ -17,8 +17,7 @@ const getLinkFromEntity = (entities, txt) => {
       break;
     }
     if (entities[i].type === 'url') {
-      let checkFf = txt.substr(0, entities[i].length + 1)
-        .match(/[(.*?)]/);
+      let checkFf = txt.substr(0, entities[i].length + 1).match(/\[(.*?)\]/);
       if (!checkFf) {
         link = txt.substr(entities[i].offset, entities[i].length);
         break;
@@ -63,7 +62,10 @@ const startOrHelp = ({ message, reply }, botHelper) => {
 module.exports = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
-  bot.hears('⌨️ Hide keyboard', ({ reply }) => reply('Type /help to show.', keyboards.hide()));
+  bot.hears('⌨️ Hide keyboard', ({ reply }) => {
+    reply('Type /help to show.', keyboards.hide()).
+        catch(e => botHelper.sendError(e));
+  });
 
   const addToQueue = async ({ message: msg, reply }) => {
     logger(msg);
@@ -78,25 +80,15 @@ module.exports = (bot, botHelper) => {
     if (msg && text) {
       let [link = ''] = getAllLinks(text);
       try {
-        if (!link && entities) {
-          link = getLinkFromEntity(entities, text);
-        }
-        if (!link) {
-          return;
-        }
+        if (!link && entities) link = getLinkFromEntity(entities, text);
+        if (!link) return;
         const parsed = url.parse(link);
         if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
-          reply(messages.showIvMessage('', link, link), { parse_mode: 'Markdown' });
+          reply(messages.showIvMessage('', link, link),
+              { parse_mode: 'Markdown' });
           return;
         }
         if (!parsed.pathname) return;
-        if (parsed.pathname.match(/\..{2,4}$/) && !parsed.pathname.match(/.(html?|js|php|asp)/)) {
-          reply(`It looks like a file [link](${link})`, { parse_mode: 'Markdown' });
-          return;
-        }
-        if (!link.match(/^(https?|ftp|file)/)) {
-          link = `http://${link}`;
-        }
         const res = await reply('Waiting for instantView...') || {};
         if (!res.message_id) throw new Error('blocked');
         const rabbitMes = {
@@ -119,15 +111,14 @@ module.exports = (bot, botHelper) => {
   bot.hears(/.*/, (ctx) => addToQueue(ctx));
   bot.on('message', ({ update, reply }) => addToQueue({
     ...update,
-    reply
+    reply,
   }));
 
   let browserWs = null;
   if (botHelper.config.puppeteer) {
-    puppet.getBrowser()
-      .then(ws => {
-        browserWs = ws;
-      });
+    puppet.getBrowser().then(ws => {
+      browserWs = ws;
+    });
   }
   const jobMessage = async (task) => {
     const { chatId, message_id: messageId, link, q } = task;
@@ -135,9 +126,8 @@ module.exports = (bot, botHelper) => {
     let isBroken = false;
     let resolveMsgId = false;
     try {
-      let RESULT = `Sorry, but your [link](${link}) is broken, restricted, or content is empty`;
+      let RESULT = '';
       try {
-        const source = `${link}`;
         logger(`queue job ${q}`);
         if (!q) {
           elapsedTime();
@@ -146,12 +136,21 @@ module.exports = (bot, botHelper) => {
         } else {
           elapsedTime2();
         }
-        const { iv, isLong, pages = '', push = '' } = await ivMaker.makeIvLink(link, browserWs, q);
-        RESULT = messages.showIvMessage(isLong ? `Long ${pages}/${push}` : '', iv, source);
+        const isText = await ivMaker.isText(link);
+        if (!isText) {
+          RESULT = messages.isLooksLikeFile(link);
+        } else {
+          const source = `${link}`;
+          const linkData = await ivMaker.makeIvLink(link, browserWs, q);
+          const { iv, isLong, pages = '', push = '' } = linkData;
+          const longStr = isLong ? `Long ${pages}/${push}` : '';
+          RESULT = messages.showIvMessage(longStr, iv, source);
+        }
       } catch (e) {
         logger(e);
         isBroken = true;
-        error = `broken [link](${link}) ${e}`;
+        RESULT = messages.broken(link);
+        error = `broken ${link} ${e}`;
       }
       let t;
       if (!q) {
@@ -161,23 +160,27 @@ module.exports = (bot, botHelper) => {
         t = elapsedTime2();
       }
       const extra = { parse_mode: 'Markdown' };
-      const responseMsg = await bot.telegram.editMessageText(chatId, messageId, null, RESULT, extra);
+      const responseMsg = await bot.telegram.editMessageText(chatId, messageId,
+          null, RESULT, extra);
       if (responseMsg) {
         const { message_id: reportMessageId } = responseMsg;
         resolveMsgId = reportMessageId;
         // await bot.telegram.editMessageText(chatId, messageId, null, `${RESULT}\n\n/report${reportMessageId}`, extra);
       }
       if (!error) {
-        botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`, group);
+        botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
+            group);
       }
     } catch (e) {
       logger(e);
-      error = `[link](${link}) task error: ${JSON.stringify(e)} ${e.toString()} ${chatId} ${messageId}`;
+      error = `${link} error: ${JSON.stringify(
+          e)} ${e.toString()} ${chatId} ${messageId}`;
     }
     logger(error);
     if (error) {
       if (isBroken && resolveMsgId) {
-        botHelper.sendAdminOpts(error, keyboards.resolvedBtn(resolveMsgId, chatId));
+        botHelper.sendAdminOpts(error,
+            keyboards.resolvedBtn(resolveMsgId, chatId));
       } else {
         botHelper.sendAdmin(error);
       }

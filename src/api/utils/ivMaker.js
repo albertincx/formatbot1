@@ -1,4 +1,5 @@
 const Mercury = require('@postlight/mercury-parser');
+const fetch = require('node-fetch');
 const sanitizeHtml = require('sanitize-html');
 
 const makeTelegaph = require('./makeTelegaph');
@@ -22,8 +23,7 @@ const parse = async (userUrl, browserWs) => {
   let result = await mercury(userUrl, opts);
   logger(result.content, 'mercury.html');
   let { content } = result;
-  const preContent = sanitizeHtml(content)
-    .trim();
+  const preContent = sanitizeHtml(content).trim();
   logger(preContent, 'preContent.html');
   if (browserWs && preContent.length === 0) {
     //try to puppeteer
@@ -56,17 +56,16 @@ const parse = async (userUrl, browserWs) => {
 };
 
 const makeIvLink = async (url, browserWs, q) => {
+  url = toUrl(url);
   const authorUrl = `${url}`;
   const { title, content } = await parse(url, browserWs);
   if (!content) throw 'empty content';
-  const obj = {
-    title,
-    q,
-  };
+  const obj = { title, q };
   if (authorUrl.length <= 255) {
     obj.author_url = authorUrl;
   }
-  const { telegraphLink, isLong, pages, push } = await makeTelegaph(obj, content);
+  const tgRes = await makeTelegaph(obj, content);
+  const { telegraphLink, isLong, pages, push } = tgRes;
   if (!telegraphLink) throw 'empty ivlink';
   return {
     iv: telegraphLink,
@@ -75,4 +74,19 @@ const makeIvLink = async (url, browserWs, q) => {
     push,
   };
 };
+
+const toUrl = (url) => {
+  if (!url.match(/^(https?|ftp|file)/)) return `http://${url}`;
+  return url;
+};
+
+const isText = async (url) => {
+  url = toUrl(url);
+  const response = await fetch(url, { timeout: 5000 });
+  const contentType = response.headers.get('content-type') || '';
+  logger(contentType);
+  return contentType.startsWith('text/');
+};
+
+exports.isText = isText;
 exports.makeIvLink = makeIvLink;
