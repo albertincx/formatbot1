@@ -111,10 +111,11 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
   if (queueName === TASKS_CHANNEL) {
     availableOne = !start;
   }
-  if (!start) {
+  const t = elapsedTime(queueName);
+  if (start) {
     resetTime(queueName);
   }
-  return elapsedTime(queueName);
+  return t;
 };
 
 module.exports.createChannel = createChannel;
