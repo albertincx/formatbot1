@@ -4,6 +4,7 @@ const request = require('request');
 const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
 const setRegex = /srcset="/;
+const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
 
 const checkImage = (url) => {
@@ -28,8 +29,7 @@ const findSrcSet = (img) => {
       const arr = srcsetAttr.split(',');
       let mid = arr[Math.round((arr.length - 1) / 2)];
       if (mid) {
-        mid = mid.trim()
-          .replace(/\s(.*?)$/, '');
+        mid = mid.trim().replace(/\s(.*?)$/, '');
         const src = img.match(/src="(.*?)"/);
         if (src) {
           img = img.replace(src[0], `src="${mid}"`);
@@ -44,6 +44,10 @@ const findSrcSet = (img) => {
   return img;
 };
 
+const findIframes = (content) => {
+  return content.match(iframes);
+};
+
 const findImages = (content) => {
   const urlRegex = /<img [^>]+\/?>/g;
   const imgs = content.match(urlRegex) || [];
@@ -52,24 +56,20 @@ const findImages = (content) => {
     for (let i = 0; i < imgs.length; i += 1) {
       const src = imgs[i].match(/src="(.*?)"/);
       if (src && src[1]) {
-        tasks.push(checkImage(src[1])
-          .then(isValid => ({
-            isValid,
-            i,
-          }))
-          .catch(() => ({
-            isValid: false,
-            i,
-          })));
+        tasks.push(checkImage(src[1]).then(isValid => ({
+          isValid,
+          i,
+        })).catch(() => ({ isValid: false, i })));
       }
     }
   }
 
-  return Promise.all(tasks)
-    .then(checked => {
-      for (let i = 0; i < checked.length; i += 1) if (!checked[i].isValid) imgs[checked[i].i] = '';
-      return imgs;
-    });
+  return Promise.all(tasks).then(checked => {
+    for (let i = 0; i < checked.length; i += 1) {
+      if (!checked[i].isValid) imgs[checked[i].i] = '';
+    }
+    return imgs;
+  });
 };
 
 const insertYoutube = (content, links = []) => {
@@ -107,12 +107,16 @@ const restoreTags = (content, imgs, replaceFrom, domain) => {
   return content;
 };
 
-module.exports.findImages = findImages;
-const replaceImages = (content, imgs) => replaceTags(content, imgs, imgReplacer);
-const restoreImages = (content, imgs, domain) => restoreTags(content, imgs, imgReplacer, domain);
+const replaceImages = (content, imgs) => replaceTags(content, imgs,
+    imgReplacer);
+const restoreImages = (content, imgs, domain) => restoreTags(content, imgs,
+    imgReplacer, domain);
 
 const fixHtml = async (content, iframe, baseUrl) => {
   const imgs = await findImages(content);
+  if (!iframe) {
+    iframe = findIframes(content);
+  }
   content = replaceImages(content, imgs);
   logger(`before san ${content.length}`);
   content = sanitizeHtml(content);
@@ -121,9 +125,10 @@ const fixHtml = async (content, iframe, baseUrl) => {
   if (iframe && Array.isArray(iframe)) {
     content = insertYoutube(content, iframe);
   }
-
   return content;
 };
+module.exports.findImages = findImages;
+module.exports.findIframes = findIframes;
 
 module.exports.fixHtml = fixHtml;
 module.exports.checkImage = checkImage;
