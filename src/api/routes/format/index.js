@@ -32,22 +32,6 @@ function getAllLinks(text) {
   return text.match(urlRegex) || [];
 }
 
-let start = process.hrtime();
-let availableOne = true;
-let start2 = process.hrtime();
-const elapsedSec = () => process.hrtime(start)[0];
-const elapsedTime = (note = '', reset = true) => {
-  let elapsed = process.hrtime(start)[1] / 1000000;
-  elapsed = `${process.hrtime(start)[0]}s, ${elapsed.toFixed(0)}`;
-  if (reset) start = process.hrtime(); // reset the timer
-  return `${elapsed}ms ${note}`;
-};
-const elapsedTime2 = (note = '', reset = true) => {
-  let elapsed = process.hrtime(start2)[1] / 1000000;
-  elapsed = `${process.hrtime(start2)[0]}s, ${elapsed.toFixed(0)}`;
-  if (reset) start2 = process.hrtime(); // reset the timer
-  return `${elapsed}ms ${note}`;
-};
 const group = process.env.TGGROUP;
 const startOrHelp = ({ message, reply }, botHelper) => {
   let system = JSON.stringify(message.from);
@@ -62,6 +46,7 @@ const startOrHelp = ({ message, reply }, botHelper) => {
 module.exports = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
+
   bot.hears('⌨️ Hide keyboard', ({ reply }) => {
     reply('Type /help to show.', keyboards.hide()).
         catch(e => botHelper.sendError(e));
@@ -69,6 +54,14 @@ module.exports = (bot, botHelper) => {
 
   bot.action(/.*/, async (ctx) => {
     const [data] = ctx.match;
+    const s = data === 'no_img';
+    if (s) {
+      const { message } = ctx.update.callback_query;
+      const { message_id, chat, entities } = message;
+      const rabbitMes = { message_id, chatId: chat.id, link: entities[1].url };
+      await rabbitmq.addToQueue(rabbitMes, rabbitmq.chanPuppet());
+      return;
+    }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
     if (resolveDataMatch) {
       let [, msgId, userId] = resolveDataMatch;
@@ -113,29 +106,21 @@ module.exports = (bot, botHelper) => {
         }
         if (!parsed.pathname) return;
         const res = await reply('Waiting for instantView...') || {};
-        if (!res.message_id) throw new Error('blocked');
-        const rabbitMes = {
-          message_id: res.message_id,
-          chatId,
-          link,
-        };
-        const el = elapsedTime('test', false);
-        let queue;
-        if (!availableOne && elapsedSec() > 15) {
-          queue = rabbitmq.getSecond();
-        }
-        logger(el);
-        await rabbitmq.addToQueue(rabbitMes, queue);
+        const message_id = res && res.message_id;
+        if (!message_id) throw new Error('blocked');
+        const rabbitMes = { message_id, chatId, link };
+        await rabbitmq.addToQueue(rabbitMes);
       } catch (e) {
         botHelper.sendError(e);
       }
     }
   };
   bot.hears(/.*/, (ctx) => addToQueue(ctx));
-  bot.on('message', ({ update, reply }) => addToQueue({
-    ...update,
-    reply,
-  }));
+  bot.on('message', ({ update, reply }) => addToQueue({ ...update, reply }));
+
+  /*bot.command(/^second/, ({ message, update, reply }) => {
+    console.log(message);
+  });*/
 
   let browserWs = null;
   if (botHelper.config.puppeteer) {
@@ -152,19 +137,17 @@ module.exports = (bot, botHelper) => {
       let RESULT = '';
       try {
         logger(`queue job ${q}`);
-        if (!q) {
-          elapsedTime();
-          availableOne = false;
-          // await new Promise(resolve => setTimeout(() => resolve(), 120000));
-        } else {
-          elapsedTime2();
-        }
+        rabbitmq.time(q, true);
         const isText = await ivMaker.isText(link);
         if (!isText) {
           RESULT = messages.isLooksLikeFile(link);
         } else {
+          if (rabbitmq.isMain(q)) {
+            // await new Promise(resolve => setTimeout(() => resolve(), 120000));
+          }
           const source = `${link}`;
-          const linkData = await ivMaker.makeIvLink(link, browserWs, q);
+          const params = rabbitmq.getParams(q);
+          const linkData = await ivMaker.makeIvLink(link, browserWs, params);
           const { iv, isLong, pages = '', push = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push}` : '';
           RESULT = messages.showIvMessage(longStr, iv, source);
@@ -175,13 +158,7 @@ module.exports = (bot, botHelper) => {
         RESULT = messages.broken(link);
         error = `broken ${link} ${e}`;
       }
-      let t;
-      if (!q) {
-        t = elapsedTime();
-        availableOne = true;
-      } else {
-        t = elapsedTime2();
-      }
+      let t = rabbitmq.time(q);
       const extra = { parse_mode: 'Markdown' };
       const responseMsg = await bot.telegram.editMessageText(chatId, messageId,
           null, RESULT, extra);
@@ -189,6 +166,8 @@ module.exports = (bot, botHelper) => {
         const { message_id: reportMessageId } = responseMsg;
         resolveMsgId = reportMessageId;
         // await bot.telegram.editMessageText(chatId, messageId, null, `${RESULT}\n\n/report${reportMessageId}`, extra);
+        /*await bot.telegram.editMessageText(chatId, messageId, null,
+            RESULT, { ...extra, ...keyboards.report() });*/
       }
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
@@ -214,6 +193,7 @@ module.exports = (bot, botHelper) => {
     setTimeout(() => {
       rabbitmq.run(jobMessage);
       rabbitmq.runSecond(jobMessage);
+      rabbitmq.runPuppet(jobMessage);
     }, 5000);
   } catch (e) {
     botHelper.sendError(e);
