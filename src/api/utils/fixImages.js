@@ -38,7 +38,7 @@ const findSrcSet = (img) => {
         }
       }
     } catch (e) {
-      // console.log(e);
+      logger(e);
     }
   }
   return img;

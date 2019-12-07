@@ -11,19 +11,13 @@ let push = 0;
 function lengthInUtf8Bytes(str) {
   if (!str) return 0;
   // Matches only the 10.. bytes that are non-initial characters in a multi-byte sequence.
-  const m = encodeURIComponent(str)
-    .match(/%[89ABab]/g);
+  const m = encodeURIComponent(str).match(/%[89ABab]/g);
   return str.length + (m ? m.length : 0);
 }
 
 const makeTelegraphLink = async (obj, content) => {
-  let access_token = process.env.TGPHTOKEN;
-  if (obj.q) {
-    access_token = process.env.TGPHTOKEN2;
-  }
-  logger(`access ${access_token}`);
+  logger(`access ${obj.access_token}`);
   const body = Object.assign(obj, {
-    access_token,
     author_name: 'From',
     return_content: false,
     content,
@@ -33,21 +27,19 @@ const makeTelegraphLink = async (obj, content) => {
     body: JSON.stringify(body),
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-  })
-    .then(res => {
-      if (!res.ok) {
-        const err = new Error(res.statusText || 'Error calling telegra.ph');
-        err.statusCode = res.status;
-        throw err;
+  }).then(res => {
+    if (!res.ok) {
+      const err = new Error(res.statusText || 'Error calling telegra.ph');
+      err.statusCode = res.status;
+      throw err;
+    }
+    return res.json().then((json) => {
+      if (('ok' in json && !json.ok)) {
+        throw new Error(json.error || 'Error calling telegra.ph');
       }
-      return res.json()
-        .then((json) => {
-          if (('ok' in json && !json.ok)) {
-            throw new Error(json.error || 'Error calling telegra.ph');
-          }
-          return json.result.url;
-        });
+      return json.result.url;
     });
+  });
 };
 
 const makeLink = (obj, dom, link, index) => {
@@ -61,7 +53,8 @@ const makeLink = (obj, dom, link, index) => {
     if (link) {
       logger(`push ${link}`);
       push += 1;
-      dom.push(...toDom(`<p align="center"><br /><br /><a href="${link}">Read Next page</a></p>`)[0].children);
+      const nextBtn = `<p align="center"><br /><br /><a href="${link}">Read Next page</a></p>`;
+      dom.push(...toDom(nextBtn)[0].children);
     }
     content = JSON.stringify(dom);
     logger(content, `page${index}.json`);
