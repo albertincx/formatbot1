@@ -9,7 +9,7 @@ const mercury = require('./mercury');
 const ParseHelper = require('./parseHelper');
 const puppet = require('./puppet');
 
-const parse = async (userUrl, browserWs) => {
+const parse = async (userUrl, browserWs, params) => {
   const parseHelper = new ParseHelper(userUrl);
   userUrl = parseHelper.link;
   const opts = {};
@@ -55,12 +55,13 @@ const parse = async (userUrl, browserWs) => {
   return res;
 };
 
-const makeIvLink = async (url, browserWs, q) => {
+const makeIvLink = async (url, browserWs, paramsObj) => {
   url = toUrl(url);
+  const { access_token, ...params } = paramsObj;
   const authorUrl = `${url}`;
-  const { title, content } = await parse(url, browserWs);
+  const { title, content } = await parse(url, browserWs, params);
   if (!content) throw 'empty content';
-  const obj = { title, q };
+  const obj = { title, access_token };
   if (authorUrl.length <= 255) {
     obj.author_url = authorUrl;
   }

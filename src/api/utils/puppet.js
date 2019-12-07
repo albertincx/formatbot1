@@ -24,7 +24,6 @@ const getBrowser = async () => {
 };
 const puppet = async (url, ws) => {
   try {
-    // console.log('Worker ' + process.pid + ' received message from master.', msg);
     // Use the endpoint to reestablish a connection
     const browser = await puppeteer.connect({ browserWSEndpoint: ws });
     const page = await browser.newPage();
