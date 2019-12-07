@@ -19,7 +19,9 @@ const parse = async (userUrl, browserWs, params) => {
     opts.html = Buffer.from(html);
   }
   const extractor = parseHelper.getExtractor();
-  if (extractor) Mercury.addExtractor(extractor);
+  if (extractor) {
+    Mercury.addExtractor(extractor);
+  }
   let result = await mercury(userUrl, opts);
   logger(result.content, 'mercury.html');
   let { content } = result;
@@ -83,10 +85,11 @@ const toUrl = (url) => {
 
 const isText = async (url) => {
   url = toUrl(url);
-  const response = await fetch(url, { timeout: 5000 });
-  const contentType = response.headers.get('content-type') || '';
+  const { url: baseUrl, headers } = await fetch(url, { timeout: 5000 });
+  const contentType = headers.get('content-type') || '';
   logger(contentType);
-  return contentType.startsWith('text/');
+  const isText = contentType.startsWith('text/');
+  return { isText, url: baseUrl };
 };
 
 exports.isText = isText;
