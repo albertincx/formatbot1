@@ -129,7 +129,8 @@ module.exports = (bot, botHelper) => {
     });
   }
   const jobMessage = async (task) => {
-    const { chatId, message_id: messageId, link, q } = task;
+    const { chatId, message_id: messageId, q } = task;
+    let { link } = task;
     let error = '';
     let isBroken = false;
     let resolveMsgId = false;
@@ -138,7 +139,8 @@ module.exports = (bot, botHelper) => {
       try {
         logger(`queue job ${q}`);
         rabbitmq.time(q, true);
-        const isText = await ivMaker.isText(link);
+        const { isText, url } = await ivMaker.isText(link);
+        if (url !== link) link = url;
         if (!isText) {
           RESULT = messages.isLooksLikeFile(link);
         } else {
