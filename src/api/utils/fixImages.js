@@ -111,6 +111,21 @@ const replaceImages = (content, imgs) => replaceTags(content, imgs,
     imgReplacer);
 const restoreImages = (content, imgs, domain) => restoreTags(content, imgs,
     imgReplacer, domain);
+const replaceServices = (content) => {
+  const srvs = [/<a.+(imgur\.com).+\/a>/g];
+  for (let i = 0; i < srvs.length; i += 1) {
+    const found = content.match(srvs[i]) || [];
+    if (found.length) {
+      for (let fi = 0; fi < found.length; fi += 1) {
+        const href = found[fi].match(/href="([^>]+)"/);
+        if (href) {
+          content = content.replace(found[fi], `<img src="${href[1]}/zip" />`);
+        }
+      }
+    }
+  }
+  return content;
+};
 
 const fixHtml = async (content, iframe, baseUrl) => {
   const imgs = await findImages(content);
@@ -122,6 +137,7 @@ const fixHtml = async (content, iframe, baseUrl) => {
   content = sanitizeHtml(content);
   content = sanitizeHtmlForce(content);
   content = restoreImages(content, imgs, baseUrl);
+  content = replaceServices(content);
   if (iframe && Array.isArray(iframe)) {
     content = insertYoutube(content, iframe);
   }
