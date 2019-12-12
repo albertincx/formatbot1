@@ -38,6 +38,7 @@ const parse = async (userUrl, browserWs, params) => {
     }
   }
   let { title, url: source, iframe } = result;
+  logger(iframe, 'iframes.html');
   if (parseHelper.title) title = parseHelper.title;
   content = result.content;
   if (content && preContent) {
