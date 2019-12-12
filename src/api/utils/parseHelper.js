@@ -1,3 +1,4 @@
+const path = require('path');
 const url = require('url');
 const fetch = require('isomorphic-fetch');
 const logger = require('./logger');
@@ -15,7 +16,12 @@ class ParseHelper {
     this.domain = matches && matches[1];
     this.parsed = url.parse(link);
     const { host, protocol } = this.parsed;
-    this.websiteUrl = `${protocol}//${host}`;
+    let { dir = '' } = path.parse(link);
+    let wbu = `${protocol}//${host}`;
+    if (dir.match(/:\/\/./)) {
+      wbu = dir;
+    }
+    this.websiteUrl = wbu;
     this.link = link;
     this.host = host;
     this.iframe = null;
@@ -73,8 +79,7 @@ class ParseHelper {
   }
 
   async fetchHtml() {
-    let content = await fetch(this.link, { timeout: 5000 })
-      .then(r => r.text());
+    let content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
     logger(content, 'fetchContent.html');
     if (this.fb) {
       let title = content.match(/<title.*>([^<]+\/?)/);

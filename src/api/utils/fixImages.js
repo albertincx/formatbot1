@@ -97,7 +97,7 @@ const restoreTags = (content, imgs, replaceFrom, domain) => {
     }
     if (!img.match(/src=.(\/\/|https?)/)) {
       if (domain && !img.match(/src=.\.\.|;/)) {
-        img = img.replace(' src="', ` src="${domain}`);
+        img = img.replace(' src="', ` src="${domain}/`);
       } else {
         img = '';
       }
