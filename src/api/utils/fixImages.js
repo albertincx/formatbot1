@@ -56,12 +56,12 @@ const findImages = (content, parsedUrl) => {
     let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
     for (let i = 0; i < imgs.length; i += 1) {
       let img = imgs[i].replace(/\n/g, '').replace(/\s+/g, ' ');
-      if (img[0] !== '/') {
-        baseUrl = parsedUrl.dir;
-      }
       const src = img.match(/src="(.*?)"/);
       if (src && src[1]) {
         let s = src[1];
+        if (s[0] !== '/') {
+          baseUrl = parsedUrl.dir;
+        }
         if (!s.match('://')) {
           s = `${baseUrl}/${s}`;
         }
@@ -105,10 +105,10 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
     if (replaceFrom === imgReplacer) {
       img = findSrcSet(img);
     }
-    if (img[0] !== '/') {
-      baseUrl = parsedUrl.dir;
-    }
     if (!img.match(/src=.(\/\/|https?)/)) {
+      if (!img.match(/src="\//)) {
+        baseUrl = parsedUrl.dir;
+      }
       if (baseUrl && !img.match(/src=.\.\.|;/)) {
         img = img.replace(' src="', ` src="${baseUrl}/`);
       } else {
