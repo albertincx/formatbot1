@@ -4,7 +4,6 @@ const sanitizeHtml = require('sanitize-html');
 
 const makeTelegaph = require('./makeTelegaph');
 const logger = require('./logger');
-const imgFixer = require('./fixImages');
 const mercury = require('./mercury');
 const ParseHelper = require('./parseHelper');
 const puppet = require('./puppet');
@@ -43,7 +42,7 @@ const parse = async (userUrl, browserWs, params) => {
   content = result.content;
   if (content && preContent) {
     logger(content, 'mercury.html');
-    content = await imgFixer.fixHtml(content, iframe, parseHelper.websiteUrl);
+    content = await parseHelper.fixHtml(content, iframe);
     content = parseHelper.fixImages(content);
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
