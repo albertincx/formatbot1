@@ -48,15 +48,24 @@ const findIframes = (content) => {
   return content.match(iframes);
 };
 
-const findImages = (content) => {
+const findImages = (content, parsedUrl) => {
   const urlRegex = /<img [^>]+\/?>/g;
   const imgs = content.match(urlRegex) || [];
   const tasks = [];
   if (imgs.length && imgs.length < 10) {
+    let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
     for (let i = 0; i < imgs.length; i += 1) {
-      const src = imgs[i].match(/src="(.*?)"/);
+      let img = imgs[i].replace(/\n/g, '').replace(/\s+/g, ' ');
+      if (img[0] !== '/') {
+        baseUrl = parsedUrl.dir;
+      }
+      const src = img.match(/src="(.*?)"/);
       if (src && src[1]) {
-        tasks.push(checkImage(src[1]).then(isValid => ({
+        let s = src[1];
+        if (!s.match('://')) {
+          s = `${baseUrl}/${s}`;
+        }
+        tasks.push(checkImage(s).then(isValid => ({
           isValid,
           i,
         })).catch(() => ({ isValid: false, i })));
@@ -90,14 +99,18 @@ const replaceTags = (content, imgs, replaceWith) => {
   return content;
 };
 
-const restoreTags = (content, imgs, replaceFrom, domain) => {
+const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
+  let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
   for (let img of imgs) {
     if (replaceFrom === imgReplacer) {
       img = findSrcSet(img);
     }
+    if (img[0] !== '/') {
+      baseUrl = parsedUrl.dir;
+    }
     if (!img.match(/src=.(\/\/|https?)/)) {
-      if (domain && !img.match(/src=.\.\.|;/)) {
-        img = img.replace(' src="', ` src="${domain}/`);
+      if (baseUrl && !img.match(/src=.\.\.|;/)) {
+        img = img.replace(' src="', ` src="${baseUrl}/`);
       } else {
         img = '';
       }
@@ -109,8 +122,8 @@ const restoreTags = (content, imgs, replaceFrom, domain) => {
 
 const replaceImages = (content, imgs) => replaceTags(content, imgs,
     imgReplacer);
-const restoreImages = (content, imgs, domain) => restoreTags(content, imgs,
-    imgReplacer, domain);
+const restoreImages = (content, imgs, parsedUrl) => restoreTags(content, imgs,
+    imgReplacer, parsedUrl);
 const replaceServices = (content) => {
   const srvs = [/<a.+(imgur\.com).+\/a>/g];
   for (let i = 0; i < srvs.length; i += 1) {
@@ -127,8 +140,8 @@ const replaceServices = (content) => {
   return content;
 };
 
-const fixHtml = async (content, iframe, baseUrl) => {
-  const imgs = await findImages(content);
+const fixHtml = async (content, iframe, parsedUrl) => {
+  const imgs = await findImages(content, parsedUrl);
   if (!iframe) {
     iframe = findIframes(content);
   }
@@ -136,7 +149,7 @@ const fixHtml = async (content, iframe, baseUrl) => {
   logger(`before san ${content.length}`);
   content = sanitizeHtml(content);
   content = sanitizeHtmlForce(content);
-  content = restoreImages(content, imgs, baseUrl);
+  content = restoreImages(content, imgs, parsedUrl);
   content = replaceServices(content);
   if (iframe && Array.isArray(iframe)) {
     content = insertYoutube(content, iframe);

@@ -2,6 +2,7 @@ const path = require('path');
 const url = require('url');
 const fetch = require('isomorphic-fetch');
 const logger = require('./logger');
+const fixImages = require('./fixImages');
 
 class ParseHelper {
   constructor(link) {
@@ -17,11 +18,9 @@ class ParseHelper {
     this.parsed = url.parse(link);
     const { host, protocol } = this.parsed;
     let { dir = '' } = path.parse(link);
-    let wbu = `${protocol}//${host}`;
     if (dir.match(/:\/\/./)) {
-      wbu = dir;
+      this.parsed.dir = dir;
     }
-    this.websiteUrl = wbu;
     this.link = link;
     this.host = host;
     this.iframe = null;
@@ -113,6 +112,10 @@ class ParseHelper {
       if (l && l[1]) return l[1];
     }
     return link;
+  }
+
+  fixHtml(content, iframe) {
+    return fixImages.fixHtml(content, iframe, this.parsed);
   }
 }
 
