@@ -15,7 +15,9 @@ const checkImage = (url) => {
     });
     r.on('response', response => {
       const contentType = response.headers['content-type'];
-      resolve(contentType.match('image'));
+      console.log(contentType,url);
+      if(contentType) resolve(contentType.match('image'));
+      else
       r.abort();
     });
     r.on('error', () => reject(null));
