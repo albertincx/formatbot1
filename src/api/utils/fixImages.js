@@ -3,7 +3,7 @@ const request = require('request');
 
 const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
-const setRegex = /srcset="/;
+const setRegex = /srcset="[^data]/;
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
 
@@ -100,9 +100,19 @@ const replaceTags = (content, imgs, replaceWith) => {
   return content;
 };
 
+function convert(str) {
+  str = str.replace(/&amp;/g, '&');
+  str = str.replace(/&gt;/g, '>');
+  str = str.replace(/&lt;/g, '<');
+  str = str.replace(/&quot;/g, '"');
+  str = str.replace(/&#039;/g, '\'');
+  return str;
+}
+
 const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
   let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
   for (let img of imgs) {
+    img = convert(img);
     if (replaceFrom === imgReplacer) {
       img = findSrcSet(img);
     }
