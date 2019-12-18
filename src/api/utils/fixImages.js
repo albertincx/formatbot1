@@ -35,12 +35,16 @@ const findSrcSet = (img) => {
       let mid = arr[Math.round((arr.length - 1) / 2)];
       if (mid) {
         mid = mid.trim().replace(/\n/g, '').replace(/\s(.*?)$/, '');
-        const src = img.match(/src="(.*?)"/);
-        if (src) {
-          img = img.replace(src[0], `src="${mid}"`);
-          img = img.replace(srcsetAttr, '');
-          img = img.replace(/srcset=""\s?/, '');
+        if (!img.match('src=')) {
+          img = img.replace('<img ', `<img src="${mid}" `);
+        } else {
+          const src = img.match(/src="(.*?)"/);
+          if (src) {
+            img = img.replace(src[0], `src="${mid}"`);
+          }
         }
+        img = img.replace(srcsetAttr, '');
+        img = img.replace(/srcset=""\s?/, '');
       }
     } catch (e) {
       logger(e);
