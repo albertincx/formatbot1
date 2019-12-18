@@ -9,6 +9,10 @@ const imgReplacer = '##@#IMG#@##';
 
 const checkImage = (url) => {
   return new Promise((resolve, reject) => {
+    if (process.env.CHECK_IMG_SKIP) {
+      resolve(true);
+      return;
+    }
     const r = request({
       url,
       timeout: 5000,
@@ -30,7 +34,7 @@ const findSrcSet = (img) => {
       const arr = srcsetAttr.split(',');
       let mid = arr[Math.round((arr.length - 1) / 2)];
       if (mid) {
-        mid = mid.trim().replace(/\s(.*?)$/, '');
+        mid = mid.trim().replace(/\n/g, '').replace(/\s(.*?)$/, '');
         const src = img.match(/src="(.*?)"/);
         if (src) {
           img = img.replace(src[0], `src="${mid}"`);
