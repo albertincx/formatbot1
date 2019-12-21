@@ -36,7 +36,7 @@ const parse = async (userUrl, browserWs, params) => {
       logger(result.content, 'mercuryAsyncContent.html');
     }
   }
-  let { title, url: source, iframe } = result;
+  let { title = '', url: source, iframe } = result;
   logger(iframe, 'iframes.html');
   if (parseHelper.title) title = parseHelper.title;
   content = result.content;
@@ -47,7 +47,8 @@ const parse = async (userUrl, browserWs, params) => {
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
   }
-  title = title.trim() || userUrl || 'Untitled article';
+  title = title && title.trim();
+  title = title || 'Untitled article';
   const res = {
     title,
     content,
