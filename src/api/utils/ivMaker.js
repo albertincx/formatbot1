@@ -47,7 +47,7 @@ const parse = async (userUrl, browserWs, params) => {
     logger(content, 'tg_content.html');
     logger(`after san ${content.length}`);
   }
-  title = title || userUrl || 'Untitled article';
+  title = title.trim() || userUrl || 'Untitled article';
   const res = {
     title,
     content,
@@ -57,11 +57,11 @@ const parse = async (userUrl, browserWs, params) => {
   return res;
 };
 
-const makeIvLink = async (url, browserWs, paramsObj) => {
+const makeIvLink = async (url, paramsObj) => {
   url = toUrl(url);
   const { access_token, ...params } = paramsObj;
   const authorUrl = `${url}`;
-  const { title, content } = await parse(url, browserWs, params);
+  const { title, content } = await parse(url, params);
   if (!content) throw 'empty content';
   const obj = { title, access_token };
   if (authorUrl.length <= 255) {
@@ -85,7 +85,8 @@ const toUrl = (url) => {
 
 const isText = async (url) => {
   url = toUrl(url);
-  const { url: baseUrl, headers } = await fetch(url, { timeout: 5000 });
+  const r = await fetch(url, { timeout: 5000 });
+  const { url: baseUrl, headers } = r;
   const contentType = headers.get('content-type') || '';
   logger(contentType);
   const isText = contentType.startsWith('text/');
