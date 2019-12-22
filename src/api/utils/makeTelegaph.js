@@ -95,6 +95,9 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
 const makeTelegaph = async (obj, parsedHtml) => {
   let telegraphLink = '';
   let domEd = toDom(parsedHtml);
+  if(!domEd){
+    throw 'empty dom';   
+  }
   if (domEd.length === 1) {
     domEd = domEd[0].children;
   }
