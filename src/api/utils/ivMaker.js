@@ -8,8 +8,9 @@ const mercury = require('./mercury');
 const ParseHelper = require('./parseHelper');
 const puppet = require('./puppet');
 
-const parse = async (userUrl, browserWs, params) => {
+const parse = async (userUrl, params) => {
   const parseHelper = new ParseHelper(userUrl);
+  let browserWs=params.browserWs
   userUrl = parseHelper.link;
   const opts = {};
   if (parseHelper.custom) {

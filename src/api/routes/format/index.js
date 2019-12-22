@@ -149,7 +149,8 @@ module.exports = (bot, botHelper) => {
           }
           const source = `${link}`;
           const params = rabbitmq.getParams(q);
-          const linkData = await ivMaker.makeIvLink(link, browserWs, params);
+          params.browserWs = browserWs;
+          const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push}` : '';
           RESULT = messages.showIvMessage(longStr, iv, source);
