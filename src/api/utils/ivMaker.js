@@ -6,11 +6,9 @@ const makeTelegaph = require('./makeTelegaph');
 const logger = require('./logger');
 const mercury = require('./mercury');
 const ParseHelper = require('./parseHelper');
-const puppet = require('./puppet');
 
-const parse = async (userUrl, params) => {
-  const parseHelper = new ParseHelper(userUrl);
-  let browserWs=params.browserWs
+const parse = async (userUrl, paramsObj) => {
+  const parseHelper = new ParseHelper(userUrl, paramsObj);
   userUrl = parseHelper.link;
   const opts = {};
   if (parseHelper.custom) {
@@ -27,12 +25,10 @@ const parse = async (userUrl, params) => {
   let { content } = result;
   const preContent = sanitizeHtml(content).trim();
   logger(preContent, 'preContent.html');
-  if (browserWs && preContent.length === 0) {
-    //try to puppeteer
-    logger(browserWs);
-    const html = await puppet(userUrl, browserWs);
-    logger(html, 'asyncContent.html');
+  if (preContent.length === 0) {
+    const html = await parseHelper.puppet(userUrl);
     if (html) {
+      logger(html, 'asyncContent.html');
       result = await mercury(userUrl, { html: Buffer.from(html) });
       logger(result.content, 'mercuryAsyncContent.html');
     }
@@ -85,14 +81,14 @@ const toUrl = (url) => {
   return url;
 };
 
-const isText = async (url) => {
-  url = toUrl(url);
-  const r = await fetch(url, { timeout: 5000 });
-  const { url: baseUrl, headers } = r;
+const isText = async (u) => {
+  u = toUrl(u);
+  const r = await fetch(u, { timeout: 5000 });
+  const { url, headers } = r;
   const contentType = headers.get('content-type') || '';
   logger(contentType);
   const isText = contentType.startsWith('text/');
-  return { isText, url: baseUrl };
+  return { isText, url };
 };
 
 exports.isText = isText;
