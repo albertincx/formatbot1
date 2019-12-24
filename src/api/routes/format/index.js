@@ -139,8 +139,8 @@ module.exports = (bot, botHelper) => {
       try {
         logger(`queue job ${q}`);
         rabbitmq.time(q, true);
-        const { isText, url } = await ivMaker.isText(link);
-        if (url !== link) link = url;
+        const { isText, url: baseUrl } = await ivMaker.isText(link);
+        if (baseUrl !== link) link = baseUrl;
         if (!isText) {
           RESULT = messages.isLooksLikeFile(link);
         } else {
@@ -148,8 +148,10 @@ module.exports = (bot, botHelper) => {
             // await new Promise(resolve => setTimeout(() => resolve(), 120000));
           }
           const source = `${link}`;
-          const params = rabbitmq.getParams(q);
+          let params = rabbitmq.getParams(q);
           params.browserWs = browserWs;
+          const { hostname } = url.parse(link);
+          params = { ...botHelper.getParams(hostname, chatId), ...params };
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push}` : '';
