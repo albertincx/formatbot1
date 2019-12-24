@@ -3,9 +3,10 @@ const url = require('url');
 const fetch = require('isomorphic-fetch');
 const logger = require('./logger');
 const fixImages = require('./fixImages');
+const puppet = require('./puppet');
 
 class ParseHelper {
-  constructor(link) {
+  constructor(link, params = {}) {
     link = this.parseServices(link);
     if (!link.match(/^http/)) {
       link = `http://${link}`;
@@ -28,6 +29,7 @@ class ParseHelper {
     this.fb = false;
     this.sites = {};
     this.title = '';
+    this.params = params;
     this.custom = this.checkCustom();
   }
 
@@ -50,9 +52,13 @@ class ParseHelper {
     if (this.sites.vk) {
       selectors = ['.wall_text'];
     }
+    if (this.params.content) {
+      selectors = [this.params.content];
+    }
     if (selectors) {
       e.content = { selectors };
     }
+
     return { ...e };
   }
 
@@ -74,12 +80,22 @@ class ParseHelper {
     if (this.host.match(/cnn\.com/)) {
       this.sites.cnn = true;
     }
-    return false;
+    return this.params.isCustom || this.params.isPuppet;
+  }
+
+  puppet() {
+    if (this.params.isPuppet) return '';
+    return puppet(this.link, this.params.browserWs);
   }
 
   async fetchHtml() {
-    let content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
-    logger(content, 'fetchContent.html');
+    let content = '';
+    if (this.params.isPuppet) {
+      content = await puppet(this.link, this.params.browserWs);
+    } else {
+      content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
+      logger(content, 'fetchContent.html');
+    }
     if (this.fb) {
       let title = content.match(/<title.*>([^<]+\/?)/);
       if (title && title[1]) {

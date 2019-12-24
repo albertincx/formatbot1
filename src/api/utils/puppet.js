@@ -15,15 +15,18 @@ const getBrowser = async () => {
   return puppeteer.launch({
     headless: true,
     args,
-  })
-    .then((browser) => {
-      const browserWSEndpoint = browser.wsEndpoint();
-      browser.disconnect();
-      return browserWSEndpoint;
-    });
+  }).then((browser) => {
+    const browserWSEndpoint = browser.wsEndpoint();
+    browser.disconnect();
+    return browserWSEndpoint;
+  });
 };
 const puppet = async (url, ws) => {
+  if (!ws) {
+    return Promise.resolve(false);
+  }
   try {
+    logger(url);
     // Use the endpoint to reestablish a connection
     const browser = await puppeteer.connect({ browserWSEndpoint: ws });
     const page = await browser.newPage();
