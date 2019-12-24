@@ -16,6 +16,13 @@ module.exports = (bot) => {
       botHelper.toggleConfig(message);
     }
   });
+
+  bot.command('cconfig', ({ message }) => {
+    if (botHelper.isAdmin(message.chat.id)) {
+      botHelper.togglecConfig(message);
+    }
+  });
+
   bot.command('showconfig', ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
       reply(JSON.stringify(botHelper.config));
