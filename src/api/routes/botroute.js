@@ -2,6 +2,7 @@ const fs = require('fs');
 const express = require('express');
 const BotHelper = require('../utils/bot');
 const format = require('./format');
+const db = require('../utils/db');
 
 const router = express.Router();
 const filepath = 'count.txt';
@@ -26,6 +27,12 @@ module.exports = (bot) => {
   bot.command('showconfig', ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
       reply(JSON.stringify(botHelper.config));
+    }
+  });
+
+  bot.command('stat', ({ message, reply }) => {
+    if (botHelper.isAdmin(message.chat.id)) {
+      db.stat().then(r => reply(r));
     }
   });
   bot.command('srv', ({ message }) => {

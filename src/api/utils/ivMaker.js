@@ -6,6 +6,7 @@ const makeTelegaph = require('./makeTelegaph');
 const logger = require('./logger');
 const mercury = require('./mercury');
 const ParseHelper = require('./parseHelper');
+const db = require('./db');
 
 const parse = async (userUrl, paramsObj) => {
   const parseHelper = new ParseHelper(userUrl, paramsObj);
@@ -56,6 +57,11 @@ const parse = async (userUrl, paramsObj) => {
 };
 
 const makeIvLink = async (url, paramsObj) => {
+  const exist = await db.get(url);
+  if (exist) {
+    return exist;
+  }
+
   url = toUrl(url);
   const { access_token, ...params } = paramsObj;
   const authorUrl = `${url}`;
@@ -68,12 +74,10 @@ const makeIvLink = async (url, paramsObj) => {
   const tgRes = await makeTelegaph(obj, content);
   const { telegraphLink, isLong, pages, push } = tgRes;
   if (!telegraphLink) throw 'empty ivlink';
-  return {
-    iv: telegraphLink,
-    isLong,
-    pages,
-    push,
-  };
+  const res = { iv: telegraphLink, isLong, pages, push };
+  await db.updateOne({ url, ...res });
+
+  return res;
 };
 
 const toUrl = (url) => {
