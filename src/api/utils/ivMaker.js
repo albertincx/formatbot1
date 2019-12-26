@@ -59,6 +59,7 @@ const parse = async (userUrl, paramsObj) => {
 const makeIvLink = async (url, paramsObj) => {
   const exist = await db.get(url);
   if (exist) {
+    exist.isLong = exist.pages;
     return exist;
   }
 
@@ -74,9 +75,9 @@ const makeIvLink = async (url, paramsObj) => {
   const tgRes = await makeTelegaph(obj, content);
   const { telegraphLink, isLong, pages, push } = tgRes;
   if (!telegraphLink) throw 'empty ivlink';
-  const res = { iv: telegraphLink, isLong, pages, push };
+  const res = { iv: telegraphLink, pages, push };
   await db.updateOne({ url, ...res });
-
+  res.isLong = res.pages;
   return res;
 };
 
