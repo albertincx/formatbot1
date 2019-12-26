@@ -12,4 +12,7 @@ module.exports = {
   DEV_API: process.env.DEV_API || '',
   PORT: process.env.PORT || 5000,
   NOBOT: process.env.NOBOT || '',
+  mongo: {
+    uri: process.env.MONGO_URI,
+  },
 };
