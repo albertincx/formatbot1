@@ -75,7 +75,8 @@ const makeIvLink = async (url, paramsObj) => {
   const tgRes = await makeTelegaph(obj, content);
   const { telegraphLink, isLong, pages, push } = tgRes;
   if (!telegraphLink) throw 'empty ivlink';
-  const res = { iv: telegraphLink, pages, push };
+  const res = { iv: telegraphLink, pages, push, title };
+
   await db.updateOne({ url, ...res });
   res.isLong = res.pages;
   return res;
