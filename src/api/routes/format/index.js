@@ -136,6 +136,7 @@ module.exports = (bot, botHelper) => {
     let resolveMsgId = false;
     try {
       let RESULT = '';
+      let TITLE = '';
       try {
         logger(`queue job ${q}`);
         rabbitmq.time(q, true);
@@ -155,7 +156,8 @@ module.exports = (bot, botHelper) => {
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';
-          RESULT = messages.showIvMessage(longStr, iv, source, `${title}\n`);
+          TITLE = `${title}\n`;
+          RESULT = messages.showIvMessage(longStr, iv, source);
         }
       } catch (e) {
         logger(e);
@@ -166,7 +168,7 @@ module.exports = (bot, botHelper) => {
       let t = rabbitmq.time(q);
       const extra = { parse_mode: 'Markdown' };
       const responseMsg = await bot.telegram.editMessageText(chatId, messageId,
-          null, RESULT, extra);
+          null, `${TITLE}${RESULT}`, extra);
       if (responseMsg) {
         const { message_id: reportMessageId } = responseMsg;
         resolveMsgId = reportMessageId;
