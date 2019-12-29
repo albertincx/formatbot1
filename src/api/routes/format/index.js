@@ -153,9 +153,9 @@ module.exports = (bot, botHelper) => {
           const { hostname } = url.parse(link);
           params = { ...botHelper.getParams(hostname, chatId), ...params };
           const linkData = await ivMaker.makeIvLink(link, params);
-          const { iv, isLong, pages = '', push = '' } = linkData;
-          const longStr = isLong ? `Long ${pages}/${push}` : '';
-          RESULT = messages.showIvMessage(longStr, iv, source);
+          const { iv, isLong, pages = '', push = '', title } = linkData;
+          const longStr = isLong ? `Long ${pages}/${push} ` : '';
+          RESULT = messages.showIvMessage(longStr, iv, source, `${title}\n`);
         }
       } catch (e) {
         logger(e);
