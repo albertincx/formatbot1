@@ -34,7 +34,7 @@ const puppet = async (url, ws) => {
     if (!status.ok) {
       throw new Error('cannot open google.com');
     }
-    console.log('wait',url);
+    //console.log('wait',url);
     await new Promise((resolve) => setTimeout(() => resolve(), 5000));
     logger('wait 2');
     const content = await page.content();
