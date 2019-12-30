@@ -155,7 +155,7 @@ module.exports = (bot, botHelper) => {
           params = { ...params, ...botHelper.getParams(hostname, chatId) };
           params.browserWs = browserWs;
           if(link.match(/dailycoding/)){
-             console.log(params)
+             //console.log(params)
              }
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title } = linkData;
