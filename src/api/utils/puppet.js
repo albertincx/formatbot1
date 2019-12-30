@@ -37,7 +37,7 @@ const puppet = async (url, ws) => {
     //console.log('wait',url);
     let sec = 5000
     if(url.match(/scmp\.com/)){
-       sec = 10000
+       //sec = 10000
     }
     await new Promise((resolve) => setTimeout(() => resolve(), sec));
     logger('wait 2');
