@@ -35,7 +35,11 @@ const puppet = async (url, ws) => {
       throw new Error('cannot open google.com');
     }
     //console.log('wait',url);
-    await new Promise((resolve) => setTimeout(() => resolve(), 5000));
+    let sec = 5000
+    if(url.match(/scmp\.com/)){
+       sec = 10000
+    }
+    await new Promise((resolve) => setTimeout(() => resolve(), sec));
     logger('wait 2');
     const content = await page.content();
     page.close();

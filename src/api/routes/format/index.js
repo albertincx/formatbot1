@@ -154,11 +154,8 @@ module.exports = (bot, botHelper) => {
           const { hostname } = url.parse(link);
           params = { ...params, ...botHelper.getParams(hostname, chatId) };
           params.browserWs = browserWs;
-          if(link.match(/dailycoding/)){
-             //console.log(params)
-             }
           const linkData = await ivMaker.makeIvLink(link, params);
-          const { iv, isLong, pages = '', push = '', title } = linkData;
+          const { iv, isLong, pages = '', push = '', title = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';
           TITLE = `${title}\n`;
           RESULT = messages.showIvMessage(longStr, iv, source);
