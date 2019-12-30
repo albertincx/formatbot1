@@ -152,7 +152,8 @@ module.exports = (bot, botHelper) => {
           let params = rabbitmq.getParams(q);
           params.browserWs = browserWs;
           const { hostname } = url.parse(link);
-          params = { ...botHelper.getParams(hostname, chatId), ...params };
+          params = { ...params, ...botHelper.getParams(hostname, chatId) };
+          params.browserWs = browserWs;
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';
