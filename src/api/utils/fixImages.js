@@ -7,6 +7,15 @@ const setRegex = /srcset="[^data]/;
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
 
+function convert(str) {
+  str = str.replace(/&amp;/g, '&');
+  str = str.replace(/&gt;/g, '>');
+  str = str.replace(/&lt;/g, '<');
+  str = str.replace(/&quot;/g, '"');
+  str = str.replace(/&#039;/g, '\'');
+  return str;
+}
+
 const checkImage = (url) => {
   return new Promise((resolve, reject) => {
     if (process.env.CHECK_IMG_SKIP) {
@@ -26,6 +35,7 @@ const checkImage = (url) => {
     r.on('error', () => reject(null));
   });
 };
+
 const findSrcSet = (img) => {
   const srcSet = img.match(setRegex);
   if (srcSet && srcSet.length) {
@@ -68,12 +78,15 @@ const findImages = (content, parsedUrl) => {
       const src = img.match(/src="(.*?)"/);
       if (src && src[1]) {
         let s = src[1];
+        let sl = '';
         if (s[0] !== '/') {
           baseUrl = parsedUrl.dir;
+          sl = '/';
         }
         if (!s.match('://')) {
-          s = `${baseUrl}/${s}`;
+          s = `${baseUrl}${sl}${s}`;
         }
+        s = convert(s);
         tasks.push(checkImage(s).then(isValid => ({
           isValid,
           i,
@@ -108,15 +121,6 @@ const replaceTags = (content, imgs, replaceWith) => {
   return content;
 };
 
-function convert(str) {
-  str = str.replace(/&amp;/g, '&');
-  str = str.replace(/&gt;/g, '>');
-  str = str.replace(/&lt;/g, '<');
-  str = str.replace(/&quot;/g, '"');
-  str = str.replace(/&#039;/g, '\'');
-  return str;
-}
-
 const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
   let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
   for (let img of imgs) {
@@ -125,11 +129,13 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
       img = findSrcSet(img);
     }
     if (!img.match(/src=.(\/\/|https?)/)) {
+      let sl = '';
       if (!img.match(/src="\//)) {
         baseUrl = parsedUrl.dir;
+        sl = '/';
       }
       if (baseUrl && !img.match(/src=.\.\.|;/)) {
-        img = img.replace(' src="', ` src="${baseUrl}/`);
+        img = img.replace(' src="', ` src="${baseUrl}${sl}`);
       } else {
         img = '';
       }
@@ -141,8 +147,10 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
 
 const replaceImages = (content, imgs) => replaceTags(content, imgs,
     imgReplacer);
+
 const restoreImages = (content, imgs, parsedUrl) => restoreTags(content, imgs,
     imgReplacer, parsedUrl);
+
 const replaceServices = (content) => {
   const srvs = [/<a.+(imgur\.com).+\/a>/g];
   for (let i = 0; i < srvs.length; i += 1) {

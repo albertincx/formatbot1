@@ -38,8 +38,7 @@ const parse = async (userUrl, paramsObj) => {
   logger(iframe, 'iframes.html');
   if (parseHelper.title) title = parseHelper.title;
   content = result.content;
-  if (content && preContent) {
-    logger(content, 'mercury.html');
+  if (content) {
     content = await parseHelper.fixHtml(content, iframe);
     content = parseHelper.fixImages(content);
     logger(content, 'tg_content.html');
