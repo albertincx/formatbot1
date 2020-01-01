@@ -40,13 +40,13 @@ const puppet = async (url, ws) => {
     
     await new Promise(resolve => setTimeout(async () => {
       await page.evaluate(_ => {
-        window.scrollBy(0, 100);
+        window.scrollBy(0, 200);
       });
       resolve();
     }, 1100));
     await new Promise(resolve => setTimeout(async () => {
       await page.evaluate(_ => {
-        window.scrollBy(0, 100);
+        window.scrollBy(0, 200);
       });
       resolve();
     }, 1000));
