@@ -138,6 +138,7 @@ module.exports = (bot, botHelper) => {
       let RESULT = '';
       let TITLE = '';
       try {
+        logger(`db is ${botHelper.db}`);
         logger(`queue job ${q}`);
         rabbitmq.time(q, true);
         const { isText, url: baseUrl } = await ivMaker.isText(link);
@@ -154,9 +155,7 @@ module.exports = (bot, botHelper) => {
           const { hostname } = url.parse(link);
           params = { ...params, ...botHelper.getParams(hostname, chatId) };
           params.browserWs = browserWs;
-          if(link.match(/dailycoding/)){
-             console.log(params)
-             }
+          params.db = botHelper.db;
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';

@@ -125,6 +125,10 @@ class BotHelper {
     e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
     return this.sendAdmin(e);
   }
+
+  disDb() {
+    this.db = false;
+  }
 }
 
 module.exports = BotHelper;
