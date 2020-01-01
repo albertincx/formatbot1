@@ -56,10 +56,12 @@ const parse = async (userUrl, paramsObj) => {
 };
 
 const makeIvLink = async (url, paramsObj) => {
-  const exist = await db.get(url);
-  if (exist) {
-    exist.isLong = exist.pages;
-    return exist;
+  if (paramsObj.db !== false) {
+    const exist = await db.get(url);
+    if (exist) {
+      exist.isLong = exist.pages;
+      return exist;
+    }
   }
 
   url = toUrl(url);
@@ -76,7 +78,10 @@ const makeIvLink = async (url, paramsObj) => {
   if (!telegraphLink) throw 'empty ivlink';
   const res = { iv: telegraphLink, pages, push, title };
 
-  await db.updateOne({ url, ...res });
+  if (paramsObj.db !== false) {
+    await db.updateOne({ url, ...res });
+  }
+
   res.isLong = res.pages;
   return res;
 };
