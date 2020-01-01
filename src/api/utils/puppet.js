@@ -37,24 +37,29 @@ const puppet = async (url, ws) => {
     //console.log('wait',url);
     let sec = 5000;
     await new Promise(resolve => setTimeout(() => resolve(), sec));
+    
     await new Promise(resolve => setTimeout(async () => {
       await page.evaluate(_ => {
         window.scrollBy(0, 100);
       });
       resolve();
-    }, 500));
+    }, 1100));
     await new Promise(resolve => setTimeout(async () => {
       await page.evaluate(_ => {
         window.scrollBy(0, 100);
+      });
+      resolve();
+    }, 1000));
+    await new Promise(resolve => setTimeout(async () => {
+      await page.evaluate(_ => {
+        window.scrollBy(0, 200);
       });
       resolve();
     }, 700));
+    
     sec = 2000;
     await new Promise(resolve => setTimeout(() => resolve(), sec));
     logger('wait 2');
-    if(url.match(/thecue\.in/)){
-      console.log('thecue');
-    }
     let content = await page.content();
     page.close();
     return content;
