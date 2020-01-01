@@ -155,10 +155,7 @@ module.exports = (bot, botHelper) => {
           const { hostname } = url.parse(link);
           params = { ...params, ...botHelper.getParams(hostname, chatId) };
           params.browserWs = browserWs;
-<<<<<<< HEAD
-=======
           params.db = botHelper.db;
->>>>>>> 5bebfccc3f9247b08f6499c2200f3594c84da9c4
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';
