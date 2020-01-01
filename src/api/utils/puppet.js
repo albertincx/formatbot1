@@ -35,7 +35,7 @@ const puppet = async (url, ws) => {
       throw new Error('cannot open google.com');
     }
     //console.log('wait',url);
-    let sec = 4000;
+    let sec = 5000;
     await new Promise(resolve => setTimeout(() => resolve(), sec));
     await new Promise(resolve => setTimeout(async () => {
       await page.evaluate(_ => {
@@ -52,6 +52,9 @@ const puppet = async (url, ws) => {
     sec = 2000;
     await new Promise(resolve => setTimeout(() => resolve(), sec));
     logger('wait 2');
+    if(url.match(/thecue\.in/)){
+      console.log('thecue');
+    }
     let content = await page.content();
     page.close();
     return content;
