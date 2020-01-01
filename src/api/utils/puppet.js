@@ -35,13 +35,24 @@ const puppet = async (url, ws) => {
       throw new Error('cannot open google.com');
     }
     //console.log('wait',url);
-    let sec = 5000
-    if(url.match(/scmp\.com/)){
-       //sec = 10000
-    }
-    await new Promise((resolve) => setTimeout(() => resolve(), sec));
+    let sec = 4000;
+    await new Promise(resolve => setTimeout(() => resolve(), sec));
+    await new Promise(resolve => setTimeout(async () => {
+      await page.evaluate(_ => {
+        window.scrollBy(0, 100);
+      });
+      resolve();
+    }, 500));
+    await new Promise(resolve => setTimeout(async () => {
+      await page.evaluate(_ => {
+        window.scrollBy(0, 100);
+      });
+      resolve();
+    }, 700));
+    sec = 2000;
+    await new Promise(resolve => setTimeout(() => resolve(), sec));
     logger('wait 2');
-    const content = await page.content();
+    let content = await page.content();
     page.close();
     return content;
   } catch (e) {
