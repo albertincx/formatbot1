@@ -10,8 +10,11 @@ if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, 0);
 
 let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 
-module.exports = (bot) => {
+module.exports = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
+  conn.on('error', (err) => {
+    botHelper.disDb();
+  });
   bot.command('config', ({ message }) => {
     if (botHelper.isAdmin(message.chat.id)) {
       botHelper.toggleConfig(message);
@@ -26,7 +29,9 @@ module.exports = (bot) => {
 
   bot.command('showconfig', ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
-      reply(JSON.stringify(botHelper.config));
+      let c = JSON.stringify(botHelper.config);
+      c = `${c} db ${botHelper.db}`;
+      reply(c);
     }
   });
 
