@@ -4,6 +4,7 @@ const request = require('request');
 const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
 const setRegex = /srcset="[^data]/;
+const setRegexS = /srcset="/;
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
 
@@ -40,10 +41,10 @@ const findSrcSet = (img) => {
   const srcSet = img.match(setRegex);
   if (srcSet && srcSet.length) {
     try {
-      const srcsetAttr = img.split(setRegex)[1].replace(/"\>/, '');
+      const srcsetAttr = img.split(setRegexS)[1].replace(/"\>/, '');
       const arr = srcsetAttr.split(',');
       let mid = arr[Math.round((arr.length - 1) / 2)];
-      if (mid) {
+      if (mid && mid !== srcsetAttr) {
         mid = mid.trim().replace(/\n/g, '').replace(/\s(.*?)$/, '');
         if (!img.match('src=')) {
           img = img.replace('<img ', `<img src="${mid}" `);
@@ -134,7 +135,7 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
         baseUrl = parsedUrl.dir;
         sl = '/';
       }
-      if (baseUrl && !img.match(/src=.\.\.|;/)) {
+      if (baseUrl && !img.match(/src=.\.\.|;base64/)) {
         img = img.replace(' src="', ` src="${baseUrl}${sl}`);
       } else {
         img = '';

@@ -13,7 +13,7 @@ const getBrowser = async () => {
     '--incognito',
   ];
   return puppeteer.launch({
-    headless: true,
+    headless: process.env.HDLSS !== '1',
     args,
   }).then((browser) => {
     const browserWSEndpoint = browser.wsEndpoint();
@@ -62,6 +62,7 @@ const puppet = async (url, ws) => {
     logger('wait 2');
     let content = await page.content();
     page.close();
+    logger(content, 'puppet.html');
     return content;
   } catch (e) {
     logger(e);
