@@ -10,22 +10,31 @@ const rabbitmq = require('../../../service/rabbitmq');
 rabbitmq.createChannel();
 
 const getLinkFromEntity = (entities, txt) => {
-  let link = '';
+  let links = [];
   for (let i = 0; i < entities.length; i += 1) {
     if (entities[i].url) {
-      link = entities[i].url;
-      break;
+      links.push(entities[i].url);
+      continue;
     }
     if (entities[i].type === 'url') {
       let checkFf = txt.substr(0, entities[i].length + 1).match(/\[(.*?)\]/);
       if (!checkFf) {
-        link = txt.substr(entities[i].offset, entities[i].length);
-        break;
+        links.push(txt.substr(entities[i].offset, entities[i].length));
       }
     }
   }
-  return link;
+  return links;
 };
+
+function getLink(links) {
+  let lnk = links[0];
+  for (let i = 1; i < links.length; i += 1) {
+    if (links[i].startsWith(lnk)) {
+      lnk = links[i];
+    }
+  }
+  return lnk;
+}
 
 function getAllLinks(text) {
   const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
@@ -90,9 +99,13 @@ module.exports = (bot, botHelper) => {
       if (caption_entities) entities = caption_entities;
     }
     if (msg && text) {
-      let [link = ''] = getAllLinks(text);
+      let links = getAllLinks(text);
       try {
-        if (!link && entities) link = getLinkFromEntity(entities, text);
+        let link = links[0];
+        if (!link && entities) {
+          links = getLinkFromEntity(entities, text);
+        }
+        link = getLink(links);
         if (!link) return;
         const parsed = url.parse(link);
         if (link.match(/^(https?:\/\/)?(www.)?google/)) {
