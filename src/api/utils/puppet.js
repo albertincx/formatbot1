@@ -40,18 +40,13 @@ const puppet = async (url, params) => {
     logger(scroll);
     await new Promise(resolve => setTimeout(() => resolve(), sec));
     for (let i = 0; i < scCnt; i += 1) {
-      await new Promise(resolve => setTimeout(async () => {
-        await page.evaluate(_ => {
-          window.scrollBy(0, 200);
-          if (scroll) {
-            const s = document.getElementById(scroll);
-            if (s) {
-              s.scrollTop += 200;
-            }
-          }
-        });
-        resolve();
-      }, 1100));
+      await page.evaluate(sc => {
+        window.scrollBy(0, 200);
+        const s = document.getElementById(sc);
+        if (s) {
+          s.scrollTop += 200;
+        }
+      }, scroll);
     }
     sec = 2000;
     await new Promise(resolve => setTimeout(() => resolve(), sec));
