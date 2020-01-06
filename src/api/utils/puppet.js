@@ -37,13 +37,13 @@ const puppet = async (url, params) => {
     logger('wait');
     let sec = 5000;
     let scCnt = scroll ? 6 : 3;
+    logger(scroll);
     await new Promise(resolve => setTimeout(() => resolve(), sec));
     for (let i = 0; i < scCnt; i += 1) {
       await new Promise(resolve => setTimeout(async () => {
         await page.evaluate(_ => {
           window.scrollBy(0, 200);
           if (scroll) {
-            logger(scroll);
             const s = document.getElementById(scroll);
             if (s) {
               s.scrollTop += 200;
