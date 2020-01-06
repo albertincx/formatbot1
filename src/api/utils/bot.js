@@ -63,6 +63,10 @@ class BotHelper {
     if (customOnly) {
       params.isCustom = true;
     }
+    const scroll = this.getConf(`${hostname}_scroll`);
+    if (scroll) {
+      params.scroll = true;
+    }
     if (this.isAdmin(chatId)) {
       if (this.getConf('test_puppet')) {
         params.isPuppet = true;
@@ -97,7 +101,7 @@ class BotHelper {
     let c = params.split(/\s/);
     if (c.length === 2) {
       param = c[0];
-      content = c[1];
+      content = c[1].replace(/~/g, ' ');
     } else {
       param = c[0];
       if (this.config[param] === _ON) {

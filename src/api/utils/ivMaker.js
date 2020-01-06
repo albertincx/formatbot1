@@ -19,6 +19,7 @@ const parse = async (userUrl, paramsObj) => {
   }
   const extractor = parseHelper.getExtractor();
   if (extractor) {
+    logger(extractor);
     Mercury.addExtractor(extractor);
   }
   let result = await mercury(userUrl, opts);
@@ -59,6 +60,7 @@ const makeIvLink = async (url, paramsObj) => {
   if (paramsObj.db !== false) {
     const exist = await db.get(url);
     if (exist) {
+      logger('from db');
       exist.isLong = exist.pages;
       return exist;
     }
