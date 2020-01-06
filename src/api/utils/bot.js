@@ -65,7 +65,7 @@ class BotHelper {
     }
     const scroll = this.getConf(`${hostname}_scroll`);
     if (scroll) {
-      params.scroll = true;
+      params.scroll = scroll;
     }
     if (this.isAdmin(chatId)) {
       if (this.getConf('test_puppet')) {
