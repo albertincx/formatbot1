@@ -7,6 +7,17 @@ const stat = async () => {
   return cnt;
 };
 
+const clear = async (msg) => {
+  let search = msg.text.replace('/cleardb', '').trim();
+  search = `${search}`.trim();
+  if (!search) {
+    return Promise.resolve('empty');
+  }
+  const s = new RegExp(`^https?:\/\/${search}`);
+  const d = await links.deleteMany({ url: s });
+  return JSON.stringify(d);
+};
+
 const get = async (url) => {
   const me = await links.findOne({ url });
   if (me) {
@@ -23,5 +34,6 @@ const updateOne = async (item) => {
 };
 
 module.exports.stat = stat;
+module.exports.clear = clear;
 module.exports.updateOne = updateOne;
 module.exports.get = get;

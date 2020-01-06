@@ -85,13 +85,13 @@ class ParseHelper {
 
   puppet() {
     if (this.params.isPuppet) return '';
-    return puppet(this.link, this.params.browserWs);
+    return puppet(this.link, this.params);
   }
 
   async fetchHtml() {
     let content = '';
     if (this.params.isPuppet) {
-      content = await puppet(this.link, this.params.browserWs);
+      content = await puppet(this.link, this.params);
     } else {
       content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
       logger(content, 'fetchContent.html');
