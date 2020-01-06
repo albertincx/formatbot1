@@ -21,20 +21,42 @@ const getBrowser = async () => {
     return browserWSEndpoint;
   });
 };
-const puppet = async (url, ws) => {
+const puppet = async (url, params) => {
+  let { browserWs: ws, scroll } = params;
   if (!ws) {
     return Promise.resolve(false);
   }
   try {
     logger(url);
-    // Use the endpoint to reestablish a connection
     const browser = await puppeteer.connect({ browserWSEndpoint: ws });
     const page = await browser.newPage();
     const status = await page.goto(url);
     if (!status.ok) {
       throw new Error('cannot open google.com');
     }
-    const content = await page.content();
+    logger('wait');
+    let sec = 5000;
+    let scCnt = scroll ? 6 : 3;
+    await new Promise(resolve => setTimeout(() => resolve(), sec));
+    for (let i = 0; i < scCnt; i += 1) {
+      await new Promise(resolve => setTimeout(async () => {
+        await page.evaluate(_ => {
+          window.scrollBy(0, 200);
+          if (scroll) {
+            logger(scroll);
+            const s = document.getElementById(scroll);
+            if (s) {
+              s.scrollTop += 200;
+            }
+          }
+        });
+        resolve();
+      }, 1100));
+    }
+    sec = 2000;
+    await new Promise(resolve => setTimeout(() => resolve(), sec));
+    logger('wait 2');
+    let content = await page.content();
     page.close();
     logger(content, 'puppet.html');
     return content;
