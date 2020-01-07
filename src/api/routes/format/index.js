@@ -115,7 +115,7 @@ module.exports = (bot, botHelper) => {
           if (l && l[1]) link = decodeURIComponent(l[1]);
         }
         if (link.match(new RegExp(validRegex))) {
-          if (botHelper.db !== false) {
+          if (botHelper.db) {
             await log({ link, type: 'return' });
           }
           reply(messages.showIvMessage('', link, link),
@@ -123,7 +123,7 @@ module.exports = (bot, botHelper) => {
           return;
         }
         if (!parsed.pathname) {
-          if (botHelper.db !== false) {
+          if (botHelper.db) {
             await log({ link, type: 'nopath' });
           }
           return;
@@ -178,9 +178,9 @@ module.exports = (bot, botHelper) => {
           const { hostname } = url.parse(link);
           params = { ...params, ...botHelper.getParams(hostname, chatId) };
           params.browserWs = browserWs;
-          params.db = botHelper.db !== false;
+          params.db = botHelper.db;
           const linkData = await ivMaker.makeIvLink(link, params);
-          const { iv, isLong, pages = '', push = '', title } = linkData;
+          const { iv, isLong, pages = '', push = '', title = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';
           TITLE = `${title}\n`;
           RESULT = messages.showIvMessage(longStr, iv, source);
@@ -213,9 +213,6 @@ module.exports = (bot, botHelper) => {
     }
     logger(error);
     if (error) {
-      if (botHelper.db !== false) {
-        await log({ link, type: 'error', error });
-      }
       if (isBroken && resolveMsgId) {
         botHelper.sendAdminOpts(error,
             keyboards.resolvedBtn(resolveMsgId, chatId));
