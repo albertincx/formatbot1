@@ -3,8 +3,10 @@ const messages = require('../../../messages/format');
 const keyboards = require('./keyboards');
 
 const logger = require('../../utils/logger');
+const { log } = require('../../utils/db');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
+const { validRegex } = require('../../../config/config.json');
 
 const rabbitmq = require('../../../service/rabbitmq');
 rabbitmq.createChannel();
@@ -112,12 +114,20 @@ module.exports = (bot, botHelper) => {
           const l = link.match(/url=(.*?)($|&)/);
           if (l && l[1]) link = decodeURIComponent(l[1]);
         }
-        if (link.match(/^(https?:\/\/)?(graph.org|telegra.ph)/)) {
+        if (link.match(new RegExp(validRegex))) {
+          if (botHelper.db) {
+            await log({ link, type: 'return' });
+          }
           reply(messages.showIvMessage('', link, link),
               { parse_mode: 'Markdown' });
           return;
         }
-        if (!parsed.pathname) return;
+        if (!parsed.pathname) {
+          if (botHelper.db) {
+            await log({ link, type: 'nopath' });
+          }
+          return;
+        }
         const res = await reply('Waiting for instantView...') || {};
         const message_id = res && res.message_id;
         if (!message_id) throw new Error('blocked');
