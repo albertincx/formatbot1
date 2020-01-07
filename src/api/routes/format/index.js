@@ -115,7 +115,7 @@ module.exports = (bot, botHelper) => {
           if (l && l[1]) link = decodeURIComponent(l[1]);
         }
         if (link.match(new RegExp(validRegex))) {
-          if (botHelper.db) {
+          if (botHelper.db !== false) {
             await log({ link, type: 'return' });
           }
           reply(messages.showIvMessage('', link, link),
@@ -123,7 +123,7 @@ module.exports = (bot, botHelper) => {
           return;
         }
         if (!parsed.pathname) {
-          if (botHelper.db) {
+          if (botHelper.db !== false) {
             await log({ link, type: 'nopath' });
           }
           return;
@@ -178,7 +178,7 @@ module.exports = (bot, botHelper) => {
           const { hostname } = url.parse(link);
           params = { ...params, ...botHelper.getParams(hostname, chatId) };
           params.browserWs = browserWs;
-          params.db = botHelper.db;
+          params.db = botHelper.db !== false;
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title = '' } = linkData;
           const longStr = isLong ? `Long ${pages}/${push} ` : '';
