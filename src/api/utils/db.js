@@ -1,6 +1,7 @@
 const Any = require('../models/any.model');
 
 const links = Any.collection.conn.model('links', Any.schema);
+const logs = Any.collection.conn.model('logs', Any.schema);
 
 const stat = async () => {
   const cnt = await links.countDocuments();
@@ -32,8 +33,14 @@ const updateOne = async (item) => {
   item.$inc = { affects: 1 };
   return links.updateOne({ url }, item, { upsert: true });
 };
+const log = async (item) => {
+  const { url } = item;
+  item.$inc = { affects: 1 };
+  return logs.updateOne({ url }, item, { upsert: true });
+};
 
 module.exports.stat = stat;
 module.exports.clear = clear;
 module.exports.updateOne = updateOne;
 module.exports.get = get;
+module.exports.log = log;
