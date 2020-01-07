@@ -57,7 +57,7 @@ const parse = async (userUrl, paramsObj) => {
 };
 
 const makeIvLink = async (url, paramsObj) => {
-  if (paramsObj.db !== false) {
+  if (paramsObj.db) {
     const exist = await db.get(url);
     if (exist) {
       logger('from db');
@@ -80,7 +80,7 @@ const makeIvLink = async (url, paramsObj) => {
   if (!telegraphLink) throw 'empty ivlink';
   const res = { iv: telegraphLink, pages, push, title };
 
-  if (paramsObj.db !== false) {
+  if (paramsObj.db) {
     await db.updateOne({ url, ...res });
   }
 
