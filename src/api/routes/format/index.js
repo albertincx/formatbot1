@@ -214,7 +214,7 @@ module.exports = (bot, botHelper) => {
     logger(error);
     if (error) {
       if (botHelper.db !== false) {
-        await log({ link, type: 'error', error });
+        await log({ url:link, type: 'error', error });
       }
       if (isBroken && resolveMsgId) {
         botHelper.sendAdminOpts(error,
