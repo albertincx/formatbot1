@@ -86,7 +86,7 @@ module.exports = (bot, botHelper) => {
       const { update: { callback_query } } = ctx;
       const { message: { text, message_id }, from } = callback_query;
       let RESULT = `${text}\nResolved! ${error}`;
-      await bot.telegram.editMessageText(from.id, message_id, null, RESULT);
+      await bot.telegram.editMessageText(from.id, message_id, null, RESULT).catch(console.log);
     }
   });
 
