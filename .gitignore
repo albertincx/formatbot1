@@ -1,6 +1,7 @@
 # Use yarn.lock instead
 package-lock.json
 data/
+.conf/
 images/
 .idea
 # Environment variables
