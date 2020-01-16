@@ -96,11 +96,13 @@ module.exports = (bot, botHelper) => {
     if (reply_to_message) return;
     const { chat: { id: chatId }, caption } = msg;
     let { text } = msg;
+    const isAdm = botHelper.isAdmin(chatId);
     if (caption) {
       text = caption;
       if (caption_entities) entities = caption_entities;
     }
     if (msg && text) {
+      const force = isAdm && botHelper.checkForce(text);
       let links = getAllLinks(text);
       try {
         let link = links[0];
@@ -132,6 +134,9 @@ module.exports = (bot, botHelper) => {
         const message_id = res && res.message_id;
         if (!message_id) throw new Error('blocked');
         const rabbitMes = { message_id, chatId, link };
+        if (force) {
+          rabbitMes.force = force;
+        }
         await rabbitmq.addToQueue(rabbitMes);
       } catch (e) {
         botHelper.sendError(e);
@@ -152,7 +157,7 @@ module.exports = (bot, botHelper) => {
     });
   }
   const jobMessage = async (task) => {
-    const { chatId, message_id: messageId, q } = task;
+    const { chatId, message_id: messageId, q, force } = task;
     let { link } = task;
     let error = '';
     let isBroken = false;
@@ -164,7 +169,7 @@ module.exports = (bot, botHelper) => {
         logger(`db is ${botHelper.db}`);
         logger(`queue job ${q}`);
         rabbitmq.time(q, true);
-        const { isText, url: baseUrl } = await ivMaker.isText(link);
+        const { isText, url: baseUrl } = await ivMaker.isText(link, force);
         if (baseUrl !== link) link = baseUrl;
         if (!isText) {
           RESULT = messages.isLooksLikeFile(link);
@@ -176,7 +181,8 @@ module.exports = (bot, botHelper) => {
           let params = rabbitmq.getParams(q);
           params.browserWs = browserWs;
           const { hostname } = url.parse(link);
-          params = { ...params, ...botHelper.getParams(hostname, chatId) };
+          logger(hostname);
+          params = { ...params, ...botHelper.getParams(hostname, chatId, force) };
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
           await new Promise(resolve => setTimeout(() => resolve(), 100));
