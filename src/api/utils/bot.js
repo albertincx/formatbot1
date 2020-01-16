@@ -18,6 +18,14 @@ class BotHelper {
     return chatId === TGADMIN;
   }
 
+  checkForce(txt) {
+    const m = txt.match(/(content|custom|puppet|wget|cached)_force(.*?)$/);
+    if (m && m[1]) {
+      return m[1];
+    }
+    return false;
+  }
+
   botMes(chatId, text, mark = true) {
     let opts = {};
     if (mark) {
@@ -49,23 +57,36 @@ class BotHelper {
     return this.sendAdmin(text, chatId, true);
   }
 
-  getParams(hostname, chatId) {
+  getParams(hostname, chatId, force) {
     let params = {};
-    const contentSelector = this.getConf(`${hostname}_content`);
+    const contentSelector = force === 'content' ||
+        this.getConf(`${hostname}_content`);
     if (contentSelector) {
       params.content = contentSelector;
     }
-    const puppetOnly = this.getConf(`${hostname}_puppet`);
+    const puppetOnly = force === 'puppet' || this.getConf(`${hostname}_puppet`);
     if (puppetOnly) {
       params.isPuppet = true;
     }
-    const customOnly = this.getConf(`${hostname}_custom`);
+    const customOnly = force === 'custom' || this.getConf(`${hostname}_custom`);
     if (customOnly) {
       params.isCustom = true;
+    }
+    const wget = force === 'wget' || this.getConf(`${hostname}_wget`);
+    if (wget) {
+      params.isWget = true;
+    }
+    const cached = force === 'cached' || this.getConf(`${hostname}_cached`);
+    if (cached) {
+      params.isCached = true;
     }
     const scroll = this.getConf(`${hostname}_scroll`);
     if (scroll) {
       params.scroll = scroll;
+    }
+    const noLinks = force === 'nolinks' || this.getConf(`${hostname}_nolinks`);
+    if (noLinks) {
+      params.noLinks = true;
     }
     if (this.isAdmin(chatId)) {
       if (this.getConf('test_puppet')) {
@@ -98,7 +119,7 @@ class BotHelper {
   parseConfig(params) {
     let content = '';
     let param = '';
-    let c = params.split(/\s/);
+    let c = params.replace(' _content', '_content').split(/\s/);
     if (c.length === 2) {
       param = c[0];
       content = c[1].replace(/~/g, ' ');
@@ -122,7 +143,7 @@ class BotHelper {
     let { param, content } = this.parseConfig(params);
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
-    return this.botMes(TGADMIN, content);
+    return this.botMes(TGADMIN, content, false);
   }
 
   sendError(e, text = '') {
