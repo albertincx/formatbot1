@@ -131,7 +131,7 @@ class ParseHelper {
   }
 
   fixHtml(content, iframe) {
-    return fixImages.fixHtml(content, iframe, this.parsed);
+    return fixImages.fixHtml(content, iframe, this.parsed, this.params);
   }
 }
 

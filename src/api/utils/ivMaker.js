@@ -1,6 +1,7 @@
 const Mercury = require('@postlight/mercury-parser');
 const fetch = require('node-fetch');
 const sanitizeHtml = require('sanitize-html');
+const fs = require('fs');
 
 const makeTelegaph = require('./makeTelegaph');
 const logger = require('./logger');
@@ -22,8 +23,14 @@ const parse = async (userUrl, paramsObj) => {
     logger(extractor);
     Mercury.addExtractor(extractor);
   }
-  let result = await mercury(userUrl, opts);
-  logger(result.content, 'mercury.html');
+  let result = {};
+  if (paramsObj.isCached) {
+    logger('html from cache');
+    result.content = `${fs.readFileSync('.conf/mercury.html')}`;
+  } else {
+    result = await mercury(userUrl, opts);
+    logger(result.content, 'mercury.html');
+  }
   let { content } = result;
   const preContent = sanitizeHtml(content).trim();
   logger(preContent, 'preContent.html');
@@ -93,7 +100,11 @@ const toUrl = (url) => {
   return url;
 };
 
-const isText = async (u) => {
+const isText = async (u, q) => {
+  if (q && q.match('cached')) {
+    logger('cached is text = true');
+    return { isText: true, url: u };
+  }
   u = toUrl(u);
   const r = await fetch(u, { timeout: 5000 });
   const { url, headers } = r;

@@ -68,7 +68,7 @@ const findIframes = (content) => {
   return content.match(iframes);
 };
 
-const findImages = (content, parsedUrl) => {
+const findImages = (content, parsedUrl, params) => {
   const urlRegex = /<img [^>]+\/?>/g;
   const imgs = content.match(urlRegex) || [];
   const tasks = [];
@@ -88,10 +88,14 @@ const findImages = (content, parsedUrl) => {
           s = `${baseUrl}${sl}${s}`;
         }
         s = convert(s);
-        tasks.push(checkImage(s).then(isValid => ({
-          isValid,
-          i,
-        })).catch(() => ({ isValid: false, i })));
+        if (params.isCached) {
+          tasks.push({ isValid: true, i });
+        } else {
+          tasks.push(checkImage(s).then(isValid => ({
+            isValid,
+            i,
+          })).catch(() => ({ isValid: false, i })));
+        }
       }
     }
   }
@@ -168,15 +172,15 @@ const replaceServices = (content) => {
   return content;
 };
 
-const fixHtml = async (content, iframe, parsedUrl) => {
-  const imgs = await findImages(content, parsedUrl);
+const fixHtml = async (content, iframe, parsedUrl, params) => {
+  const imgs = await findImages(content, parsedUrl, params);
   if (!iframe) {
     iframe = findIframes(content);
   }
   content = replaceImages(content, imgs);
   logger(`before san ${content.length}`);
   content = sanitizeHtml(content);
-  content = sanitizeHtmlForce(content);
+  content = sanitizeHtmlForce(content, params);
   content = restoreImages(content, imgs, parsedUrl);
   content = replaceServices(content);
   if (iframe && Array.isArray(iframe)) {
