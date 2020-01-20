@@ -29,6 +29,7 @@
   "dependencies": {
     "@postlight/mercury-parser": "^2.2.0",
     "amqplib": "^0.5.5",
+    "atob": "^2.1.2",
     "dotenv-safe": "^6.1.0",
     "express": "^4.16.4",
     "isomorphic-fetch": "^2.2.1",
