@@ -86,7 +86,8 @@ module.exports = (bot, botHelper) => {
       const { update: { callback_query } } = ctx;
       const { message: { text, message_id }, from } = callback_query;
       let RESULT = `${text}\nResolved! ${error}`;
-      await bot.telegram.editMessageText(from.id, message_id, null, RESULT).catch(console.log);
+      await bot.telegram.editMessageText(from.id, message_id, null, RESULT).
+          catch(console.log);
     }
   });
 
@@ -179,10 +180,15 @@ module.exports = (bot, botHelper) => {
           }
           const source = `${link}`;
           let params = rabbitmq.getParams(q);
+          const isAdm = botHelper.isAdmin(chatId);
+          if (isAdm) {
+            params.isadmin = true;
+          }
           params.browserWs = browserWs;
           const { hostname } = url.parse(link);
           logger(hostname);
-          params = { ...params, ...botHelper.getParams(hostname, chatId, force) };
+          const botParams = botHelper.getParams(hostname, chatId, force);
+          params = { ...params, ...botParams };
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
           await new Promise(resolve => setTimeout(() => resolve(), 100));
@@ -221,7 +227,7 @@ module.exports = (bot, botHelper) => {
     logger(error);
     if (error) {
       if (botHelper.db !== false) {
-        await log({ url:link, type: 'error', error });
+        await log({ url: link, type: 'error', error });
       }
       if (isBroken && resolveMsgId) {
         botHelper.sendAdminOpts(error,
