@@ -1,3 +1,4 @@
+const atob = require('atob');
 const v1 = [
   'c2',
   'hv',
@@ -14,8 +15,8 @@ const san = (content, params) => {
     content = content.replace(/<a href="(.*?)">(.*?)<\/a>/gi, '$1');
   }
   content = content.replace(/<a href="(.*?)"><\/a>/gi, '');
-  //let r = `<a href="(.*?)">(.*?)[${atob(v1.join(''))}](.*?)<\\/a>`;
-  //content = content.replace(new RegExp(r, 'gi'), '');
+  let r = `<a href="(.*?)">(.*?)[${atob(v1.join(''))}](.*?)<\\/a>`;
+  content = content.replace(new RegExp(r, 'gi'), '');
   return content;
 };
 module.exports = san;

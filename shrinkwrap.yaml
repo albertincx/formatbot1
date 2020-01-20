@@ -1,6 +1,7 @@
 dependencies:
   '@postlight/mercury-parser': 2.2.0
   amqplib: 0.5.5
+  atob: 2.1.2
   dotenv-safe: 6.1.0
   express: 4.17.1
   isomorphic-fetch: 2.2.1
@@ -673,6 +674,13 @@ packages:
     dev: false
     resolution:
       integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=
+  /atob/2.1.2:
+    dev: false
+    engines:
+      node: '>= 4.5.0'
+    hasBin: true
+    resolution:
+      integrity: sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
   /ava/2.4.0:
     dependencies:
       '@ava/babel-preset-stage-4': /@ava/babel-preset-stage-4/4.0.0/@babel!core@7.7.2
@@ -5210,6 +5218,7 @@ shrinkwrapVersion: 3
 specifiers:
   '@postlight/mercury-parser': ^2.2.0
   amqplib: ^0.5.5
+  atob: ^2.1.2
   ava: ^2.4.0
   dotenv-safe: ^6.1.0
   eslint: ^5.16.0
