@@ -97,6 +97,7 @@ class ParseHelper {
     let content = '';
     if (this.params.isPuppet) {
       content = await puppet(this.link, this.params);
+      this.log(content, 'puppet.html');
     } else {
       content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
       this.log(content, 'fetchContent.html');
