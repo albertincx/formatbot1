@@ -34,7 +34,7 @@ class ParseHelper {
     this.sites = {};
     this.title = '';
     this.params = params;
-    this.log(params, 'params.txt');
+    this.log(JSON.stringify(params), 'params.txt');
     this.custom = this.checkCustom();
   }
 
