@@ -19,7 +19,7 @@ class BotHelper {
   }
 
   checkForce(txt) {
-    const m = txt.match(/(content|custom|puppet|wget|cached)_force(.*?)$/);
+    const m = txt.match(/(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
     if (m && m[1]) {
       return m[1];
     }
@@ -87,6 +87,12 @@ class BotHelper {
     const noLinks = force === 'nolinks' || this.getConf(`${hostname}_nolinks`);
     if (noLinks) {
       params.noLinks = true;
+    }
+    const pcache = force === 'pcache';
+    if (pcache) {
+      params.isCached = true;
+      params.cachefile = 'puppet.html';
+      params.content = this.getConf('pcache_content');
     }
     if (this.isAdmin(chatId)) {
       if (this.getConf('test_puppet')) {
