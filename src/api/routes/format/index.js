@@ -184,7 +184,6 @@ module.exports = (bot, botHelper) => {
           if (isAdm) {
             params.isadmin = true;
           }
-          params.browserWs = browserWs;
           const { hostname } = url.parse(link);
           logger(hostname);
           const botParams = botHelper.getParams(hostname, chatId, force);

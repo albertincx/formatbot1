@@ -53,7 +53,6 @@ const puppet = async (url, params) => {
     logger('wait 2');
     let content = await page.content();
     page.close();
-    logger(content, 'puppet.html');
     return content;
   } catch (e) {
     logger(e);
