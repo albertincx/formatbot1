@@ -152,7 +152,7 @@ module.exports = (bot, botHelper) => {
   });*/
 
   let browserWs = null;
-  if (botHelper.config.puppeteer) {
+  if (!botHelper.config.nopuppet) {
     puppet.getBrowser().then(ws => {
       browserWs = ws;
     });
