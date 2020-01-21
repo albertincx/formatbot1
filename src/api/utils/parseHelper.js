@@ -165,8 +165,9 @@ class ParseHelper {
     }
     let result = {};
     if (this.params.isCached) {
+      let cacheFile = this.params.cachefile || 'mercury.html';
       this.log('html from cache');
-      result.content = `${fs.readFileSync('.conf/mercury.html')}`;
+      result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
       result = await mercury(userUrl, opts);
       this.log(result.content, 'mercury.html');
