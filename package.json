@@ -39,7 +39,8 @@
     "node-fetch": "^2.3.0",
     "puppeteer": "^1.19.0",
     "sanitize-html": "^1.20.1",
-    "telegraf": "^3.33.3"
+    "telegraf": "^3.33.3",
+    "wget-improved": "^3.0.2"
   },
   "devDependencies": {
     "ava": "^2.4.0",

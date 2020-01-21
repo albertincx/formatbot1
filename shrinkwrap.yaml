@@ -12,6 +12,7 @@ dependencies:
   puppeteer: 1.20.0
   sanitize-html: 1.20.1
   telegraf: 3.33.3
+  wget-improved: 3.0.2
 devDependencies:
   ava: 2.4.0
   eslint: 5.16.0
@@ -3210,7 +3211,6 @@ packages:
     resolution:
       integrity: sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0=
   /minimist/1.2.0:
-    dev: true
     resolution:
       integrity: sha1-o1AIsg9BOD7sH7kU9M1d95omQoQ=
   /mkdirp/0.5.1:
@@ -4856,6 +4856,12 @@ packages:
     dev: false
     resolution:
       integrity: sha1-J6XeoGs2sEoKmWZ3SykIaPD8QP0=
+  /tunnel/0.0.6:
+    dev: false
+    engines:
+      node: '>=0.6.11 <=0.7.0 || >=0.7.3'
+    resolution:
+      integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==
   /turndown/5.0.3:
     dependencies:
       jsdom: 11.12.0
@@ -5069,6 +5075,16 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-ZMjC3ho+KXo0BfJb7JgtQ5IBuvnShdlACNkKkdsqBmYw3bPAaJfPeYUo6tLUaT5tG/Gkh7xkpBhKRQ9e7pyg9Q==
+  /wget-improved/3.0.2:
+    dependencies:
+      minimist: 1.2.0
+      tunnel: 0.0.6
+    dev: false
+    engines:
+      node: '>= 0.6.18'
+    hasBin: true
+    resolution:
+      integrity: sha512-YtImvUgXuyheiDaDK50CAiJGQFJ50/+Ru1BLLq2F4lDuvZNmBBTmNtirRl5R9G4hBvjmFUqIzkcnPVMyucjf+g==
   /whatwg-encoding/1.0.5:
     dependencies:
       iconv-lite: 0.4.24
@@ -5233,3 +5249,4 @@ specifiers:
   puppeteer: ^1.19.0
   sanitize-html: ^1.20.1
   telegraf: ^3.33.3
+  wget-improved: ^3.0.2
