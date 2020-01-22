@@ -73,9 +73,21 @@ const run = async (job, queueName = TASKS_CHANNEL) => {
 const runSecond = job => run(job, TASKS2_CHANNEL);
 const runPuppet = job => run(job, TASKS3_CHANNEL);
 
+const keys = [
+  process.env.TGPHTOKEN,
+  process.env.TGPHTOKEN_1,
+  process.env.TGPHTOKEN_2,
+  process.env.TGPHTOKEN_3,
+];
+
+function getKey() {
+  const h = new Date().getHours();
+  return keys.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
+}
+
 const getParams = (queueName = TASKS_CHANNEL) => {
   const isPuppet = queueName === TASKS3_CHANNEL;
-  let access_token = process.env.TGPHTOKEN;
+  let access_token = getKey();
   if (queueName === TASKS2_CHANNEL) {
     access_token = process.env.TGPHTOKEN2;
   }
