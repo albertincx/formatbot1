@@ -37,13 +37,33 @@ const checkImage = (url) => {
   });
 };
 
+const getSrcSet = (arr) => {
+  let order = [];
+  let orderObj = {};
+  arr.map(s => {
+    let [, size] = s.match(/\s([0-9]+)w/) || [];
+    orderObj[`${size}w`] = s;
+    order.push(parseInt(size));
+  });
+  order.sort((a, b) => {
+    if (a < b) { return -1; }
+    if (a > b) { return 1; }
+    return 0;
+  });
+
+  if (!order.length) order = arr;
+  let src = order[Math.round((order.length - 1) / 2)];
+  if (order.length) src = orderObj[`${src}w`];
+  return src;
+};
+
 const findSrcSet = (img) => {
   const srcSet = img.match(setRegex);
   if (srcSet && srcSet.length) {
     try {
       const srcsetAttr = img.split(setRegexS)[1].replace(/"\>/, '');
       const arr = srcsetAttr.split(',');
-      let mid = arr[Math.round((arr.length - 1) / 2)];
+      let mid = getSrcSet(arr);
       if (mid && mid !== srcsetAttr) {
         mid = mid.trim().replace(/\n/g, '').replace(/\s(.*?)$/, '');
         if (!img.match('src=')) {
