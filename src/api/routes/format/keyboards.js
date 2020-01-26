@@ -6,6 +6,7 @@ function start() {
   const replyMarkup = Markup.keyboard([
     [BUTTONS.hello.label],
     [BUTTONS.hide.label],
+    [BUTTONS.support.label],
   ]);
   return Extra.markup(replyMarkup);
 }

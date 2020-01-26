@@ -7,5 +7,9 @@ const BUTTONS = {
     label: '⌨️ Hide keyboard',
     command: '/hide',
   },
+  support: {
+    label: '👍Support',
+    command: '/support',
+  },
 };
 module.exports = BUTTONS;
