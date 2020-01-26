@@ -9,6 +9,9 @@ const mercury = require('./mercury');
 const fixImages = require('./fixImages');
 const puppet = require('./puppet');
 
+const ASYNC_FILE = 'asyncContent.html';
+const API = process.env.REST_API;
+
 class ParseHelper {
   constructor(link, params = {}) {
     link = this.parseServices(link);
@@ -88,9 +91,19 @@ class ParseHelper {
     return this.params.isCustom || this.params.isPuppet;
   }
 
-  puppet() {
-    if (this.params.isPuppet) return '';
-    return puppet(this.link, this.params);
+  async puppet() {
+    let l = this.link;
+    if (this.params.isCached) {
+      l = `${API}file?file=${ASYNC_FILE}`;
+    }
+    let html = '';
+    if (!this.params.isPuppet) {
+      html = await puppet(l, this.params);
+      if (!this.params.isCached) {
+        this.log(html, ASYNC_FILE);
+      }
+    }
+    return html;
   }
 
   async fetchHtml() {
@@ -110,6 +123,7 @@ class ParseHelper {
       content = content.replace(/\<!-- \</g, '<');
       content = content.replace(/\> --!\>/g, '>');
     }
+    content = content.replace(/<br\s?\/>\n<br\s?\/>/gm, '\n<p></p>');
     return content;
   }
 
@@ -178,7 +192,6 @@ class ParseHelper {
     if (preContent.length === 0) {
       const html = await this.puppet(userUrl);
       if (html) {
-        this.log(html, 'asyncContent.html');
         result = await mercury(userUrl, { html: Buffer.from(html) });
         this.log(result.content, 'mercuryAsyncContent.html');
       }
