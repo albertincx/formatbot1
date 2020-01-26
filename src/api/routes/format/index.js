@@ -44,6 +44,20 @@ function getAllLinks(text) {
 }
 
 const group = process.env.TGGROUP;
+const support = ({ message, reply }, botHelper) => {
+  let system = JSON.stringify(message.from);
+  try {
+    const sup = [
+      process.env.SUP_LINK,
+      process.env.SUP_LINK1,
+      process.env.SUP_LINK2,
+    ];
+    reply(messages.support(sup), keyboards.hide());
+  } catch (e) {
+    system = `${e}${system}`;
+  }
+  botHelper.sendAdmin(`support ${system}`);
+};
 const startOrHelp = ({ message, reply }, botHelper) => {
   let system = JSON.stringify(message.from);
   try {
@@ -57,22 +71,8 @@ const startOrHelp = ({ message, reply }, botHelper) => {
 module.exports = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
-  bot.hears('👍Support', ({ message, reply }) => {
-    // botHelper
-    let system = JSON.stringify(message.from);
-    try {
-      const sup = [
-        process.env.SUP_LINK,
-        process.env.SUP_LINK1,
-        process.env.SUP_LINK2,
-      ];
-      reply(messages.support(sup), keyboards.hide());
-    } catch (e) {
-      system = `${e}${system}`;
-    }
-    botHelper.sendAdmin(`support ${system}`);
-  });
-
+  bot.hears('👍Support', ctx => support(ctx, botHelper));
+  bot.command('support', ctx => support(ctx, botHelper));
   bot.hears('⌨️ Hide keyboard', ({ reply }) => {
     reply('Type /help to show.', keyboards.hide()).
         catch(e => botHelper.sendError(e));
