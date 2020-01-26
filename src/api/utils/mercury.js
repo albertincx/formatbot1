@@ -1,5 +1,6 @@
 const Mercury = require('@postlight/mercury-parser');
 const logger = require('./logger');
+
 const mercury = async (url, options = {}) => {
   let result = '';
   try {
