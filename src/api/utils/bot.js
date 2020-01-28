@@ -19,7 +19,8 @@ class BotHelper {
   }
 
   checkForce(txt) {
-    const m = txt.match(/(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
+    const m = txt.match(
+        /(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
     if (m && m[1]) {
       return m[1];
     }
@@ -50,7 +51,8 @@ class BotHelper {
   }
 
   sendAdminOpts(text, opts) {
-    return this.bot.sendMessage(TGADMIN, text, opts);
+    const chatId = process.env.TGGROUPBUGS || TGADMIN;
+    return this.bot.sendMessage(chatId, text, opts);
   }
 
   sendAdminMark(text, chatId) {
