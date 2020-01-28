@@ -52,7 +52,10 @@ const support = ({ message, reply }, botHelper) => {
       process.env.SUP_LINK1,
       process.env.SUP_LINK2,
     ];
-    reply(messages.support(sup), keyboards.hide());
+    reply(messages.support(sup), {
+      ...keyboards.hide(),
+      disable_web_page_preview: true,
+    });
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -247,7 +250,7 @@ module.exports = (bot, botHelper) => {
         botHelper.sendAdminOpts(error,
             keyboards.resolvedBtn(resolveMsgId, chatId));
       } else {
-        botHelper.sendAdmin(error);
+        botHelper.sendAdmin(error, process.env.TGGROUPBUGS);
       }
     }
   };
