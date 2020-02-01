@@ -4,6 +4,12 @@ const logger = require('./logger');
 const ParseHelper = require('./parseHelper');
 const db = require('./db');
 
+function from64(v) {
+  return Buffer.from(v, 'base64');
+}
+
+const G = from64('bmV3cy5nb29nbGUuY29t');
+
 const makeIvLink = async (url, paramsObj) => {
   if (paramsObj.db) {
     const exist = await db.get(url);
@@ -42,6 +48,18 @@ const toUrl = (url) => {
   return url;
 };
 
+const parse = (u) => {
+  if (u.match(G)) {
+    let p = u.split(/es\/(.*?)\?/);
+    if (p) {
+      p = from64(p[1]).toString();
+      p = p.match(/^\x08\x13".(.*)\//);
+      return p[1];
+    }
+  }
+  return u;
+};
+
 const isText = async (u, q) => {
   if (q && q.match('cached')) {
     logger('cached is text = true');
@@ -56,5 +74,6 @@ const isText = async (u, q) => {
   return { isText, url };
 };
 
+exports.parse = parse;
 exports.isText = isText;
 exports.makeIvLink = makeIvLink;

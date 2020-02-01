@@ -188,6 +188,7 @@ module.exports = (bot, botHelper) => {
         logger(`db is ${botHelper.db}`);
         logger(`queue job ${q}`);
         rabbitmq.time(q, true);
+        link = ivMaker.parse(link);
         const { isText, url: baseUrl } = await ivMaker.isText(link, force);
         if (baseUrl !== link) link = baseUrl;
         if (!isText) {
