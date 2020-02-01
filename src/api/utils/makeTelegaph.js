@@ -63,6 +63,7 @@ const makeLink = (obj, dom, link, index) => {
   } catch (e) {
     logger(e);
   }
+  return '';
 };
 
 function timeout(s) {
@@ -82,10 +83,16 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
       const domed = parts[i];
       await timeout(3);
       pages += 1;
-      link = await makeLink(obj, domed, link, i);
+      const iVlink = await makeLink(obj, domed, link, i);
+      if (iVlink) {
+        link = iVlink;
+      }
     }
     await timeout(3);
-    link = await makeLink(obj, parts[0], link, 0);
+    const iVlink = await makeLink(obj, parts[0], link, 0);
+    if (iVlink) {
+      link = iVlink;
+    }
   } catch (e) {
     logger(e);
   }
@@ -95,6 +102,9 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
 const makeTelegaph = async (obj, parsedHtml) => {
   let telegraphLink = '';
   let domEd = toDom(parsedHtml);
+  if (!domEd) {
+    throw 'empty dom';
+  }
   if (domEd.length === 1) {
     domEd = domEd[0].children;
   }
