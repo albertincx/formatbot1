@@ -66,6 +66,7 @@ const isText = async (u, q) => {
     return { isText: true, url: u };
   }
   u = toUrl(u);
+  u = encodeURI(u);
   const r = await fetch(u, { timeout: 5000 });
   const { url, headers } = r;
   const contentType = headers.get('content-type') || '';
