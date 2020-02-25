@@ -209,6 +209,7 @@ module.exports = (bot, botHelper) => {
           params = { ...params, ...botParams };
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
+          logger(params);
           await new Promise(resolve => setTimeout(() => resolve(), 100));
           const linkData = await ivMaker.makeIvLink(link, params);
           const { iv, isLong, pages = '', push = '', title = '' } = linkData;

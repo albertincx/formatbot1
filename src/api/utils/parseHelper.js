@@ -167,7 +167,7 @@ class ParseHelper {
   async parse() {
     const userUrl = this.link;
     const opts = {};
-    if (this.custom) {
+    if (this.custom && !this.params.isCached) {
       const html = await this.fetchHtml();
       this.log(html, 'fixedFetched.html');
       opts.html = Buffer.from(html);
@@ -179,7 +179,8 @@ class ParseHelper {
     }
     let result = {};
     if (this.params.isCached) {
-      let cacheFile = this.params.cachefile || 'mercury.html';
+      let cf = this.params.cachefile;
+      let cacheFile = cf || 'mercury.html';
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
