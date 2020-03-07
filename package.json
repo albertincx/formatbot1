@@ -30,21 +30,23 @@
     "@postlight/mercury-parser": "^2.2.0",
     "amqplib": "^0.5.5",
     "atob": "^2.1.2",
-    "dotenv-safe": "^6.1.0",
-    "express": "^4.16.4",
+    "dotenv-safe": "^8.2.0",
+    "express": "^4.17.1",
     "isomorphic-fetch": "^2.2.1",
     "jsbn": "^1.1.0",
     "lodash": "^4.17.15",
-    "mongoose": "^5.8.3",
-    "node-fetch": "^2.3.0",
-    "puppeteer": "^1.19.0",
-    "sanitize-html": "^1.20.1",
-    "telegraf": "^3.33.3"
+    "mongoose": "^5.9.3",
+    "node-fetch": "^2.6.0",
+    "puppeteer": "^2.1.1",
+    "sanitize-html": "^1.22.0",
+    "statuses": "^1.5.0",
+    "telegraf": "^3.36.0",
+    "wget-improved": "^3.2.0"
   },
   "devDependencies": {
-    "ava": "^2.4.0",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.16.0"
+    "ava": "^3.5.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1"
   }
 }
