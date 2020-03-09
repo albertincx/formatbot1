@@ -48,6 +48,7 @@ module.exports = (bot, conn) => {
   });
 
   bot.command('srv', ({ message }) => {
+    console.log(JSON.stringify(message));
     if (botHelper.isAdmin(message.chat.id)) {
       botHelper.sendAdmin(`srv: ${JSON.stringify(message)}`);
     }
