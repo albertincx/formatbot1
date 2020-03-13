@@ -51,6 +51,7 @@ const support = ({ message, reply }, botHelper) => {
       process.env.SUP_LINK,
       process.env.SUP_LINK1,
       process.env.SUP_LINK2,
+      process.env.SUP_LINK3,
     ];
     reply(messages.support(sup), {
       ...keyboards.hide(),
