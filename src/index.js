@@ -15,7 +15,7 @@ app.use('/mercury/get',
       res.send('use telegram bot http://t.me/CorsaBot');
     });
 
-if (!NOBOT) {
+if (!NOBOT && process.env.TBTKN) {
   const bot = require('./config/bot');
   app.use('/bot', botroute(bot, conn));
 }

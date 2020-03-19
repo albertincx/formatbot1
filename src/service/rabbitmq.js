@@ -1,9 +1,9 @@
 const amqp = require('amqplib');
 const logger = require('../api/utils/logger');
 
-const TASKS_CHANNEL = 'tasks';
-const TASKS2_CHANNEL = 'tasks2';
-const TASKS3_CHANNEL = 'puppet';
+const TASKS_CHANNEL = process.env.TASKS_DEV || 'tasks';
+const TASKS2_CHANNEL = process.env.TASKS2_DEV || 'tasks2';
+const TASKS3_CHANNEL = process.env.TASKSPUPPET_DEV || 'puppet';
 let rchannel = null;
 const starts = {
   start: process.hrtime(),

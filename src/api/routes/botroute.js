@@ -12,7 +12,7 @@ let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 
 module.exports = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
-  conn.on('error', (err) => {
+  if(conn) conn.on('error', (err) => {
     botHelper.disDb();
   });
   bot.command('config', ({ message }) => {
