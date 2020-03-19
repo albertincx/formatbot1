@@ -53,3 +53,5 @@ public/admin/
 .conf/test.txt
 yarn.lock
 count.txt
+
+.now
