@@ -12,7 +12,7 @@ let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 
 module.exports = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
-  if(conn) conn.on('error', (err) => {
+  if (conn) conn.on('error', (err) => {
     botHelper.disDb();
   });
   bot.command('config', ({ message }) => {
@@ -63,5 +63,5 @@ module.exports = (bot, conn) => {
   if (startCnt >= 500) startCnt = 0;
 
   fs.writeFileSync(filepath, startCnt);
-  return router;
+  return { router, botHelper };
 };
