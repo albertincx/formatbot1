@@ -63,5 +63,5 @@ module.exports = (bot, conn) => {
   if (startCnt >= 500) startCnt = 0;
 
   fs.writeFileSync(filepath, startCnt);
-  return { router, botHelper };
+  return { router, bot: botHelper };
 };
