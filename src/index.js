@@ -23,5 +23,5 @@ if (!NOBOT && process.env.TBTKN) {
 }
 
 app.listen(PORT, () => console.info(`server started on port ${PORT}`));
-if (botHelper) init(botHelper);
+//if (botHelper) init(botHelper);
 module.exports = app;
