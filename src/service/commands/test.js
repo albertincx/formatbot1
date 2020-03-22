@@ -5,7 +5,7 @@ async function run(params, botHelper) {
     let url = process.env.TEST_API;
     if (!url) return;
     await fetch(url);
-    await botHelper.sendAdmin('cron test check url');
+    await botHelper.sendAdmin('cron test check url', process.env.TGGROUPLOGS);
   } catch (e) {
     console.log(e);
   }
