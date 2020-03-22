@@ -16,10 +16,12 @@ app.use('/mercury/get',
   });
 let botHelper = null;
 if (!NOBOT && process.env.TBTKN) {
-  botHelper = require('./config/bot');
-  app.use('/bot', botroute(botHelper, conn));
+  const botHelperConf = require('./config/bot');
+  const { router, bot } = botroute(botHelperConf, conn);
+  botHelper = bot;
+  app.use('/bot', router);
 }
 
 app.listen(PORT, () => console.info(`server started on port ${PORT}`));
-if(botHelper) init(botHelper);
+if (botHelper) init(botHelper);
 module.exports = app;
