@@ -5,21 +5,21 @@ const { NOBOT, PORT } = require('./config/vars');
 const mongoose = require('./config/mongoose');
 const botroute = require('./api/routes/botroute');
 const api = require('./api/routes/api');
-
+const init = require('./cron');
 const conn = mongoose.connect();
 const app = express();
 app.get('/', (req, res) => res.json({ code: 200 }));
 app.use(api);
 app.use('/mercury/get',
-    (req, res) => {
-      res.send('use telegram bot http://t.me/CorsaBot');
-    });
-
+  (req, res) => {
+    res.send('use telegram bot http://t.me/CorsaBot');
+  });
+let botHelper = null;
 if (!NOBOT && process.env.TBTKN) {
-  const bot = require('./config/bot');
-  app.use('/bot', botroute(bot, conn));
+  botHelper = require('./config/bot');
+  app.use('/bot', botroute(botHelper, conn));
 }
 
 app.listen(PORT, () => console.info(`server started on port ${PORT}`));
-
+if(botHelper) init(botHelper);
 module.exports = app;
