@@ -20,7 +20,7 @@ class BotHelper {
 
   checkForce(txt) {
     const m = txt.match(
-        /(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
+      /(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
     if (m && m[1]) {
       return m[1];
     }
@@ -33,7 +33,7 @@ class BotHelper {
       opts = { parse_mode: 'Markdown' };
     }
     return this.bot.sendMessage(chatId, text, opts).
-        catch(e => this.sendError(e, `${chatId}${text}`));
+      catch(e => this.sendError(e, `${chatId}${text}`));
   }
 
   sendAdmin(text, chatId = TGADMIN, mark = false) {
@@ -62,7 +62,7 @@ class BotHelper {
   getParams(hostname, chatId, force) {
     let params = {};
     const contentSelector = force === 'content' ||
-        this.getConf(`${hostname}_content`);
+      this.getConf(`${hostname}_content`);
     if (contentSelector) {
       params.content = contentSelector;
     }
@@ -161,6 +161,14 @@ class BotHelper {
 
   disDb() {
     this.db = false;
+  }
+
+  setBlacklist(f) {
+    this.bllist = fs.readFileSync(f).toString() || '';
+  }
+
+  isBlackListed(h) {
+    return this.bllist.match(h);
   }
 }
 

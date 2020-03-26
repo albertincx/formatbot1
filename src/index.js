@@ -1,7 +1,7 @@
 Promise = require('bluebird'); // eslint-disable-line no-global-assign
 const express = require('express');
 
-const { NOBOT, PORT } = require('./config/vars');
+const { NOBOT, PORT, blacklistFile } = require('./config/vars');
 const mongoose = require('./config/mongoose');
 const botroute = require('./api/routes/botroute');
 const api = require('./api/routes/api');
@@ -18,6 +18,7 @@ let botHelper = null;
 if (!NOBOT && process.env.TBTKN) {
   const botHelperConf = require('./config/bot');
   const { router, bot } = botroute(botHelperConf, conn);
+  bot.setBlacklist(blacklistFile);
   botHelper = bot;
   app.use('/bot', router);
 }

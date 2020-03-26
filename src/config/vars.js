@@ -3,6 +3,15 @@ const fs = require('fs');
 const dotenv = require('dotenv-safe');
 
 const envPath = path.join(__dirname, '../../.env');
+
+const confFile = path.join(__dirname, '../../.conf');
+if (!fs.existsSync(confFile)) fs.mkdirSync(confFile);
+
+const blacklistFile = path.join(__dirname, '../../.conf/blacklist.txt');
+if (!fs.existsSync(blacklistFile)) {
+  fs.writeFileSync(`${confFile}/blacklist.txt`, '');
+}
+
 if (fs.existsSync(envPath)) {
   dotenv.config({
     allowEmptyValues: true,
@@ -21,4 +30,5 @@ module.exports = {
   mongo: {
     uri: process.env.MONGO_URI,
   },
+  blacklistFile,
 };
