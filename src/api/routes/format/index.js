@@ -79,7 +79,7 @@ module.exports = (bot, botHelper) => {
   bot.command('support', ctx => support(ctx, botHelper));
   bot.hears('⌨️ Hide keyboard', ({ reply }) => {
     reply('Type /help to show.', keyboards.hide()).
-        catch(e => botHelper.sendError(e));
+      catch(e => botHelper.sendError(e));
   });
 
   bot.action(/.*/, async (ctx) => {
@@ -106,7 +106,7 @@ module.exports = (bot, botHelper) => {
       const { message: { text, message_id }, from } = callback_query;
       let RESULT = `${text}\nResolved! ${error}`;
       await bot.telegram.editMessageText(from.id, message_id, null, RESULT).
-          catch(console.log);
+        catch(console.log);
     }
   });
 
@@ -141,7 +141,7 @@ module.exports = (bot, botHelper) => {
             await log({ link, type: 'return' });
           }
           reply(messages.showIvMessage('', link, link),
-              { parse_mode: 'Markdown' });
+            { parse_mode: 'Markdown' });
           return;
         }
         if (!parsed.pathname) {
@@ -206,6 +206,7 @@ module.exports = (bot, botHelper) => {
           }
           const { hostname } = url.parse(link);
           logger(hostname);
+          if (botHelper.isBlackListed(hostname)) throw 'BlackListed';
           const botParams = botHelper.getParams(hostname, chatId, force);
           params = { ...params, ...botParams };
           params.browserWs = browserWs;
@@ -227,7 +228,7 @@ module.exports = (bot, botHelper) => {
       let t = rabbitmq.time(q);
       const extra = { parse_mode: 'Markdown' };
       const responseMsg = await bot.telegram.editMessageText(chatId, messageId,
-          null, `${TITLE}${RESULT}`, extra);
+        null, `${TITLE}${RESULT}`, extra);
       if (responseMsg) {
         const { message_id: reportMessageId } = responseMsg;
         resolveMsgId = reportMessageId;
@@ -237,12 +238,12 @@ module.exports = (bot, botHelper) => {
       }
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
-            group);
+          group);
       }
     } catch (e) {
       logger(e);
       error = `${link} error: ${JSON.stringify(
-          e)} ${e.toString()} ${chatId} ${messageId}`;
+        e)} ${e.toString()} ${chatId} ${messageId}`;
     }
     logger(error);
     if (error) {
@@ -251,7 +252,7 @@ module.exports = (bot, botHelper) => {
       }
       if (isBroken && resolveMsgId) {
         botHelper.sendAdminOpts(error,
-            keyboards.resolvedBtn(resolveMsgId, chatId));
+          keyboards.resolvedBtn(resolveMsgId, chatId));
       } else {
         botHelper.sendAdmin(error, process.env.TGGROUPBUGS);
       }
