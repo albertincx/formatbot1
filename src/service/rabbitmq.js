@@ -74,7 +74,7 @@ const runSecond = job => run(job, TASKS2_CHANNEL);
 const runPuppet = job => run(job, TASKS3_CHANNEL);
 
 const keys = [
-  process.env.TGPHTOKEN,
+  process.env.TGPHTOKEN_0,
   process.env.TGPHTOKEN_1,
   process.env.TGPHTOKEN_2,
   process.env.TGPHTOKEN_3,
