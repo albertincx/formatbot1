@@ -78,6 +78,9 @@ const keys = [
   process.env.TGPHTOKEN_1,
   process.env.TGPHTOKEN_2,
   process.env.TGPHTOKEN_3,
+  process.env.TGPHTOKEN_4,
+  process.env.TGPHTOKEN_5,
+  process.env.TGPHTOKEN_6,
 ];
 
 function getKey() {
