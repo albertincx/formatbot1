@@ -166,12 +166,8 @@ module.exports = (bot, botHelper) => {
   bot.hears(/.*/, (ctx) => addToQueue(ctx));
   bot.on('message', ({ update, reply }) => addToQueue({ ...update, reply }));
 
-  /*bot.command(/^second/, ({ message, update, reply }) => {
-    console.log(message);
-  });*/
-
   let browserWs = null;
-  if (!botHelper.config.nopuppet) {
+  if (!botHelper.config.nopuppet && !process.env.NOPUPPET) {
     puppet.getBrowser().then(ws => {
       browserWs = ws;
     });
