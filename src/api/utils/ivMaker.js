@@ -10,6 +10,27 @@ function from64(v) {
 
 const G = from64('bmV3cy5nb29nbGUuY29t');
 
+const makeIvLinkFromContent = async (file, paramsObj) => {
+  const { access_token, ...params } = paramsObj;
+  const authorUrl = `from File`;
+  const parseHelper = new ParseHelper('', params);
+  let content = file.content;
+  let title = file.file_name;
+  if (file.isHtml) {
+    content = await parseHelper.parseContent(content);
+  } else {
+    content = `<div>${content}</div>`;
+  }
+  if (!content) throw 'empty content';
+  const obj = { title, access_token, authorUrl };
+  const tgRes = await makeTelegaph(obj, content);
+  const { telegraphLink, isLong, pages, push } = tgRes;
+  if (!telegraphLink) throw 'empty ivlink';
+  const res = { iv: telegraphLink, pages, push, title };
+  res.isLong = res.pages;
+  return res;
+};
+
 const makeIvLink = async (url, paramsObj) => {
   if (paramsObj.db) {
     const exist = await db.get(url);
@@ -78,3 +99,4 @@ const isText = async (u, q) => {
 exports.parse = parse;
 exports.isText = isText;
 exports.makeIvLink = makeIvLink;
+exports.makeIvLinkFromContent = makeIvLinkFromContent;

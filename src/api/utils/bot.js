@@ -44,6 +44,9 @@ class BotHelper {
         disable_web_page_preview: true,
       };
     }
+    if (chatId === null) {
+      chatId = TGADMIN
+    }
     if (chatId === TGADMIN) {
       text = `service: ${text}`;
     }
@@ -169,6 +172,10 @@ class BotHelper {
 
   isBlackListed(h) {
     return this.bllist.match(h);
+  }
+
+  forward(mid, from, to) {
+    return this.bot.forwardMessage(to, from, mid);
   }
 }
 

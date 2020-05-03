@@ -164,6 +164,12 @@ class ParseHelper {
     }
   }
 
+  async parseContent(html) {
+    const result = await mercury('https://albertincx-formatbot1.glitch.me/', { html: Buffer.from(html) });
+    this.log(result.content, 'mercuryFileContent.html');
+    return  result.content;
+  }
+
   async parse() {
     const userUrl = this.link;
     const opts = {};

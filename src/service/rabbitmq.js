@@ -1,9 +1,12 @@
 const amqp = require('amqplib');
 const logger = require('../api/utils/logger');
 
+const FILESLAVE = process.env.FILESLAVE;
 const TASKS_CHANNEL = process.env.TASKS_DEV || 'tasks';
+
 const TASKS2_CHANNEL = process.env.TASKS2_DEV || 'tasks2';
 const TASKS3_CHANNEL = process.env.TASKSPUPPET_DEV || 'puppet';
+const FILES_CHANNEL = process.env.FILESCHAN_DEV || 'files';
 let rchannel = null;
 const starts = {
   start: process.hrtime(),
@@ -57,6 +60,12 @@ const createChannel = async (queueName = TASKS_CHANNEL) => {
 
 const run = async (job, queueName = TASKS_CHANNEL) => {
   try {
+    if (queueName === '') {
+      queueName = TASKS_CHANNEL;
+    }
+    if (FILESLAVE && queueName !== FILES_CHANNEL) {
+      return;
+    }
     const channel = await createChannel(queueName);
     await channel.prefetch(1);
     channel.consume(queueName, async (message) => {
@@ -108,13 +117,15 @@ const addToQueue = async (task, queueName = TASKS_CHANNEL) => {
     }
     logger(el);
     await rchannel.sendToQueue(queueName,
-        Buffer.from(JSON.stringify(task)), {
-          contentType: 'application/json',
-          persistent: true,
-        });
+      Buffer.from(JSON.stringify(task)), {
+        contentType: 'application/json',
+        persistent: true,
+      });
   }
 };
-
+const addToQueueFile = async (task) => {
+  return addToQueue(task, FILES_CHANNEL);
+};
 const isMain = q => !q || q === TASKS_CHANNEL;
 const chanSecond = () => TASKS2_CHANNEL;
 const chanPuppet = () => TASKS3_CHANNEL;
@@ -132,6 +143,7 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
 
 module.exports.createChannel = createChannel;
 module.exports.addToQueue = addToQueue;
+module.exports.addToQueueFile = addToQueueFile;
 module.exports.runSecond = runSecond;
 module.exports.runPuppet = runPuppet;
 

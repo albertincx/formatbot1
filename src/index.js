@@ -7,12 +7,8 @@ const botroute = require('./api/routes/botroute');
 const api = require('./api/routes/api');
 const conn = mongoose.connect();
 const app = express();
-app.get('/', (req, res) => res.json({ code: 200 }));
+app.get('/', (req, res) => res.send('use telegram bot <a href="tg://resolve?domain=CorsaBot">@CorsaBot</a>'));
 app.use(api);
-app.use('/',
-  (req, res) => {
-    res.send('use telegram bot http://t.me/CorsaBot');
-  });
 if (!NOBOT && process.env.TBTKN) {
   const botInstance = require('./config/bot');
   if (botInstance) {
