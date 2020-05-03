@@ -1,7 +1,7 @@
 This bot makes instant view from channel post that have not IV
 
 You can find this bot by keywords such as “InstantViewBot”
-
+## [![Patreon](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=26037444)
 ## Features
 
 - [x] Extract link from amp,clck,bit.ly
