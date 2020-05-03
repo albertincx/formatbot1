@@ -9,6 +9,7 @@ You can find this bot by keywords such as “InstantViewBot”
 - [x] Compress Content
 - [x] Partially support too long content
 - [x] Second "process queue"
+- [x] Text/Html/MD Document from storage
 - [ ] Better parse images
 - [ ] Multi links
 
