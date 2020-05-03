@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv-safe');
-
+//test
 const envPath = path.join(__dirname, '../../.env');
 
 const confFile = path.join(__dirname, '../../.conf');
