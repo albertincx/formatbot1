@@ -24,6 +24,7 @@ async function downloadFile(filename, urlLink) {
 const putFile = async (file) => {
   let filepath = `${uploadDir}/${file.file_name}`;
   let fileJson = `${uploadDir}/request.json`;
+  console.log(file)
   const { file_id, mime_type, file_size, file_name } = file;
   if (!mime_type.match(/^text\//)) {
     throw new Error('file type not supported');
