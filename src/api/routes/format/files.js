@@ -24,8 +24,6 @@ async function downloadFile(filename, urlLink) {
 const putFile = async (file) => {
   let filepath = `${uploadDir}/${file.file_name}`;
   let fileJson = `${uploadDir}/request.json`;
-  
-  console.log(file)
   const { file_id, mime_type, file_size, file_name } = file;
   if (!mime_type.match(/^text\//)) {
     throw new Error('file type not supported');
@@ -43,10 +41,9 @@ const putFile = async (file) => {
   }
   const fileUrl = `https://api.telegram.org/file/bot${process.env.MAIN_TOKEN}/${response.result.file_path}`;
   await downloadFile(filepath, fileUrl);
-  console.log('read')
   let content = fs.readFileSync(filepath).toString();
   if (file_name.match(/\.md$/)) {
-    var converter = new showdown.Converter();
+    converter = new showdown.Converter();
     content = converter.makeHtml(content);
     content = `<html><head><title>You have been blocked</title><body>${content}</body></html>`;
   }

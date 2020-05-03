@@ -299,7 +299,7 @@ module.exports = (bot, botHelper) => {
       }
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
-          logGroup);
+          logGroup).catch(()=>{});
       }
     } catch (e) {
       logger(e);
