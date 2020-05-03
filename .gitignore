@@ -2,6 +2,7 @@
 package-lock.json
 data/
 .conf/
+.cache/
 images/
 .idea
 # Environment variables
