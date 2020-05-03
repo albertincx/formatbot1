@@ -5,24 +5,22 @@ const { NOBOT, PORT, blacklistFile } = require('./config/vars');
 const mongoose = require('./config/mongoose');
 const botroute = require('./api/routes/botroute');
 const api = require('./api/routes/api');
-const init = require('./cron');
 const conn = mongoose.connect();
 const app = express();
-app.get('/', (req, res) => res.json({ code: 200 }));
+app.get('/', (req, res) => res.send('use telegram bot <a href="tg://resolve?domain=CorsaBot">@CorsaBot</a>'));
 app.use(api);
-app.use('/mercury/get',
-  (req, res) => {
-    res.send('use telegram bot http://t.me/CorsaBot');
-  });
-let botHelper = null;
 if (!NOBOT && process.env.TBTKN) {
-  const botHelperConf = require('./config/bot');
-  const { router, bot } = botroute(botHelperConf, conn);
-  bot.setBlacklist(blacklistFile);
-  botHelper = bot;
-  app.use('/bot', router);
+  const botInstance = require('./config/bot');
+  if (botInstance) {
+    const { router, bot } = botroute(botInstance, conn);
+    bot.setBlacklist(blacklistFile);
+    app.use('/bot', router);
+  }
 }
 
 app.listen(PORT, () => console.info(`server started on port ${PORT}`));
+<<<<<<< HEAD
 //if (botHelper) init(botHelper); test
+=======
+>>>>>>> f16108a997d24ced12ec76b712c845c355914423
 module.exports = app;

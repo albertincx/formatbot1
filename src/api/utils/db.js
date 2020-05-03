@@ -1,7 +1,7 @@
 const Any = require('../models/any.model');
 
-const links = Any.collection.conn.model('links', Any.schema);
-const logs = Any.collection.conn.model('logs', Any.schema);
+const links = Any.collection.conn.model(process.env.MONGO_COLL_LINKS || 'links', Any.schema);
+const logs = Any.collection.conn.model(process.env.MONGO_COLL_LOGS || 'logs', Any.schema);
 
 const stat = async () => {
   const cnt = await links.countDocuments();
