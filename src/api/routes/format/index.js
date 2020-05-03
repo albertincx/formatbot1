@@ -10,6 +10,9 @@ const { validRegex } = require('../../../config/config.json');
 
 const rabbitmq = require('../../../service/rabbitmq');
 
+const group = process.env.TGGROUP;
+const fileGroup = process.env.TGFILEGROUP;
+
 const FILESLAVE = process.env.FILESLAVE;
 let MAIN_CHAN = '';
 let fileSlave = null;
@@ -53,8 +56,6 @@ function getAllLinks(text) {
   return text.match(urlRegex) || [];
 }
 
-const group = process.env.TGGROUP;
-const fileGroup = process.env.TGFILEGROUP;
 const support = ({ message, reply }, botHelper) => {
   let system = JSON.stringify(message.from);
   try {
@@ -122,6 +123,9 @@ module.exports = (bot, botHelper) => {
   });
 
   const addToQueue = async ({ message: msg, reply }) => {
+    if (FILESLAVE) {
+      return;
+    }
     logger(msg);
     let { reply_to_message, entities, caption_entities } = msg;
     if (reply_to_message) return;
@@ -135,7 +139,7 @@ module.exports = (bot, botHelper) => {
       if (rpl) {
         doc = rpl.document;
       }
-      if (doc && !FILESLAVE) {
+      if (doc) {
         const res = await reply('Waiting for instantView...') || {};
         const message_id = res && res.message_id;
         await rabbitmq.addToQueueFile({ message_id, chatId, doc });
@@ -237,10 +241,11 @@ module.exports = (bot, botHelper) => {
           return;
         }
         rabbitmq.time(q, true);
-        const source = `${link}`;
+        let source = `${link}`;
         if (document) {
           linkData = document;
           logGroup = fileGroup;
+          source = 'document';
         } else {
           link = ivMaker.parse(link);
           const { isText, url: baseUrl } = await ivMaker.isText(link, force);
