@@ -23,8 +23,10 @@ const makeIvLinkFromContent = async (file, paramsObj) => {
   }
   if (!content) throw 'empty content';
   const obj = { title, access_token, authorUrl };
+  console.log('read make')
   const tgRes = await makeTelegaph(obj, content);
   const { telegraphLink, isLong, pages, push } = tgRes;
+  console.log('read makes')
   if (!telegraphLink) throw 'empty ivlink';
   const res = { iv: telegraphLink, pages, push, title };
   res.isLong = res.pages;

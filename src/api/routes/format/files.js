@@ -42,9 +42,10 @@ const putFile = async (file) => {
   }
   const fileUrl = `https://api.telegram.org/file/bot${process.env.MAIN_TOKEN}/${response.result.file_path}`;
   await downloadFile(filepath, fileUrl);
+  console.log('read')
   let content = fs.readFileSync(filepath).toString();
   if (file_name.match(/\.md$/)) {
-    converter = new showdown.Converter();
+    var converter = new showdown.Converter();
     content = converter.makeHtml(content);
     content = `<html><head><title>You have been blocked</title><body>${content}</body></html>`;
   }
