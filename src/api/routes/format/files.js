@@ -25,7 +25,8 @@ const putFile = async (file) => {
   let filepath = `${uploadDir}/${file.file_name}`;
   let fileJson = `${uploadDir}/request.json`;
   const { file_id, mime_type, file_size, file_name } = file;
-  if (!mime_type.match(/^text\//)) {
+  //console.log(mime_type);
+  if (!mime_type.match(/^text\/|x-subrip|x-httpd-php|x-sh|application\/xml/)) {
     throw new Error('file type not supported');
   }
   if (file_size > FILESLAVE_MAXSIZE) {
