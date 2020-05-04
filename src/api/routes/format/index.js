@@ -140,7 +140,7 @@ module.exports = (bot, botHelper) => {
         doc = rpl.document;
       }
       if (doc) {
-        const res = await reply('Waiting for instantView...') || {};
+        const res = await reply('Waiting for instantView...'). catch (()) || {};
         const message_id = res && res.message_id;
         await rabbitmq.addToQueueFile({ message_id, chatId, doc });
         return;
@@ -180,7 +180,7 @@ module.exports = (bot, botHelper) => {
           }
           return;
         }
-        const res = await reply('Waiting for instantView...') || {};
+        const res = await reply('Waiting for instantView...').catch(()=>{}) || {};
         const message_id = res && res.message_id;
         if (!message_id) throw new Error('blocked');
         const rabbitMes = { message_id, chatId, link };
