@@ -25,12 +25,11 @@ const putFile = async (file) => {
   let filepath = `${uploadDir}/${file.file_name}`;
   let fileJson = `${uploadDir}/request.json`;
   const { file_id, mime_type, file_size, file_name } = file;
-  //console.log(mime_type);
   if (!mime_type.match(/^text\/|x-subrip|x-httpd-php|x-sh|application\/xml/)) {
-    throw new Error('file type not supported');
+    throw new Error(`file type (${mime_type}) not supported`);
   }
   if (file_size > FILESLAVE_MAXSIZE) {
-    throw new Error('Filesize too big');
+    throw new Error(`Filesize too big ${file_size} > ${FILESLAVE_MAXSIZE}`);
   }
   let url = `https://api.telegram.org/bot${process.env.MAIN_TOKEN}/getFile?file_id=${file_id}`;
   await downloadFile(fileJson, url);
