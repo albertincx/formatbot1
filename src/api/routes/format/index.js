@@ -287,15 +287,8 @@ module.exports = (bot, botHelper) => {
       }
       let t = rabbitmq.time(q);
       const extra = { parse_mode: 'Markdown' };
-      const responseMsg = await bot.telegram.editMessageText(chatId, messageId,
-        null, `${TITLE}${RESULT}`, extra);
-      if (responseMsg) {
-        const { message_id: reportMessageId } = responseMsg;
-        resolveMsgId = reportMessageId;
-        // await bot.telegram.editMessageText(chatId, messageId, null, `${RESULT}\n\n/report${reportMessageId}`, extra);
-        /*await bot.telegram.editMessageText(chatId, messageId, null,
-            RESULT, { ...extra, ...keyboards.report() });*/
-      }
+      await bot.telegram.editMessageText(chatId, messageId,
+        null, `${TITLE}${RESULT}`, extra).catch(()=>{});
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
           logGroup).catch(()=>{});
