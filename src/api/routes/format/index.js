@@ -140,7 +140,7 @@ module.exports = (bot, botHelper) => {
         doc = rpl.document;
       }
       if (doc) {
-        const res = await reply('Waiting for instantView...'). catch (()) || {};
+        const res = await reply('Waiting for instantView...'). catch (()=>{}) || {};
         const message_id = res && res.message_id;
         await rabbitmq.addToQueueFile({ message_id, chatId, doc });
         return;
