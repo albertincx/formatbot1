@@ -91,10 +91,30 @@ const keys = [
   process.env.TGPHTOKEN_5,
   process.env.TGPHTOKEN_6,
 ];
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
 
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
 function getKey() {
   const h = new Date().getHours();
-  return keys.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
+  const keys1 = shuffle(keys)
+  const k = keys1.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
+  //console.log(k)
+  return k;
 }
 
 const getParams = (queueName = TASKS_CHANNEL) => {
