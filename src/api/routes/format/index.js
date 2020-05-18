@@ -258,6 +258,8 @@ module.exports = (bot, botHelper) => {
             }
             const { hostname } = url.parse(link);
             logger(hostname);
+            logger(link)
+            if(hostname==='archive.org') throw 'err'
             if (botHelper.isBlackListed(hostname)) throw 'BlackListed';
             const botParams = botHelper.getParams(hostname, chatId, force);
             params = { ...params, ...botParams };
