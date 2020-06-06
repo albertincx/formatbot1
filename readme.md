@@ -21,6 +21,7 @@ You can find this bot by keywords such as “InstantViewBot”
 - TGADMIN=admin telegram id
 - TGPHTOKEN= Telegra.ph token
 - MESSAGE_QUEUE=rabbitmq message queue connection, thanks [cloudamqp.com](https://cloudamqp.com)
+- MONGO_URI= mongodb connetcion uri, thanks [cloud.mongodb.com](https://cloud.mongodb.com) 
 
 **dev:**
 
