@@ -158,7 +158,14 @@ class BotHelper {
   }
 
   sendError(e, text = '') {
-    e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
+    if(typeof e ==='object'){
+      if(e.response&&typeof e.response ==='object'){
+        e = e.response.description || 'unknown error';
+      }
+    } else {
+    e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;  
+    }
+    
     return this.sendAdmin(e);
   }
 
