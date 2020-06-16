@@ -68,8 +68,7 @@ const support = ({ message, reply }, botHelper) => {
     reply(messages.support(sup), {
       ...keyboards.hide(),
       disable_web_page_preview: true,
-    }).
-      catch(e => botHelper.sendError(e));
+    }).catch(e => botHelper.sendError(e));
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -78,7 +77,7 @@ const support = ({ message, reply }, botHelper) => {
 const startOrHelp = ({ message, reply }, botHelper) => {
   let system = JSON.stringify(message.from);
   try {
-    reply(messages.start(), keyboards.start());
+    reply(messages.start(), keyboards.start()).catch(e => botHelper.sendError(e));
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -91,8 +90,7 @@ module.exports = (bot, botHelper) => {
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
   bot.hears('⌨️ Hide keyboard', ({ reply }) => {
-    reply('Type /help to show.', keyboards.hide()).
-      catch(e => botHelper.sendError(e));
+    reply('Type /help to show.', keyboards.hide()).catch(e => botHelper.sendError(e));
   });
 
   bot.action(/.*/, async (ctx) => {
@@ -172,7 +170,7 @@ module.exports = (bot, botHelper) => {
             await log({ link, type: 'return' });
           }
           reply(messages.showIvMessage('', link, link),
-            { parse_mode: 'Markdown' });
+            { parse_mode: 'Markdown' }).catch(e => botHelper.sendError(e));
           return;
         }
         if (!parsed.pathname) {
