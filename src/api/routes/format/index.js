@@ -68,7 +68,8 @@ const support = ({ message, reply }, botHelper) => {
     reply(messages.support(sup), {
       ...keyboards.hide(),
       disable_web_page_preview: true,
-    });
+    }).
+      catch(e => botHelper.sendError(e));
   } catch (e) {
     system = `${e}${system}`;
   }
