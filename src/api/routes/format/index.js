@@ -1,7 +1,7 @@
 const url = require('url');
 const messages = require('../../../messages/format');
 const keyboards = require('./keyboards');
-
+const db = require('../../utils/db');
 const logger = require('../../utils/logger');
 const { log } = require('../../utils/db');
 const ivMaker = require('../../utils/ivMaker');
@@ -83,9 +83,16 @@ const startOrHelp = ({ message, reply }, botHelper) => {
   }
   botHelper.sendAdmin(system);
 };
-
+const broadcast = ({ message: msg, reply }, botHelper) => {
+  const { chat: { id: chatId }, text } = msg;
+  const isAdm = botHelper.isAdmin(chatId);
+  if (isAdm) {
+    return db.processBroadcast(text, reply, botHelper);
+  }
+}
 module.exports = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
+  bot.command(['/createBroadcast','/startBroadcast'], ctx => broadcast(ctx, botHelper));
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
@@ -257,8 +264,8 @@ module.exports = (bot, botHelper) => {
             }
             const { hostname } = url.parse(link);
             logger(hostname);
-            logger(link)
-            if(hostname.match('djvu')) throw 'err'
+            logger(link);
+            if (hostname.match('djvu')) throw 'err';
             if (botHelper.isBlackListed(hostname)) throw 'BlackListed';
             const botParams = botHelper.getParams(hostname, chatId, force);
             params = { ...params, ...botParams };
