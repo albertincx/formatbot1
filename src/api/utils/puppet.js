@@ -24,7 +24,7 @@ const getBrowser = async () => {
 const puppet = async (url, params) => {
   let { browserWs: ws, scroll } = params;
   if (!ws) {
-    return Promise.resolve(false);
+    return Promise.resolve('');
   }
   try {
     logger(url);
