@@ -165,7 +165,9 @@ class ParseHelper {
   }
 
   async parseContent(html) {
-    const result = await mercury('https://albertincx-formatbot1.glitch.me/', { html: Buffer.from(html) });
+    if (!html) return '';
+    const result = await mercury('https://albertincx-formatbot1.glitch.me/',
+      { html: Buffer.from(html) });
     this.log(result.content, 'mercuryFileContent.html');
     return  result.content;
   }
@@ -175,6 +177,7 @@ class ParseHelper {
     const opts = {};
     if (this.custom && !this.params.isCached) {
       const html = await this.fetchHtml();
+      if (!html) throw 'empty content';
       this.log(html, 'fixedFetched.html');
       opts.html = Buffer.from(html);
     }
@@ -204,7 +207,7 @@ class ParseHelper {
       }
     }
     let { title = '', url: source, iframe } = result;
-    this.log(iframe, 'iframes.html');
+    if(iframe) this.log(iframe, 'iframes.html');
     if (this.title) title = this.title;
     content = result.content;
     if (content) {
