@@ -84,12 +84,19 @@ const createBroadcast = async (reply, txt) => {
     Any.schema);
   const model = connSecond.model('broadcasts', Any.schema);
   let filter = {};
+  if (process.env.DEV) {
+    filter.username = { $in: ['safiullin'] };
+  }
+  await model.updateMany({ cId: 10, error: /:429/ },
+    { $unset: { sent: '', error: '' } });
+  /*await model.updateMany({ cId: 10, code: 403 },
+    { $unset: { sent: '', error: '', code:'' } });*/
   const cursor = messages.find(filter).cursor();
   await processRows(cursor, 500, 10, (items) => {
     let updates = [];
     items.forEach(({ _id, ...it }) => updates.push({
       updateOne: {
-        filter: { username: it.username, cId, sent: { $exists: false } },
+        filter: { id: it.id, cId, sent: { $exists: false } },
         update: { ...it, cId },
         upsert: true,
       },
@@ -107,17 +114,33 @@ const startBroadcast = async (reply, txt, bot) => {
   }
   txt = txt.replace(/\sr_c_id_(.*?)\s/, '');
   let result = { err: 0, success: 0 };
-  const connSecond = connectDb();
-  const model = connSecond.model('broadcasts', Any.schema);
+  let model;
+  let connSecond;
+
+  if (process.env.DEV) {
+    connSecond = connectDb();
+    model = connSecond.model('broadcasts', Any.schema);
+  } else {
+    model = Any.collection.conn.model('broadcasts', Any.schema);
+  }
+
   let filter = { sent: { $exists: false }, cId };
   let sendCmd = Mid ? 'forward' : 'sendAdmin';
-  const cursor = model.find(filter).
+  const cursor = model.find(filter).limit(800).
     cursor();
-  await processRows(cursor, 25, 1000, async (items) => {
+  let breakProcess = false;
+  await processRows(cursor, 5, 500, async (items) => {
     let success = [];
+    if (breakProcess) {
+      return;
+    }
+
     function pushVal(_id, it = {}) {
-      if (it.error) result.err += 1;
-      else result.success += 1;
+      if (it.error) {
+        result.err += 1;
+      } else {
+        result.success += 1;
+      }
       success.push({
         updateOne: {
           filter: { _id },
@@ -125,23 +148,40 @@ const startBroadcast = async (reply, txt, bot) => {
         },
       });
     }
+
     let upds = [];
-    for (let i = 0; i < items.length; i += 1) {
-      let { _id, id } = items[i];
-      let runCmd;
-      if (Mid) {
-        runCmd = () => bot[sendCmd](Mid, FromId, id);
-      } else {
-        runCmd = () => bot[sendCmd](txt, id);
+    try {
+      for (let i = 0; i < items.length; i += 1) {
+        if (breakProcess) {
+          break;
+        }
+        let { _id, id } = items[i];
+        let runCmd;
+        if (Mid) {
+          runCmd = () => bot[sendCmd](Mid, FromId, id);
+        } else {
+          runCmd = () => bot[sendCmd](txt, id);
+        }
+        await runCmd().then(() => pushVal(_id)).catch(
+          e => {
+            if (e.code === 429) breakProcess = JSON.stringify(e);
+            return pushVal(_id, { error: JSON.stringify(e), code: e.code });
+          });
       }
-      upds.push(runCmd().then(() => pushVal(_id)).catch(
-        e => pushVal(_id, { error: JSON.stringify(e) })));
+      if (upds.length) await Promise.all(upds);
+    } catch (e) {
+      if (e.code === 429 && e.response.parameters &&
+        e.response.parameters.retry_after) {
+        // await new Promise(resolve => setTimeout(() => resolve(),
+        // e.response.parameters.retry_after));
+      }
+      if (e.code === 429) breakProcess = JSON.stringify(e);
     }
-    if (upds.length) await Promise.all(upds);
     if (success.length) return model.bulkWrite(success);
   });
-  reply('broad completed: ' + JSON.stringify(result));
-  connSecond.close();
+  reply('broad completed: ' + JSON.stringify(result) +
+    ` with ${breakProcess ? breakProcess : ''}`);
+  if (connSecond) connSecond.close();
 };
 
 const clear = async (msg) => {
