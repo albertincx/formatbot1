@@ -1,5 +1,6 @@
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
+const BUTTONS = require('../../../config/buttons');
 
 function start() {
   const replyMarkup = Markup.keyboard([
