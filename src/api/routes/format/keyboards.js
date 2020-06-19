@@ -1,4 +1,3 @@
-const BUTTONS = require('../../../config/buttons');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 

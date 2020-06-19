@@ -108,6 +108,7 @@ class ParseHelper {
 
   async fetchHtml() {
     let content = '';
+    this.log(`this.params.isPuppet ${this.params.isPuppet}`);
     if (this.params.isPuppet) {
       content = await puppet(this.link, this.params);
       this.log(content, 'puppet.html');
@@ -123,7 +124,10 @@ class ParseHelper {
       content = content.replace(/\<!-- \</g, '<');
       content = content.replace(/\> --!\>/g, '>');
     }
-    content = content.replace(/<br\s?\/>\n<br\s?\/>/gm, '\n<p></p>');
+    if (content) {
+      content = content.replace(/<br\s?\/>\n<br\s?\/>/gm,
+        '\n<p></p>');
+    }
     return content;
   }
 
@@ -169,7 +173,7 @@ class ParseHelper {
     const result = await mercury('https://albertincx-formatbot1.glitch.me/',
       { html: Buffer.from(html) });
     this.log(result.content, 'mercuryFileContent.html');
-    return  result.content;
+    return result.content;
   }
 
   async parse() {
@@ -207,7 +211,7 @@ class ParseHelper {
       }
     }
     let { title = '', url: source, iframe } = result;
-    if(iframe) this.log(iframe, 'iframes.html');
+    if (iframe) this.log(iframe, 'iframes.html');
     if (this.title) title = this.title;
     content = result.content;
     if (content) {

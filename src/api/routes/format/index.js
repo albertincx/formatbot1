@@ -74,6 +74,7 @@ const support = ({ message, reply }, botHelper) => {
   }
   botHelper.sendAdmin(`support ${system}`);
 };
+
 const startOrHelp = ({ message, reply }, botHelper) => {
   let system = JSON.stringify(message.from);
   try {
@@ -138,19 +139,9 @@ module.exports = (bot, botHelper) => {
     const { chat: { id: chatId }, caption } = msg;
     let { text } = msg;
     const isAdm = botHelper.isAdmin(chatId);
-
     let rpl = reply_to_message;
     if (msg.document || (rpl && rpl.document)) {
-      let doc = msg.document;
-      if (rpl) {
-        doc = rpl.document;
-      }
-      if (doc) {
-        const res = await reply('Waiting for instantView...'). catch (()=>{}) || {};
-        const message_id = res && res.message_id;
-        await rabbitmq.addToQueueFile({ message_id, chatId, doc });
-        return;
-      }
+      return;
     }
 
     if (caption) {
@@ -186,7 +177,8 @@ module.exports = (bot, botHelper) => {
           }
           return;
         }
-        const res = await reply('Waiting for instantView...').catch(()=>{}) || {};
+        const res = await reply('Waiting for instantView...').catch(() => {}) ||
+          {};
         const message_id = res && res.message_id;
         if (!message_id) throw new Error('blocked');
         const rabbitMes = { message_id, chatId, link };
@@ -297,10 +289,10 @@ module.exports = (bot, botHelper) => {
       let t = rabbitmq.time(q);
       const extra = { parse_mode: 'Markdown' };
       await bot.telegram.editMessageText(chatId, messageId,
-        null, `${TITLE}${RESULT}`, extra).catch(()=>{});
+        null, `${TITLE}${RESULT}`, extra).catch(() => {});
       if (!error) {
         botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
-          logGroup).catch(()=>{});
+          logGroup).catch(() => {});
       }
     } catch (e) {
       logger(e);
