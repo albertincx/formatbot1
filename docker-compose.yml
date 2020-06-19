@@ -1,0 +1,13 @@
+version: '2'
+services:
+  nodebot:
+    image: node:11
+    restart: always
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./:/app
+    ports:
+      - 47417:3000
+    command: tail -f /dev/null
