@@ -1,1 +1,1 @@
-npm i socks5-https-client nodemon --no-save
+npm i nodemon --no-save
