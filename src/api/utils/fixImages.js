@@ -1,5 +1,5 @@
 const sanitizeHtml = require('sanitize-html');
-const request = require('request');
+const checkImage = require('is-image-url');
 
 const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
@@ -16,26 +16,6 @@ function convert(str) {
   str = str.replace(/&#039;/g, '\'');
   return str;
 }
-
-const checkImage = (url) => {
-  return new Promise((resolve, reject) => {
-    if (process.env.CHECK_IMG_SKIP) {
-      resolve(true);
-      return;
-    }
-    const r = request({
-      url,
-      timeout: 5000,
-    });
-    r.on('response', response => {
-      const contentType = response.headers['content-type'];
-      if (contentType) resolve(contentType.match('image'));
-      else reject(null);
-      r.abort();
-    });
-    r.on('error', () => reject(null));
-  });
-};
 
 const getSrcSet = (arr) => {
   let order = [];
@@ -151,7 +131,7 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
   for (let img of imgs) {
     img = convert(img);
     if (replaceFrom === imgReplacer) {
-      img = findSrcSet(img);
+      // img = findSrcSet(img);
     }
     if (!img.match(/src=.(\/\/|https?)/)) {
       let sl = '';
@@ -171,10 +151,10 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
 };
 
 const replaceImages = (content, imgs) => replaceTags(content, imgs,
-    imgReplacer);
+  imgReplacer);
 
 const restoreImages = (content, imgs, parsedUrl) => restoreTags(content, imgs,
-    imgReplacer, parsedUrl);
+  imgReplacer, parsedUrl);
 
 const replaceServices = (content) => {
   const srvs = [/<a.+(imgur\.com).+\/a>/g];
@@ -212,4 +192,3 @@ module.exports.findImages = findImages;
 module.exports.findIframes = findIframes;
 
 module.exports.fixHtml = fixHtml;
-module.exports.checkImage = checkImage;
