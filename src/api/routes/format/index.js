@@ -12,7 +12,6 @@ const rabbitmq = require('../../../service/rabbitmq');
 
 const group = process.env.TGGROUP;
 const fileGroup = process.env.TGFILEGROUP;
-
 const FILESLAVE = process.env.FILESLAVE;
 let MAIN_CHAN = '';
 let fileSlave = null;
@@ -21,7 +20,7 @@ if (FILESLAVE) {
   MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
   fileSlave = require('./files');
 }
-
+let IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
 rabbitmq.createChannel();
 
 const getLinkFromEntity = (entities, txt) => {
@@ -270,7 +269,7 @@ module.exports = (bot, botHelper) => {
             await new Promise(resolve => setTimeout(() => resolve(), 100));
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise((resolve) => {
-              setTimeout(resolve, 60000, 'timedOut');
+              setTimeout(resolve, IVMAKINGTIMEOUT * 1000, 'timedOut');
             });
             await Promise.race([ivTimer, ivTask]).then((value) => {
               if (value === 'timedOut') {
