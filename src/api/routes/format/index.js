@@ -20,7 +20,7 @@ if (FILESLAVE) {
   MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
   fileSlave = require('./files');
 }
-const IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
+let IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
 rabbitmq.createChannel();
 
 const getLinkFromEntity = (entities, txt) => {
@@ -131,20 +131,13 @@ module.exports = (bot, botHelper) => {
     }
   });
 
-  const addToQueue = async ({ message: msg = {}, reply, update, ...props }) => {
+  const addToQueue = async ({ message: msg, reply }) => {
     if (FILESLAVE) {
       return;
     }
-    let isChanMesId = false;
-    //logger(update);
-    if (update.channel_post) logger(update.channel_post.chat);
     logger(msg);
     let { reply_to_message, entities, caption_entities } = msg;
     if (reply_to_message) return;
-    if (update.channel_post) {
-      msg = update.channel_post;
-      isChanMesId = msg.message_id;
-    }
     const { chat: { id: chatId }, caption } = msg;
     let { text } = msg;
     const isAdm = botHelper.isAdmin(chatId);
@@ -188,12 +181,9 @@ module.exports = (bot, botHelper) => {
         }
         const res = await reply('Waiting for instantView...').catch(() => {}) ||
           {};
-        let message_id = res && res.message_id;
-        if (isChanMesId) {
-          // message_id = isChanMesId
-        }
+        const message_id = res && res.message_id;
         if (!message_id) throw new Error('blocked');
-        const rabbitMes = { message_id, chatId, link, isChanMesId };
+        const rabbitMes = { message_id, chatId, link };
         if (force) {
           rabbitMes.force = force;
         }
@@ -213,7 +203,7 @@ module.exports = (bot, botHelper) => {
     });
   }
   const jobMessage = async (task) => {
-    const { chatId, message_id: messageId, q, force, document, isChanMesId } = task;
+    const { chatId, message_id: messageId, q, force, document } = task;
     let { link } = task;
     let error = '';
     let isBroken = false;
