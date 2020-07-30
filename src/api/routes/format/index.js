@@ -20,7 +20,7 @@ if (FILESLAVE) {
   MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
   fileSlave = require('./files');
 }
-let IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
+const IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
 rabbitmq.createChannel();
 
 const getLinkFromEntity = (entities, txt) => {
