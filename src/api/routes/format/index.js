@@ -21,7 +21,7 @@ if (FILESLAVE) {
   MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
   fileSlave = require('./files');
 }
-
+const IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
 rabbitmq.createChannel();
 
 const getLinkFromEntity = (entities, txt) => {
@@ -268,7 +268,7 @@ module.exports = (bot, botHelper) => {
             //linkData = await ivMaker.makeIvLink(link, params);
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise((resolve) => {
-              setTimeout(resolve, 60000, 'timedOut');
+              setTimeout(resolve, IVMAKINGTIMEOUT * 1000, 'timedOut');
             });
             await Promise.race([ivTimer, ivTask]).then((value) => {
               if (value === 'timedOut') {
