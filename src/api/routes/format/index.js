@@ -265,7 +265,19 @@ module.exports = (bot, botHelper) => {
             params.db = botHelper.db !== false;
             logger(params);
             await new Promise(resolve => setTimeout(() => resolve(), 100));
-            linkData = await ivMaker.makeIvLink(link, params);
+            //linkData = await ivMaker.makeIvLink(link, params);
+            const ivTask = ivMaker.makeIvLink(link, params);
+            const ivTimer = new Promise((resolve) => {
+              setTimeout(resolve, 60000, 'timedOut');
+            });
+            await Promise.race([ivTimer, ivTask]).then((value) => {
+              if (value === 'timedOut') {
+                botHelper.sendAdmin(`timedOut ${link}`,
+                  process.env.TGGROUPBUGS);
+              } else {
+                linkData = value;
+              }
+            });
           }
         }
         if (isFile) {
