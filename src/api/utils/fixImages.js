@@ -1,16 +1,12 @@
 const sanitizeHtml = require('sanitize-html');
 const isImageUrl = require('is-image-url');
-
 const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
+
 const setRegex = /srcset="[^data]/;
 const setRegexS = /srcset="/;
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
-<<<<<<< HEAD
-=======
-
->>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
 function checkImage(url) {
   return Promise.resolve(isImageUrl(url));
 }

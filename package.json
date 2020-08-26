@@ -28,11 +28,7 @@
   ],
   "dependencies": {
     "@postlight/mercury-parser": "^2.2.0",
-<<<<<<< HEAD
     "amqplib": "^0.6.0",
-=======
-    "amqplib": "^0.5.5",
->>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
     "atob": "^2.1.2",
     "co": "^4.6.0",
     "cron": "^1.8.2",
@@ -49,12 +45,8 @@
     "showdown": "^1.9.1",
     "statuses": "^1.5.0",
     "telegraf": "^3.37.0",
-<<<<<<< HEAD
     "wget-improved": "^3.2.0",
     "jsdom": "^16.3.0"
-=======
-    "wget-improved": "^3.2.0"
->>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
   },
   "devDependencies": {
     "ava": "^3.5.2",
