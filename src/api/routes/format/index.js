@@ -314,7 +314,7 @@ module.exports = (bot, botHelper) => {
       await bot.telegram.editMessageText(chatId, messageId,
         null, `${TITLE}${RESULT}`, extra).catch(() => {});
       if (!error) {
-        botHelper.sendAdminMark(`${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
+        botHelper.sendAdminMark(`${isChanMesId ? 'c ':''}${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
           logGroup).catch(() => {});
       }
     } catch (e) {
