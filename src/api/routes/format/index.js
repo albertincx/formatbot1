@@ -131,13 +131,20 @@ module.exports = (bot, botHelper) => {
     }
   });
 
-  const addToQueue = async ({ message: msg, reply }) => {
+  const addToQueue = async ({ message: msg = {}, reply, update, ...props }) => {
     if (FILESLAVE) {
       return;
     }
+    let isChanMesId = false;
+    //logger(update);
+    if (update.channel_post) logger(update.channel_post.chat);
     logger(msg);
     let { reply_to_message, entities, caption_entities } = msg;
     if (reply_to_message) return;
+    if (update.channel_post) {
+      msg = update.channel_post;
+      isChanMesId = msg.message_id;
+    }
     const { chat: { id: chatId }, caption } = msg;
     let { text } = msg;
     const isAdm = botHelper.isAdmin(chatId);
@@ -181,9 +188,12 @@ module.exports = (bot, botHelper) => {
         }
         const res = await reply('Waiting for instantView...').catch(() => {}) ||
           {};
-        const message_id = res && res.message_id;
+        let message_id = res && res.message_id;
+        if (isChanMesId) {
+          // message_id = isChanMesId
+        }
         if (!message_id) throw new Error('blocked');
-        const rabbitMes = { message_id, chatId, link };
+        const rabbitMes = { message_id, chatId, link, isChanMesId };
         if (force) {
           rabbitMes.force = force;
         }
@@ -203,7 +213,7 @@ module.exports = (bot, botHelper) => {
     });
   }
   const jobMessage = async (task) => {
-    const { chatId, message_id: messageId, q, force, document } = task;
+    const { chatId, message_id: messageId, q, force, document, isChanMesId } = task;
     let { link } = task;
     let error = '';
     let isBroken = false;
