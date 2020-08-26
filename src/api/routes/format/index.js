@@ -12,7 +12,10 @@ const rabbitmq = require('../../../service/rabbitmq');
 
 const group = process.env.TGGROUP;
 const fileGroup = process.env.TGFILEGROUP;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
 const FILESLAVE = process.env.FILESLAVE;
 let MAIN_CHAN = '';
 let fileSlave = null;
@@ -78,7 +81,12 @@ const support = ({ message, reply }, botHelper) => {
 const startOrHelp = ({ message, reply }, botHelper) => {
   let system = JSON.stringify(message.from);
   try {
+<<<<<<< HEAD
     reply(messages.start(), keyboards.start()).catch(e => botHelper.sendError(e));
+=======
+    reply(messages.start(), keyboards.start()).catch(
+      e => botHelper.sendError(e));
+>>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -90,15 +98,28 @@ const broadcast = ({ message: msg, reply }, botHelper) => {
   if (isAdm) {
     return db.processBroadcast(text, reply, botHelper);
   }
+<<<<<<< HEAD
 }
 module.exports = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.command(['/createBroadcast','/startBroadcast'], ctx => broadcast(ctx, botHelper));
+=======
+};
+module.exports = (bot, botHelper) => {
+  bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
+  bot.command(['/createBroadcast', '/startBroadcast'],
+    ctx => broadcast(ctx, botHelper));
+>>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
   bot.hears('⌨️ Hide keyboard', ({ reply }) => {
+<<<<<<< HEAD
     reply('Type /help to show.', keyboards.hide()).catch(e => botHelper.sendError(e));
+=======
+    reply('Type /help to show.', keyboards.hide()).catch(
+      e => botHelper.sendError(e));
+>>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
   });
 
   bot.action(/.*/, async (ctx) => {
@@ -265,7 +286,10 @@ module.exports = (bot, botHelper) => {
             params.db = botHelper.db !== false;
             logger(params);
             await new Promise(resolve => setTimeout(() => resolve(), 100));
+<<<<<<< HEAD
             //linkData = await ivMaker.makeIvLink(link, params);
+=======
+>>>>>>> 337b63ffc17b9c405593c6a4247b7521a0a4b8dc
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise((resolve) => {
               setTimeout(resolve, IVMAKINGTIMEOUT * 1000, 'timedOut');
