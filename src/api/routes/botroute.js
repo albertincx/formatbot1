@@ -12,9 +12,13 @@ let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 
 module.exports = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
-  if (conn) conn.on('error', (err) => {
+  if (conn) {
+    conn.on('error', (err) => {
+      botHelper.disDb();
+    })
+  } else {
     botHelper.disDb();
-  });
+  };
   bot.command('config', ({ message }) => {
     if (botHelper.isAdmin(message.chat.id)) {
       botHelper.toggleConfig(message);
