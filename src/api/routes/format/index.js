@@ -137,11 +137,11 @@ module.exports = (bot, botHelper) => {
     }
     let isChanMesId = false;
     //logger(update);
-    if (update.channel_post) logger(update.channel_post.chat);
+    if (update && update.channel_post) logger(update.channel_post.chat);
     logger(msg);
     let { reply_to_message, entities, caption_entities } = msg;
     if (reply_to_message) return;
-    if (update.channel_post) {
+    if (update && update.channel_post) {
       msg = update.channel_post;
       isChanMesId = msg.message_id;
     }
