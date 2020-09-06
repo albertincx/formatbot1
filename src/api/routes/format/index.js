@@ -74,9 +74,8 @@ const support = ({ message, reply }, botHelper) => {
   botHelper.sendAdmin(`support ${system}`);
 };
 
-const startOrHelp = ({ message, reply,...mssg }, botHelper) => {
-  //console.log(message)
-  if(!message) return botHelper.sendAdmin(JSON.stringify(Object.keys(mssg)));
+const startOrHelp = ({ message, reply, update }, botHelper) => {
+  if(!message) return botHelper.sendAdmin(JSON.stringify(update));
   let system = JSON.stringify(message.from);
   try {
     reply(messages.start(), keyboards.start()).catch(
