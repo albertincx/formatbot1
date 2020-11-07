@@ -87,8 +87,12 @@ const isText = async (u, q) => {
     return { isText: true, url: u };
   }
   u = toUrl(u);
-  u = encodeURI(u);
-  const r = await fetch(u, { timeout: 5000 });
+  if(!u.match('%')) u = encodeURI(u);
+  const headersCheck = {
+    "Accept":"text/html",
+    "user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:21.0) Gecko/20100101 Firefox/21.0",
+  }
+  const r = await fetch(u, { timeout: 5000, headers: headersCheck });
   const { url, headers } = r;
   const contentType = headers.get('content-type') || '';
   logger(contentType);
