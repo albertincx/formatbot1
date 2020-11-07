@@ -2,6 +2,7 @@
 # Edit at your own risk.
 # <hostname>[:<port>]	<incl. subdomains>	<created>	<max-age>
 www.aljazeera.com	0	0	1577223693	15552000
+www.newsmax.com	0	0	1604760912	0
 www.marxists.org	0	1	1574540793	31536000
 askubuntu.com	0	0	1586893243	2592000
 timesofindia.indiatimes.com	0	0	1579637335	86400
