@@ -1,5 +1,5 @@
 const sanitizeHtml = require('sanitize-html');
-const isImageUrl = require('is-image-url');
+const isImageUrl = require('./is-image-url');
 const sanitizeHtmlForce = require('./sanitize');
 const logger = require('./logger');
 
@@ -93,10 +93,14 @@ const findImages = (content, parsedUrl, params) => {
         if (params.isCached) {
           tasks.push({ isValid: true, i });
         } else {
-          tasks.push(checkImage(s).then(isValid => ({
-            isValid,
-            i,
-          })).catch(() => ({ isValid: false, i })));
+          tasks.push(checkImage(s).then(isValid => {
+            return (
+              {
+                isValid,
+                i,
+              }
+            )
+          }).catch(() => ({ isValid: false, i })));
         }
       }
     }
