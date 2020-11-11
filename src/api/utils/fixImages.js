@@ -7,9 +7,11 @@ const setRegex = /srcset="[^data]/;
 const setRegexS = /srcset="/;
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
+
 function checkImage(url) {
   return Promise.resolve(isImageUrl(url));
 }
+
 function convert(str) {
   str = str.replace(/&amp;/g, '&');
   str = str.replace(/&gt;/g, '>');
@@ -70,6 +72,17 @@ const findIframes = (content) => {
   return content.match(iframes);
 };
 
+const replaceDir = (img, parsedUrl) => {
+  if (img.match(/src=['"]..\//)) {
+    let dir = parsedUrl.dir;
+    dir = dir.replace(/[^\/]+\/?$/, '');
+    if (dir.substr(-2, 2) !== '//') {
+      img = img.replace('../', dir);
+    }
+  }
+  return img;
+};
+
 const findImages = (content, parsedUrl, params) => {
   const urlRegex = /<img [^>]+\/?>/g;
   const imgs = content.match(urlRegex) || [];
@@ -78,6 +91,7 @@ const findImages = (content, parsedUrl, params) => {
     let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
     for (let i = 0; i < imgs.length; i += 1) {
       let img = imgs[i].replace(/\n/g, '').replace(/\s+/g, ' ');
+      img = replaceDir(img, parsedUrl);
       const src = img.match(/src="(.*?)"/);
       if (src && src[1]) {
         let s = src[1];
@@ -136,9 +150,7 @@ const restoreTags = (content, imgs, replaceFrom, parsedUrl) => {
   let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
   for (let img of imgs) {
     img = convert(img);
-    if (replaceFrom === imgReplacer) {
-      // img = findSrcSet(img);
-    }
+    img = replaceDir(img, parsedUrl);
     if (!img.match(/src=.(\/\/|https?)/)) {
       let sl = '';
       if (!img.match(/src="\//)) {
