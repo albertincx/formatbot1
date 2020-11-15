@@ -18,7 +18,7 @@ function lengthInUtf8Bytes(str) {
 const makeTelegraphLink = async (obj, content) => {
   logger(`access ${obj.access_token}`);
   const body = Object.assign(obj, {
-    author_name: 'From',
+    author_name: 'Source',
     return_content: false,
     content,
   });
