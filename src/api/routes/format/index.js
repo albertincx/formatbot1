@@ -13,6 +13,7 @@ const rabbitmq = require('../../../service/rabbitmq');
 const group = process.env.TGGROUP;
 const fileGroup = process.env.TGFILEGROUP;
 const FILESLAVE = process.env.FILESLAVE;
+const TG_UPDATES_CHANID = process.env.TG_UPDATES_CHANID;
 let MAIN_CHAN = '';
 let fileSlave = null;
 
@@ -74,7 +75,8 @@ const support = ({ message, reply }, botHelper) => {
   botHelper.sendAdmin(`support ${system}`);
 };
 
-const startOrHelp = ({ message, reply }, botHelper) => {
+const startOrHelp = ({ message, reply, update }, botHelper) => {
+  if (!message) return botHelper.sendAdmin(JSON.stringify(update));
   let system = JSON.stringify(message.from);
   try {
     reply(messages.start(), keyboards.start()).catch(
@@ -101,6 +103,38 @@ module.exports = (bot, botHelper) => {
   bot.hears('⌨️ Hide keyboard', ({ reply }) => {
     reply('Type /help to show.', keyboards.hide()).catch(
       e => botHelper.sendError(e));
+  });
+
+  bot.on('inline_query', async msg => {
+    let { id, query } = msg.update.inline_query;
+    query = query.trim();
+    let links = getAllLinks(query);
+    if (!botHelper.isAdmin(msg.from.id) || !links[0]) {
+      const rabbitMes = {
+        type: 'article',
+        id: id,
+        title: 'Links not found',
+        input_message_content: { message_text: 'Links not found' },
+      };
+      return msg.answerInlineQuery([rabbitMes]);
+    }
+
+    /*let result = await bot.telegram.getChatMember(TG_UPDATES_CHANID,
+      msg.from.id).catch(console.log);*/
+
+    const res = {
+      type: 'article',
+      id: id,
+      title: 'Waiting for InstantView...',
+      input_message_content: { message_text: links[0] },
+    };
+    await rabbitmq.addToQueue({
+      message_id: id,
+      chatId: msg.from.id,
+      link: links[0],
+      inline: true,
+    });
+    return msg.answerInlineQuery([res], { cache_time: 0, is_personal: true });
   });
 
   bot.action(/.*/, async (ctx) => {
@@ -213,12 +247,21 @@ module.exports = (bot, botHelper) => {
     });
   }
   const jobMessage = async (task) => {
-    const { chatId, message_id: messageId, q, force, document, isChanMesId } = task;
+    const {
+      chatId,
+      message_id: messageId,
+      q,
+      force,
+      document,
+      isChanMesId,
+      inline,
+    } = task;
     let { link } = task;
     let error = '';
     let isBroken = false;
     let resolveMsgId = false;
     let logGroup = group;
+    let ivLink = '';
     try {
       let RESULT = '';
       let TITLE = '';
@@ -298,6 +341,7 @@ module.exports = (bot, botHelper) => {
             RESULT = messages.brokenFile(linkData.error);
           } else {
             const { iv, isLong, pages = '', push = '', title = '' } = linkData;
+            ivLink = iv;
             const longStr = isLong ? `Long ${pages}/${push} ` : '';
             TITLE = `${title}\n`;
             RESULT = messages.showIvMessage(longStr, iv, source);
@@ -311,11 +355,30 @@ module.exports = (bot, botHelper) => {
       }
       let t = rabbitmq.time(q);
       const extra = { parse_mode: 'Markdown' };
-      await bot.telegram.editMessageText(chatId, messageId,
-        null, `${TITLE}${RESULT}`, extra).catch(() => {});
+      let messageText = `${TITLE}${RESULT}`;
+      if (inline) {
+        let title = 'InstantView created. Click me to send';
+        if (error) {
+          title = 'Sorry IV not found';
+          ivLink = error;
+        }
+        await botHelper.sendInline({
+          title: title,
+          messageId,
+          ivLink,
+        });
+      } else {
+        await bot.telegram.editMessageText(chatId, messageId,
+          null, messageText, extra).catch(() => {});
+      }
+
       if (!error) {
-        botHelper.sendAdminMark(`${isChanMesId ? 'c ':''}${RESULT}${q ? ` from ${q}` : ''}\n${t}`,
-          logGroup).catch(() => {});
+        let mark = inline ? 'inl' : '';
+        if (isChanMesId) mark += 'chan';
+        const text = `${mark ? `${mark} ` : ''}${RESULT}${q
+          ? ` from ${q}`
+          : ''}\n${t}`;
+        botHelper.sendAdminMark(text, logGroup).catch(() => {});
       }
     } catch (e) {
       logger(e);
