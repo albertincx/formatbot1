@@ -50,7 +50,7 @@ class BotHelper {
     if (chatId === TGADMIN) {
       text = `service: ${text}`;
     }
-    return this.bot.sendMessage(chatId, text, opts);
+    return this.bot.sendMessage(chatId, text, opts).catch(() => {});
   }
 
   sendAdminOpts(text, opts) {
