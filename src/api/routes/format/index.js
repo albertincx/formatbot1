@@ -125,7 +125,7 @@ module.exports = (bot, botHelper) => {
     const res = {
       type: 'article',
       id: id,
-      title: 'Waiting for InstantView...',
+      title: 'Waiting for InstantView... Type \'Space\' to check',
       input_message_content: { message_text: links[0] },
     };
     await rabbitmq.addToQueue({
