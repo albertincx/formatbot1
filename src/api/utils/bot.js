@@ -38,14 +38,14 @@ class BotHelper {
 
   sendAdmin(text, chatId = TGADMIN, mark = false) {
     let opts = {};
-    if (mark) {
+    if (mark === true) {
       opts = {
         parse_mode: 'Markdown',
         disable_web_page_preview: true,
       };
     }
     if (chatId === null) {
-      chatId = TGADMIN
+      chatId = TGADMIN;
     }
     if (chatId === TGADMIN) {
       text = `service: ${text}`;
@@ -56,6 +56,17 @@ class BotHelper {
   sendAdminOpts(text, opts) {
     const chatId = process.env.TGGROUPBUGS || TGADMIN;
     return this.bot.sendMessage(chatId, text, opts);
+  }
+
+  sendInline({ title, messageId, ivLink }) {
+    const queryResult = {
+      type: 'article',
+      id: messageId,
+      title: title,
+      input_message_content: { message_text: ivLink },
+    };
+
+    return this.bot.answerInlineQuery(messageId, [queryResult]);
   }
 
   sendAdminMark(text, chatId) {
@@ -158,14 +169,14 @@ class BotHelper {
   }
 
   sendError(e, text = '') {
-    if(typeof e ==='object'){
-      if(e.response&&typeof e.response ==='object'){
+    if (typeof e === 'object') {
+      if (e.response && typeof e.response === 'object') {
         e = e.response.description || 'unknown error';
       }
     } else {
-    e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;  
+      e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
     }
-    
+
     return this.sendAdmin(e);
   }
 
