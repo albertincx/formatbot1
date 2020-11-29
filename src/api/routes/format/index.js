@@ -110,13 +110,13 @@ module.exports = (bot, botHelper) => {
     query = query.trim();
     let links = getAllLinks(query);
     if (!botHelper.isAdmin(msg.from.id) || !links[0]) {
-      const rabbitMes = {
+      const res = {
         type: 'article',
         id: id,
         title: 'Links not found',
         input_message_content: { message_text: 'Links not found' },
       };
-      return msg.answerInlineQuery([rabbitMes]);
+      return msg.answerInlineQuery([res]).catch(() => {});
     }
 
     /*let result = await bot.telegram.getChatMember(TG_UPDATES_CHANID,
@@ -134,7 +134,8 @@ module.exports = (bot, botHelper) => {
       link: links[0],
       inline: true,
     });
-    return msg.answerInlineQuery([res], { cache_time: 0, is_personal: true });
+    return msg.answerInlineQuery([res],
+      { cache_time: 0, is_personal: true }).catch(() => {});
   });
 
   bot.action(/.*/, async (ctx) => {
@@ -367,7 +368,7 @@ module.exports = (bot, botHelper) => {
           title: title,
           messageId,
           ivLink,
-        });
+        }).catch(() => {});
       } else {
         await bot.telegram.editMessageText(chatId, messageId,
           null, messageText, extra).catch(() => {});
