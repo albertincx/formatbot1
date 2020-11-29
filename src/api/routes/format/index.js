@@ -133,7 +133,7 @@ module.exports = (bot, botHelper) => {
       chatId: msg.from.id,
       link: links[0],
       inline: true,
-    });
+    }).catch(() => {});
     return msg.answerInlineQuery([res],
       { cache_time: 0, is_personal: true }).catch(() => {});
   });
@@ -145,7 +145,7 @@ module.exports = (bot, botHelper) => {
       const { message } = ctx.update.callback_query;
       const { message_id, chat, entities } = message;
       const rabbitMes = { message_id, chatId: chat.id, link: entities[1].url };
-      await rabbitmq.addToQueue(rabbitMes, rabbitmq.chanPuppet());
+      await rabbitmq.addToQueue(rabbitMes, rabbitmq.chanPuppet()).catch(() => {});
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
@@ -154,7 +154,7 @@ module.exports = (bot, botHelper) => {
       const extra = { reply_to_message_id: msgId };
       let error = '';
       try {
-        await bot.telegram.sendMessage(userId, messages.resolved(), extra);
+        await bot.telegram.sendMessage(userId, messages.resolved(), extra).catch(() => {});
       } catch (e) {
         error = JSON.stringify(e);
       }
@@ -393,9 +393,9 @@ module.exports = (bot, botHelper) => {
       }
       if (isBroken && resolveMsgId) {
         botHelper.sendAdminOpts(error,
-          keyboards.resolvedBtn(resolveMsgId, chatId));
+          keyboards.resolvedBtn(resolveMsgId, chatId)).catch(() => {});
       } else {
-        botHelper.sendAdmin(error, process.env.TGGROUPBUGS);
+        botHelper.sendAdmin(error, process.env.TGGROUPBUGS).catch(() => {});
       }
     }
   };
