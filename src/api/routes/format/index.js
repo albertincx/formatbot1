@@ -22,6 +22,7 @@ if (FILESLAVE) {
   fileSlave = require('./files');
 }
 const IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
+const INLINE_TITLE = 'InstantView created. Click me to send';
 rabbitmq.createChannel();
 
 const getLinkFromEntity = (entities, txt) => {
@@ -118,6 +119,15 @@ module.exports = (bot, botHelper) => {
       };
       return msg.answerInlineQuery([res]).catch(() => {});
     }
+    let ivObj = await db.get(links[0]);
+    if (ivObj) {
+      return botHelper.sendInline({
+        title: INLINE_TITLE,
+        messageId: id,
+        ivLink: ivObj.url,
+      }).catch(() => {});;
+    }
+    const exist = await db.getInine(links[0]);
 
     /*let result = await bot.telegram.getChatMember(TG_UPDATES_CHANID,
       msg.from.id).catch(console.log);*/
@@ -128,12 +138,14 @@ module.exports = (bot, botHelper) => {
       title: 'Waiting for InstantView... Type \'Space\' to check',
       input_message_content: { message_text: links[0] },
     };
-    await rabbitmq.addToQueue({
-      message_id: id,
-      chatId: msg.from.id,
-      link: links[0],
-      inline: true,
-    }).catch(() => {});
+    if (!exist) {
+      await rabbitmq.addToQueue({
+        message_id: id,
+        chatId: msg.from.id,
+        link: links[0],
+        inline: true,
+      }).catch(() => {});
+    }
     return msg.answerInlineQuery([res],
       { cache_time: 0, is_personal: true }).catch(() => {});
   });
@@ -145,7 +157,8 @@ module.exports = (bot, botHelper) => {
       const { message } = ctx.update.callback_query;
       const { message_id, chat, entities } = message;
       const rabbitMes = { message_id, chatId: chat.id, link: entities[1].url };
-      await rabbitmq.addToQueue(rabbitMes, rabbitmq.chanPuppet()).catch(() => {});
+      await rabbitmq.addToQueue(rabbitMes, rabbitmq.chanPuppet()).catch(
+        () => {});
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
@@ -154,7 +167,8 @@ module.exports = (bot, botHelper) => {
       const extra = { reply_to_message_id: msgId };
       let error = '';
       try {
-        await bot.telegram.sendMessage(userId, messages.resolved(), extra).catch(() => {});
+        await bot.telegram.sendMessage(userId, messages.resolved(),
+          extra).catch(() => {});
       } catch (e) {
         error = JSON.stringify(e);
       }
@@ -358,7 +372,7 @@ module.exports = (bot, botHelper) => {
       const extra = { parse_mode: 'Markdown' };
       let messageText = `${TITLE}${RESULT}`;
       if (inline) {
-        let title = 'InstantView created. Click me to send';
+        let title = INLINE_TITLE;
         if (error) {
           title = 'Sorry IV not found';
           ivLink = error;
@@ -367,7 +381,7 @@ module.exports = (bot, botHelper) => {
           title: title,
           messageId,
           ivLink,
-        }).catch(() => {});
+        }).then(() => db.removeInline(link)).catch(() => {});
       } else {
         await bot.telegram.editMessageText(chatId, messageId,
           null, messageText, extra).catch(() => {});
