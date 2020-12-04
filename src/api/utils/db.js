@@ -10,8 +10,10 @@ const connectDb = () => {
     useUnifiedTopology: true,
   });
 };
-
 const links = Any.collection.conn.model(process.env.MONGO_COLL_LINKS || 'links',
+  Any.schema);
+const inlineLinks = Any.collection.conn.model(
+  process.env.MONGO_COLL_ILINKS || 'ilinks',
   Any.schema);
 const logs = Any.collection.conn.model(process.env.MONGO_COLL_LOGS || 'logs',
   Any.schema);
@@ -195,6 +197,16 @@ const clear = async (msg) => {
   return JSON.stringify(d);
 };
 
+const removeInline = (url) => {
+  return inlineLinks.deleteMany({ url });
+};
+
+const getInine = async (url) => {
+  const exists = await inlineLinks.findOne({ url });
+  await updateOne({ url }, inlineLinks);
+  return exists;
+};
+
 const get = async (url) => {
   const me = await links.findOne({ url });
   if (me) {
@@ -204,10 +216,10 @@ const get = async (url) => {
   return false;
 };
 
-const updateOne = async (item) => {
+const updateOne = async (item, collection = links) => {
   const { url } = item;
   item.$inc = { affects: 1 };
-  return links.updateOne({ url }, item, { upsert: true });
+  return collection.updateOne({ url }, item, { upsert: true });
 };
 const log = async (item) => {
   const { url } = item;
@@ -218,6 +230,8 @@ const log = async (item) => {
 module.exports.stat = stat;
 module.exports.clear = clear;
 module.exports.updateOne = updateOne;
+module.exports.removeInline = removeInline;
+module.exports.getInine = getInine;
 module.exports.get = get;
 module.exports.log = log;
 module.exports.createBroadcast = createBroadcast;
