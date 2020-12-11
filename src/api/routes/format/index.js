@@ -328,7 +328,9 @@ module.exports = (bot, botHelper) => {
             logger(hostname);
             logger(link);
             if (hostname.match('djvu')) throw 'err';
+            //console.log(link)
             //throw 'f';
+            //consol
             if (botHelper.isBlackListed(hostname)) throw 'BlackListed';
             const botParams = botHelper.getParams(hostname, chatId, force);
             params = { ...params, ...botParams };
