@@ -124,7 +124,7 @@ module.exports = (bot, botHelper) => {
       return botHelper.sendInline({
         title: INLINE_TITLE,
         messageId: id,
-        ivLink: ivObj.url,
+        ivLink: ivObj.iv,
       }).catch(() => {});;
     }
     const exist = await db.getInine(links[0]);
