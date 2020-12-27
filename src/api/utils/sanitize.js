@@ -1,3 +1,4 @@
+const atob = require('atob');
 const v1 = [
   'c2',
   'hv',
