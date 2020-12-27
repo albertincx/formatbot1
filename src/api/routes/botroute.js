@@ -35,19 +35,19 @@ module.exports = (bot, conn) => {
     if (botHelper.isAdmin(message.chat.id)) {
       let c = JSON.stringify(botHelper.config);
       c = `${c} db ${botHelper.db}`;
-      reply(c);
+      reply(c).catch(e => botHelper.sendError(e));
     }
   });
 
   bot.command('stat', ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
-      db.stat().then(r => reply(r));
+      db.stat().then(r => reply(r).catch(e => botHelper.sendError(e)));
     }
   });
 
   bot.command('cleardb', ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
-      return db.clear(message).then(r => reply(r));
+      return db.clear(message).then(r => reply(r).catch(e => botHelper.sendError(e)));
     }
   });
 

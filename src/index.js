@@ -1,4 +1,4 @@
-Promise = require('bluebird'); // eslint-disable-line no-global-assign
+
 const express = require('express');
 
 const { NOBOT, PORT, blacklistFile } = require('./config/vars');

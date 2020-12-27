@@ -124,7 +124,7 @@ module.exports = (bot, botHelper) => {
       return botHelper.sendInline({
         title: INLINE_TITLE,
         messageId: id,
-        ivLink: ivObj.url,
+        ivLink: ivObj.iv,
       }).catch(() => {});;
     }
     const exist = await db.getInine(links[0]);
@@ -328,6 +328,9 @@ module.exports = (bot, botHelper) => {
             logger(hostname);
             logger(link);
             if (hostname.match('djvu')) throw 'err';
+            //console.log(link)
+            //throw 'f';
+            //consol
             if (botHelper.isBlackListed(hostname)) throw 'BlackListed';
             const botParams = botHelper.getParams(hostname, chatId, force);
             params = { ...params, ...botParams };
