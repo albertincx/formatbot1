@@ -14,7 +14,9 @@ function cron(crontime, tasks, botHelper) {
     for (let i = 0; i < tasks.length; i += 1) {
       const taskName = tasks[i];
       try {
+        // eslint-disable-next-line global-require,import/no-dynamic-require
         const microtasks = require(`./service/commands/${taskName}`);
+        // eslint-disable-next-line no-await-in-loop
         await microtasks.run({ cronJob: crontime }, botHelper);
       } catch (e) {
         if (process.env.DEV) {
@@ -28,21 +30,20 @@ function cron(crontime, tasks, botHelper) {
 }
 
 function init(botHelper) {
-  const crontime = process.env.NODE_CRON || '';
+  const crontimes = process.env.NODE_CRON || '';
   const crontasks = process.env.CRON_TASKS || '';
 
-  const crons = crontime.split(CRON_SEP);
-  const tasks = crontasks.split(CRON_SEP);
+  const crons = crontimes.split(CRON_SEP);
+  const tasksMain = crontasks.split(CRON_SEP);
 
   try {
-    console.log(tasks);
     if (crons && crons.length) {
       for (let i = 0; i < crons.length; i += 1) {
-        let crontime = `${crons[i]}`.trim().
-          replace(/G/g, '*').
-          replace(/d/g, '/');
-        if (crontime && tasks[i]) {
-          const jobs = tasks[i].split(JOB_SEP);
+        const crontime = `${crons[i]}`.trim()
+          .replace(/G/g, '*')
+          .replace(/d/g, '/');
+        if (crontime && tasksMain[i]) {
+          const jobs = tasksMain[i].split(JOB_SEP);
           if (jobs && jobs.length) {
             const tasks = [];
             for (let t = 0; t < jobs.length; t += 1) {

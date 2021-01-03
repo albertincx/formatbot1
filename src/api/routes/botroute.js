@@ -13,12 +13,12 @@ let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
 module.exports = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {
-    conn.on('error', (err) => {
+    conn.on('error', () => {
       botHelper.disDb();
-    })
+    });
   } else {
     botHelper.disDb();
-  };
+  }
   bot.command('config', ({ message }) => {
     if (botHelper.isAdmin(message.chat.id)) {
       botHelper.toggleConfig(message);
@@ -35,19 +35,20 @@ module.exports = (bot, conn) => {
     if (botHelper.isAdmin(message.chat.id)) {
       let c = JSON.stringify(botHelper.config);
       c = `${c} db ${botHelper.db}`;
-      reply(c).catch(e => botHelper.sendError(e));
+      reply(c).catch((e) => botHelper.sendError(e));
     }
   });
 
   bot.command('stat', ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
-      db.stat().then(r => reply(r).catch(e => botHelper.sendError(e)));
+      db.stat().then((r) => reply(r).catch((e) => botHelper.sendError(e)));
     }
   });
 
-  bot.command('cleardb', ({ message, reply }) => {
+  bot.command('cleardb', async ({ message, reply }) => {
     if (botHelper.isAdmin(message.chat.id)) {
-      return db.clear(message).then(r => reply(r).catch(e => botHelper.sendError(e)));
+      const r = await db.clear(message);
+      reply(r).catch((e) => botHelper.sendError(e));
     }
   });
 

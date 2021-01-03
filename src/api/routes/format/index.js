@@ -6,6 +6,7 @@ const logger = require('../../utils/logger');
 const { log } = require('../../utils/db');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
+const {check} = require('../../utils');
 const { validRegex } = require('../../../config/config.json');
 
 const rabbitmq = require('../../../service/rabbitmq');
@@ -13,7 +14,7 @@ const rabbitmq = require('../../../service/rabbitmq');
 const group = process.env.TGGROUP;
 const fileGroup = process.env.TGFILEGROUP;
 const FILESLAVE = process.env.FILESLAVE;
-const TG_UPDATES_CHANID = process.env.TG_UPDATES_CHANID;
+// const TG_UPDATES_CHANID = process.env.TG_UPDATES_CHANID;
 let MAIN_CHAN = '';
 let fileSlave = null;
 
@@ -66,10 +67,10 @@ const support = ({ message, reply }, botHelper) => {
       process.env.SUP_LINK2,
       process.env.SUP_LINK3,
     ];
-    reply(messages.support(sup), {
-      ...keyboards.hide(),
-      disable_web_page_preview: true,
-    }).catch(e => botHelper.sendError(e));
+    const hide = Object.create(keyboards.hide());
+    reply(messages.support(sup),
+      { hide, disable_web_page_preview: true }).catch(
+      e => botHelper.sendError(e));
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -125,7 +126,7 @@ module.exports = (bot, botHelper) => {
         title: INLINE_TITLE,
         messageId: id,
         ivLink: ivObj.iv,
-      }).catch(() => {});;
+      }).catch((e) => logger(e));
     }
     const exist = await db.getInine(links[0]);
 
@@ -207,7 +208,7 @@ module.exports = (bot, botHelper) => {
       if (caption_entities) entities = caption_entities;
     }
     if (msg && text) {
-      const force = isAdm && botHelper.checkForce(text);
+      const force = isAdm && check(text);
       let links = getAllLinks(text);
       try {
         let link = links[0];

@@ -1,7 +1,7 @@
 const amqp = require('amqplib');
 const logger = require('../api/utils/logger');
 
-const FILESLAVE = process.env.FILESLAVE;
+const { FILESLAVE } = process.env;
 const TASKS_CHANNEL = process.env.TASKS_DEV || 'tasks';
 
 const TASKS2_CHANNEL = process.env.TASKS2_DEV || 'tasks2';
@@ -58,9 +58,10 @@ const createChannel = async (queueName = TASKS_CHANNEL) => {
   return channel;
 };
 
-const run = async (job, queueName = TASKS_CHANNEL) => {
+const run = async (job, qName) => {
   try {
-    if (queueName === '') {
+    let queueName = qName;
+    if (!queueName) {
       queueName = TASKS_CHANNEL;
     }
     if (FILESLAVE && queueName !== FILES_CHANNEL) {
@@ -79,8 +80,8 @@ const run = async (job, queueName = TASKS_CHANNEL) => {
     logger(e);
   }
 };
-const runSecond = job => run(job, TASKS2_CHANNEL);
-const runPuppet = job => run(job, TASKS3_CHANNEL);
+const runSecond = (job) => run(job, TASKS2_CHANNEL);
+const runPuppet = (job) => run(job, TASKS3_CHANNEL);
 
 const keys = [
   process.env.TGPHTOKEN_0,
@@ -91,48 +92,49 @@ const keys = [
   process.env.TGPHTOKEN_5,
   process.env.TGPHTOKEN_6,
 ];
-function shuffle(array) {
-  var currentIndex = array.length, temporaryValue, randomIndex;
+function shuffle(arr) {
+  let currentIndex = arr.length; let temporaryValue; let
+    randomIndex;
 
   // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-
+  while (currentIndex !== 0) {
     // Pick a remaining element...
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex -= 1;
 
     // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
+    temporaryValue = arr[currentIndex];
+    // eslint-disable-next-line no-param-reassign
+    arr[currentIndex] = arr[randomIndex];
+    // eslint-disable-next-line no-param-reassign
+    arr[randomIndex] = temporaryValue;
   }
 
-  return array;
+  return arr;
 }
 function getKey() {
   const h = new Date().getHours();
-  const keys1 = shuffle(keys)
-  const k = keys1.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
-  //console.log(k)
-  return k;
+  const keys1 = shuffle(keys);
+  return keys1.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
 }
 
 const getParams = (queueName = TASKS_CHANNEL) => {
   const isPuppet = queueName === TASKS3_CHANNEL;
-  let access_token = getKey();
+  let accessToken = getKey();
   if (queueName === TASKS2_CHANNEL) {
-    access_token = process.env.TGPHTOKEN2;
+    accessToken = process.env.TGPHTOKEN2;
   }
   return {
     isPuppet,
-    access_token,
+    access_token: accessToken,
   };
 };
 
-const addToQueue = async (task, queueName = TASKS_CHANNEL) => {
+const addToQueue = async (task, qName = TASKS_CHANNEL) => {
   if (rchannel) {
+    let queueName = qName;
     const el = elapsedTime(queueName);
-    let elTime = elapsedSec(queueName);
+    const elTime = elapsedSec(queueName);
     logger(`availableOne ${availableOne}`);
     logger(`elTime ${elTime}`);
     if (queueName === TASKS_CHANNEL && !availableOne && elTime > 15) {
@@ -146,10 +148,8 @@ const addToQueue = async (task, queueName = TASKS_CHANNEL) => {
       });
   }
 };
-const addToQueueFile = async (task) => {
-  return addToQueue(task, FILES_CHANNEL);
-};
-const isMain = q => !q || q === TASKS_CHANNEL;
+const addToQueueFile = async (task) => addToQueue(task, FILES_CHANNEL);
+const isMain = (q) => !q || q === TASKS_CHANNEL;
 const chanSecond = () => TASKS2_CHANNEL;
 const chanPuppet = () => TASKS3_CHANNEL;
 

@@ -1,8 +1,8 @@
 const { chunk } = require('lodash');
 const fetch = require('isomorphic-fetch');
 
-const { toDom } = require('../utils/dom');
-const logger = require('../utils/logger');
+const { toDom } = require('./dom');
+const logger = require('./logger');
 
 const MAX_LENGHT_CONTENT = 65000;
 let pages = 0;
@@ -27,7 +27,7 @@ const makeTelegraphLink = async (obj, content) => {
     body: JSON.stringify(body),
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-  }).then(res => {
+  }).then((res) => {
     if (!res.ok) {
       const err = new Error(res.statusText || 'Error calling telegra.ph');
       err.statusCode = res.status;
@@ -53,7 +53,7 @@ const makeLink = (obj, dom, link, index) => {
     if (link) {
       logger(`push ${link}`);
       push += 1;
-      const nextBtn = `<p align="center"><br /><br /><a href="${link}">Read Next page</a></p>`;
+      const nextBtn = `<p><br /><br /><a href="${link}">Read Next page</a></p>`;
       dom.push(...toDom(nextBtn)[0].children);
     }
     content = JSON.stringify(dom);
@@ -67,11 +67,12 @@ const makeLink = (obj, dom, link, index) => {
 };
 
 function timeout(s) {
-  const tm = r => setTimeout(() => r(true), s * 1000);
-  return new Promise(r => tm(r));
+  const tm = (r) => setTimeout(() => r(true), s * 1000);
+  return new Promise((r) => tm(r));
 }
 
-const makeTelegaphMany = async (obj, dom, chunksLen) => {
+const makeTelegaphMany = async (obj, domObj, chunksLen) => {
+  let dom = domObj;
   if (dom.length === 1) {
     dom = dom[0].children;
   }
@@ -81,8 +82,10 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
   try {
     for (let i = parts.length - 1; i > 0; i -= 1) {
       const domed = parts[i];
+      // eslint-disable-next-line no-await-in-loop
       await timeout(3);
       pages += 1;
+      // eslint-disable-next-line no-await-in-loop
       const iVlink = await makeLink(obj, domed, link, i);
       if (iVlink) {
         link = iVlink;
@@ -99,7 +102,8 @@ const makeTelegaphMany = async (obj, dom, chunksLen) => {
   return link;
 };
 
-const makeTelegaph = async (obj, parsedHtml) => {
+const makeTelegaph = async (objParam, parsedHtml) => {
+  const obj = objParam;
   if (obj.title && obj.title.length > 256) {
     obj.title = obj.title.substring(0, 256);
   }
@@ -112,7 +116,7 @@ const makeTelegaph = async (obj, parsedHtml) => {
   let telegraphLink = '';
   let domEd = toDom(parsedHtml);
   if (!domEd) {
-    throw 'empty dom';
+    throw new Error('empty dom');
   }
   if (domEd.length === 1) {
     domEd = domEd[0].children;

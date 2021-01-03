@@ -1,5 +1,6 @@
 const fs = require('fs');
-const TGADMIN = parseInt(process.env.TGADMIN);
+
+const TGADMIN = parseInt(process.env.TGADMIN, 10);
 const _OFF = 'Off';
 const _ON = 'On';
 
@@ -10,21 +11,14 @@ class BotHelper {
     try {
       c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {
+      //
     }
     this.config = c;
+    this.tgAdmin = TGADMIN;
   }
 
   isAdmin(chatId) {
-    return chatId === TGADMIN;
-  }
-
-  checkForce(txt) {
-    const m = txt.match(
-      /(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
-    if (m && m[1]) {
-      return m[1];
-    }
-    return false;
+    return chatId === this.tgAdmin;
   }
 
   botMes(chatId, text, mark = true) {
@@ -32,11 +26,13 @@ class BotHelper {
     if (mark) {
       opts = { parse_mode: 'Markdown' };
     }
-    return this.bot.sendMessage(chatId, text, opts).
-      catch(e => this.sendError(e, `${chatId}${text}`));
+    return this.bot.sendMessage(chatId, text, opts)
+      .catch((e) => this.sendError(e, `${chatId}${text}`));
   }
 
-  sendAdmin(text, chatId = TGADMIN, mark = false) {
+  sendAdmin(textParam, chatIdParam = '', mark = false) {
+    let chatId = chatIdParam;
+    let text = textParam;
     let opts = {};
     if (mark === true) {
       opts = {
@@ -44,10 +40,10 @@ class BotHelper {
         disable_web_page_preview: true,
       };
     }
-    if (chatId === null) {
+    if (!chatId) {
       chatId = TGADMIN;
     }
-    if (chatId === TGADMIN) {
+    if (`${chatId}` === `${this.tgAdmin}`) {
       text = `service: ${text}`;
     }
     return this.bot.sendMessage(chatId, text, opts).catch(() => {});
@@ -62,7 +58,7 @@ class BotHelper {
     const queryResult = {
       type: 'article',
       id: messageId,
-      title: title,
+      title,
       input_message_content: { message_text: ivLink },
     };
 
@@ -74,9 +70,9 @@ class BotHelper {
   }
 
   getParams(hostname, chatId, force) {
-    let params = {};
-    const contentSelector = force === 'content' ||
-      this.getConf(`${hostname}_content`);
+    const params = {};
+    const contentSelector = force === 'content'
+      || this.getConf(`${hostname}_content`);
     if (contentSelector) {
       params.content = contentSelector;
     }
@@ -128,25 +124,26 @@ class BotHelper {
   }
 
   togglecConfig(msg) {
-    let params = msg.text.replace('/cconfig', '').trim();
+    const params = msg.text.replace('/cconfig', '').trim();
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
     }
-    let { param, content } = this.parseConfig(params);
-    let c = {};
+    const { param, content } = this.parseConfig(params);
+    const c = {};
     c[param] = content;
     fs.writeFileSync(`.conf/custom/${param}.json`, JSON.stringify(c));
+    return false;
   }
 
   parseConfig(params) {
-    let content = '';
-    let param = '';
-    let c = params.replace(' _content', '_content').split(/\s/);
+    let content;
+    let param;
+    const c = params.replace(' _content', '_content').split(/\s/);
     if (c.length === 2) {
-      param = c[0];
+      [param] = c;
       content = c[1].replace(/~/g, ' ');
     } else {
-      param = c[0];
+      [param] = c;
       if (this.config[param] === _ON) {
         content = _OFF;
       } else {
@@ -157,18 +154,19 @@ class BotHelper {
   }
 
   toggleConfig(msg) {
-    let params = msg.text.replace('/config', '').trim();
+    const params = msg.text.replace('/config', '').trim();
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
     }
 
-    let { param, content } = this.parseConfig(params);
+    const { param, content } = this.parseConfig(params);
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
     return this.botMes(TGADMIN, content, false);
   }
 
-  sendError(e, text = '') {
+  sendError(error, text = '') {
+    let e = error;
     if (typeof e === 'object') {
       if (e.response && typeof e.response === 'object') {
         e = e.response.description || 'unknown error';
