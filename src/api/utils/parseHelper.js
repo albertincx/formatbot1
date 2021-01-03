@@ -24,8 +24,8 @@ class ParseHelper {
     const matches = link.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
     this.domain = matches && matches[1];
     this.parsed = url.parse(link);
-    const { host, protocol } = this.parsed;
-    let { dir = '' } = path.parse(link);
+    const { host } = this.parsed;
+    const { dir = '' } = path.parse(link);
     if (dir.match(/:\/\/./)) {
       this.parsed.dir = dir;
     }
@@ -67,11 +67,7 @@ class ParseHelper {
       e.content = { selectors };
     }
 
-    return { ...e };
-  }
-
-  setIframes(i) {
-    this.iframe = i;
+    return { ...e};
   }
 
   checkCustom() {
@@ -107,17 +103,17 @@ class ParseHelper {
   }
 
   async fetchHtml() {
-    let content = '';
+    let content;
     this.log(`this.params.isPuppet ${this.params.isPuppet}`);
     if (this.params.isPuppet) {
       content = await puppet(this.link, this.params);
       this.log(content, 'puppet.html');
     } else {
-      content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
+      content = await fetch(this.link, { timeout: 5000 }).then((r) => r.text());
       this.log(content, 'fetchContent.html');
     }
     if (this.fb) {
-      let title = content.match(/<title.*>([^<]+\/?)/);
+      const title = content.match(/<title.*>([^<]+\/?)/);
       if (title && title[1]) {
         this.title = title[1].substring(0, 100);
       }
@@ -192,8 +188,8 @@ class ParseHelper {
     }
     let result = {};
     if (this.params.isCached) {
-      let cf = this.params.cachefile;
-      let cacheFile = cf || 'mercury.html';
+      const cf = this.params.cachefile;
+      const cacheFile = cf || 'mercury.html';
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
@@ -222,13 +218,12 @@ class ParseHelper {
     }
     title = title && title.trim();
     title = title || 'Untitled article';
-    const res = {
+
+    return {
       title,
       content,
       source,
     };
-
-    return res;
   }
 }
 

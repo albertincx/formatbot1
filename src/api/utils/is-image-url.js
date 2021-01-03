@@ -3,7 +3,8 @@ const urlParse = require('url').parse;
 const isImage = require('is-image');
 const isUrl = require('is-url');
 
-module.exports = (url, accurate, timeout = 5000) => {
+module.exports = (urlParam, accurate, timeout = 5000) => {
+  let url = urlParam;
   if (!url) return false;
   const http = url.lastIndexOf('http');
   if (http !== -1) url = url.substring(http);
@@ -20,8 +21,8 @@ module.exports = (url, accurate, timeout = 5000) => {
     if (!headers) return false;
     const contentType = headers['content-type'];
     if (!contentType) return false;
-    return contentType.search(/^image\//) !== -1 &&
-      contentType.search(/xml/) === -1;
+    return contentType.search(/^image\//) !== -1
+      && contentType.search(/xml/) === -1;
   } catch (e) {
     return false;
   }

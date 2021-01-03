@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const anySchema = new mongoose.Schema({}, {
   timestamps: true,
   strict: false,
@@ -11,17 +12,17 @@ anySchema.method({
 });
 
 const models = {
-  'test2': 'test2',
-  'objects': 'objects',
-  'persons': 'persons',
+  test2: 'test2',
+  objects: 'objects',
+  persons: 'persons',
 };
 
 anySchema.statics = {
   connect(modelName) {
     try {
-      let { conn } = this.collection;
-      let model = models[modelName];
-      const schema = this.schema;
+      const { conn } = this.collection;
+      const model = models[modelName];
+      const { schema } = this;
       if (model) {
         return conn.model(model, schema);
       }
@@ -30,7 +31,7 @@ anySchema.statics = {
     }
 
     return false;
-  }
+  },
 };
 
 module.exports = anySchema;
