@@ -1,4 +1,3 @@
-
 const express = require('express');
 
 const { NOBOT, PORT, blacklistFile } = require('./config/vars');
