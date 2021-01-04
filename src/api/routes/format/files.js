@@ -39,12 +39,19 @@ const putFile = async file => {
   const url = `https://api.telegram.org/bot${process.env.MAIN_TOKEN}/getFile?file_id=${fId}`;
   await downloadFile(fileJson, url);
   const data = fs.readFileSync(fileJson).toString();
-  let response = '';
+  let response = {};
   try {
     response = JSON.parse(data);
   } catch (e) {
     //
   }
+  if (!response.result) {
+    return {
+      content: '',
+      isHtml: false,
+    };
+  }
+
   const fileUrl = `https://api.telegram.org/file/bot${process.env.MAIN_TOKEN}/${response.result.file_path}`;
   await downloadFile(filepath, fileUrl);
   let content = fs.readFileSync(filepath).toString();

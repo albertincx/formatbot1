@@ -19,8 +19,9 @@ module.exports = (urlParam, accurate, timeout = 5000) => {
     if (!res) return false;
     const {headers} = res;
     if (!headers) return false;
-    const contentType = headers['content-type'];
+    let contentType = headers['content-type'];
     if (!contentType) return false;
+    contentType = `${contentType}`;
     return (
       contentType.search(/^image\//) !== -1 && contentType.search(/xml/) === -1
     );

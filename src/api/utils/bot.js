@@ -7,7 +7,7 @@ const ON = 'On';
 class BotHelper {
   constructor(bot) {
     this.bot = bot;
-    let c = {};
+    let c = {nopuppet: false};
     try {
       c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {

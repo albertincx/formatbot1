@@ -45,6 +45,7 @@ const resetTime = (q = TASKS_CHANNEL) => {
   logger(`reset ${startName}`);
   starts[startName] = process.hrtime();
 };
+
 const createChannel = async (queueName = TASKS_CHANNEL) => {
   let channel;
   try {
@@ -56,6 +57,16 @@ const createChannel = async (queueName = TASKS_CHANNEL) => {
   }
   rchannel = channel;
   return channel;
+};
+
+const startChannel = (queueName = TASKS_CHANNEL) => {
+  try {
+    createChannel(queueName).then(channel => {
+      rchannel = channel;
+    });
+  } catch (e) {
+    logger(e);
+  }
 };
 
 const run = async (job, qName) => {
@@ -94,6 +105,7 @@ const keys = [
   process.env.TGPHTOKEN_5,
   process.env.TGPHTOKEN_6,
 ];
+
 function shuffle(arr) {
   let currentIndex = arr.length;
   let temporaryValue;
@@ -115,6 +127,7 @@ function shuffle(arr) {
 
   return arr;
 }
+
 function getKey() {
   const h = new Date().getHours();
   const keys1 = shuffle(keys);
@@ -151,7 +164,6 @@ const addToQueue = async (task, qName = TASKS_CHANNEL) => {
   }
 };
 const addToQueueFile = async task => addToQueue(task, FILES_CHANNEL);
-const isMain = q => !q || q === TASKS_CHANNEL;
 const chanSecond = () => TASKS2_CHANNEL;
 const chanPuppet = () => TASKS3_CHANNEL;
 
@@ -165,14 +177,12 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
   }
   return t;
 };
-
 module.exports.createChannel = createChannel;
+module.exports.startChannel = startChannel;
 module.exports.addToQueue = addToQueue;
 module.exports.addToQueueFile = addToQueueFile;
 module.exports.runSecond = runSecond;
 module.exports.runPuppet = runPuppet;
-
-module.exports.isMain = isMain;
 module.exports.chanSecond = chanSecond;
 module.exports.chanPuppet = chanPuppet;
 module.exports.getParams = getParams;

@@ -48,7 +48,7 @@
     "showdown": "^1.9.1",
     "statuses": "^1.5.0",
     "sync-request": "^2.1.0",
-    "telegraf": "^3.37.0",
+    "telegraf": "^3.38.0",
     "wget-improved": "^3.2.0"
   },
   "devDependencies": {

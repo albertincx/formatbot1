@@ -23,6 +23,7 @@ function parseServices(link) {
   }
   return link;
 }
+
 class ParseHelper {
   constructor(linkParam, params = {}) {
     let link = parseServices(linkParam);
@@ -42,8 +43,6 @@ class ParseHelper {
     }
     this.link = link;
     this.host = host;
-    this.iframe = null;
-    this.imgs = [];
     this.fb = false;
     this.sites = {};
     this.title = '';
@@ -164,11 +163,19 @@ class ParseHelper {
 
   async parseContent(html) {
     if (!html) return '';
-    const result = await mercury('https://albertincx-formatbot1.glitch.me/', {
-      html: Buffer.from(html),
-    });
-    this.log(result.content, 'mercuryFileContent.html');
-    return result.content;
+    try {
+      const {content} = await mercury(
+        'https://albertincx-formatbot1.glitch.me/',
+        {
+          html: Buffer.from(html),
+        },
+      );
+      this.log(content, 'mercuryFileContent.html');
+      return content;
+    } catch (e) {
+      //
+    }
+    return '';
   }
 
   async parse() {
@@ -198,7 +205,10 @@ class ParseHelper {
       this.log(result.content, 'mercury.html');
     }
     let {content} = result;
-    const preContent = sanitizeHtml(content).trim();
+    let preContent = sanitizeHtml(content);
+    if (typeof preContent === 'string') {
+      preContent = preContent.trim();
+    }
     this.log(preContent, 'preContent.html');
     if (preContent.length === 0) {
       const html = await this.puppet(userUrl);

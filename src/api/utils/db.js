@@ -22,10 +22,7 @@ const logs = Any.collection.conn.model(
   process.env.MONGO_COLL_LOGS || 'logs',
   Any.schema,
 );
-const stat = async () => {
-  const cnt = await links.countDocuments();
-  return cnt;
-};
+const stat = () => links.countDocuments();
 
 const processRows = async (cc, limit = 25, timeout, cb) => {
   let items = [];
