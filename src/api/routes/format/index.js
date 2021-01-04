@@ -279,7 +279,7 @@ const format = (bot, botHelper) => {
         const res =
           (await reply('Waiting for instantView...').catch(() => {})) || {};
         const messageId = res && res.message_id;
-        checkData(messageId, 'blocked');
+        checkData(!messageId, 'blocked');
         const rabbitMes = {
           message_id: messageId,
           chatId,
