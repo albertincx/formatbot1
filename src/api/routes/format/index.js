@@ -26,6 +26,8 @@ const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 const INLINE_TITLE = 'InstantView created. Click me to send';
 rabbitmq.startChannel();
 
+let skipCount = 0;
+
 const getLinkFromEntity = (entities, txt) => {
   const links = [];
   for (let i = 0; i < entities.length; i += 1) {
@@ -103,11 +105,15 @@ const broadcast = ({message: msg, reply}, botHelper) => {
 
   return Promise.resolve();
 };
+
 const format = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.command(['/createBroadcast', '/startBroadcast'], ctx =>
     broadcast(ctx, botHelper),
   );
+  bot.command('/skipCount', () => {
+    skipCount = 10;
+  });
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
@@ -201,8 +207,7 @@ const format = (bot, botHelper) => {
       const {
         // eslint-disable-next-line camelcase
         message: {text, message_id},
-        from,
-        // eslint-disable-next-line camelcase
+        from, // eslint-disable-next-line camelcase
       } = callback_query;
       const RESULT = `${text}\nResolved! ${error}`;
       await bot.telegram
@@ -343,7 +348,11 @@ const format = (bot, botHelper) => {
               botHelper,
             );
             linkData = await ivMaker.makeIvLinkFromContent(
-              {content, isHtml, file_name: task.doc.file_name},
+              {
+                content,
+                isHtml,
+                file_name: task.doc.file_name,
+              },
               params,
             );
           } catch (e) {
@@ -376,7 +385,10 @@ const format = (bot, botHelper) => {
             logger(link);
             checkData(hostname.match('djvu'));
             // console.log(link)
-            // throw 'f';
+            if (skipCount) {
+              skipCount -= 1;
+              checkData(1, `skip links buffer ${skipCount}`);
+            }
             checkData(botHelper.isBlackListed(hostname), 'BlackListed');
             const botParams = botHelper.getParams(hostname, chatId, force);
             params = {...params, ...botParams};
