@@ -1,1 +1,1 @@
-npm i nodemon --no-save
+yarn add nodemon --no-save

@@ -1,9 +1,8 @@
-import {timeout} from './index';
-
 const {chunk} = require('lodash');
 const fetch = require('isomorphic-fetch');
 
 const {toDom} = require('./dom');
+const {timeout} = require('./index');
 const logger = require('./logger');
 
 const MAX_LENGHT_CONTENT = 65000;

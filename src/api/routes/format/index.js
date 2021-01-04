@@ -8,7 +8,7 @@ const logger = require('../../utils/logger');
 const {log} = require('../../utils/db');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
-const {check, timeout} = require('../../utils');
+const {check, timeout, checkData} = require('../../utils');
 const {validRegex} = require('../../../config/config.json');
 
 const rabbitmq = require('../../../service/rabbitmq');
@@ -22,9 +22,9 @@ let MAIN_CHAN = '';
 if (SLAVE_PROCESS) {
   MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
 }
-const IVMAKINGTIMEOUT = +(process.env.IVMAKINGTIMEOUT || 60);
+const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 const INLINE_TITLE = 'InstantView created. Click me to send';
-rabbitmq.createChannel();
+rabbitmq.startChannel();
 
 const getLinkFromEntity = (entities, txt) => {
   const links = [];
@@ -32,7 +32,7 @@ const getLinkFromEntity = (entities, txt) => {
     if (entities[i].url) {
       links.push(entities[i].url);
     } else if (entities[i].type === 'url') {
-      const checkFf = txt.substr(0, entities[i].length + 1).match(/\[(.*?)\]/);
+      const checkFf = txt.substr(0, entities[i].length + 1).match(/\[(.*?)]/);
       if (!checkFf) {
         links.push(txt.substr(entities[i].offset, entities[i].length));
       }
@@ -103,8 +103,7 @@ const broadcast = ({message: msg, reply}, botHelper) => {
 
   return Promise.resolve();
 };
-
-module.exports = (bot, botHelper) => {
+const format = (bot, botHelper) => {
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.command(['/createBroadcast', '/startBroadcast'], ctx =>
     broadcast(ctx, botHelper),
@@ -280,9 +279,7 @@ module.exports = (bot, botHelper) => {
         const res =
           (await reply('Waiting for instantView...').catch(() => {})) || {};
         const messageId = res && res.message_id;
-        if (!messageId) {
-          throw new Error('blocked');
-        }
+        checkData(messageId, 'blocked');
         const rabbitMes = {
           message_id: messageId,
           chatId,
@@ -374,20 +371,13 @@ module.exports = (bot, botHelper) => {
           if (!isText) {
             isFile = true;
           } else {
-            if (rabbitmq.isMain(q)) {
-              // await timeout(120);
-            }
             const {hostname} = url.parse(link);
             logger(hostname);
             logger(link);
-            if (hostname.match('djvu')) {
-              throw new Error('err');
-            }
+            checkData(hostname.match('djvu'));
             // console.log(link)
             // throw 'f';
-            if (botHelper.isBlackListed(hostname)) {
-              throw new Error('BlackListed');
-            }
+            checkData(botHelper.isBlackListed(hostname), 'BlackListed');
             const botParams = botHelper.getParams(hostname, chatId, force);
             params = {...params, ...botParams};
             params.browserWs = browserWs;
@@ -396,7 +386,7 @@ module.exports = (bot, botHelper) => {
             await timeout(0.1);
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise(resolve => {
-              setTimeout(resolve, IVMAKINGTIMEOUT * 1000, 'timedOut');
+              setTimeout(resolve, IV_MAKING_TIMEOUT * 1000, 'timedOut');
             });
             await Promise.race([ivTimer, ivTask]).then(value => {
               if (value === 'timedOut') {
@@ -489,3 +479,5 @@ module.exports = (bot, botHelper) => {
     botHelper.sendError(e);
   }
 };
+
+module.exports = format;

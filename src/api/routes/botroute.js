@@ -6,11 +6,10 @@ const db = require('../utils/db');
 
 const router = express.Router();
 const filepath = 'count.txt';
-if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, 0);
+if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, '0');
 
-let startCnt = parseInt(fs.readFileSync('count.txt'), 10);
-
-module.exports = (bot, conn) => {
+let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
+const botroute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {
     conn.on('error', () => {
@@ -70,3 +69,5 @@ module.exports = (bot, conn) => {
   fs.writeFileSync(filepath, startCnt);
   return {router, bot: botHelper};
 };
+
+module.exports = botroute;

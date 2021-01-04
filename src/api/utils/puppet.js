@@ -1,6 +1,5 @@
-import {timeout} from './index';
-
 const puppeteer = require('puppeteer');
+const {timeout} = require('./index');
 const logger = require('./logger');
 
 const getBrowser = async () => {
@@ -36,7 +35,7 @@ const puppet = async (url, params) => {
     logger(url);
     const browser = await puppeteer.connect({browserWSEndpoint: ws});
     const page = await browser.newPage();
-    const status = await page.goto(url);
+    const status = await page.goto(url, {});
     if (!status.ok) {
       logger('cannot open google.com');
     } else {
