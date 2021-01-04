@@ -1,14 +1,16 @@
 const fs = require('fs');
-const { CronJob } = require('cron');
+const {CronJob} = require('cron');
 
 const CRON_SEP = ':';
 const JOB_SEP = ',';
 
 function cron(crontime, tasks, botHelper) {
+  // eslint-disable-next-line no-console
   console.log(`init cron ${crontime} ${tasks}`);
   const job = new CronJob(`${crontime}`, async () => {
     if (process.env.DEV) {
       const d = new Date();
+      // eslint-disable-next-line no-console
       console.log(`created task ${crontime} `, d);
     }
     for (let i = 0; i < tasks.length; i += 1) {
@@ -17,10 +19,12 @@ function cron(crontime, tasks, botHelper) {
         // eslint-disable-next-line global-require,import/no-dynamic-require
         const microtasks = require(`./service/commands/${taskName}`);
         // eslint-disable-next-line no-await-in-loop
-        await microtasks.run({ cronJob: crontime }, botHelper);
+        await microtasks.run({cronJob: crontime}, botHelper);
       } catch (e) {
         if (process.env.DEV) {
+          // eslint-disable-next-line no-console
           console.log(`task error ${taskName}`);
+          // eslint-disable-next-line no-console
           console.log(e);
         }
       }
@@ -39,7 +43,8 @@ function init(botHelper) {
   try {
     if (crons && crons.length) {
       for (let i = 0; i < crons.length; i += 1) {
-        const crontime = `${crons[i]}`.trim()
+        const crontime = `${crons[i]}`
+          .trim()
           .replace(/G/g, '*')
           .replace(/d/g, '/');
         if (crontime && tasksMain[i]) {
@@ -54,20 +59,23 @@ function init(botHelper) {
               }
             }
             if (tasks.length) {
-              console.log(tasks, crontime);
               cron(crontime, tasks, botHelper);
             }
           } else {
+            // eslint-disable-next-line no-console
             console.log(`no jobs ${crontime}`);
           }
         } else {
+          // eslint-disable-next-line no-console
           console.log(`empty ${crontime}`);
         }
       }
     } else {
+      // eslint-disable-next-line no-console
       console.log('no crons');
     }
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log(e);
   }
 }

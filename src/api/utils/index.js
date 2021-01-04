@@ -1,6 +1,6 @@
 function check(txt) {
   const m = txt.match(
-    /(pcache|content|custom|puppet|wget|cached)_force(.*?)$/,
+    /(p_cache|content|custom|puppet|wget|cached)_force(.*?)$/,
   );
   if (m && m[1]) {
     return m[1];
@@ -8,4 +8,10 @@ function check(txt) {
   return false;
 }
 
+function timeout(s) {
+  const tm = r => setTimeout(() => r(true), s * 1000);
+  return new Promise(r => tm(r));
+}
+
 module.exports.check = check;
+module.exports.timeout = timeout;

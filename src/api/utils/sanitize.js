@@ -1,14 +1,6 @@
 const atob = require('atob');
 
-const v1 = [
-  'c2',
-  'hv',
-  'cn',
-  'R',
-  'wa',
-  'Xh',
-  'lb', 'C5', 'ha', 'Q', '=', '=',
-];
+const v1 = ['c2', 'hv', 'cn', 'R', 'wa', 'Xh', 'lb', 'C5', 'ha', 'Q', '=', '='];
 
 const san = (contentParam, params) => {
   const replace = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
