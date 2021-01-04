@@ -1,6 +1,7 @@
 const jsdom = require('jsdom');
 const logger = require('./logger');
-const { JSDOM } = jsdom;
+
+const {JSDOM} = jsdom;
 
 function domToNode(domNode) {
   if (domNode.nodeType === domNode.TEXT_NODE) {
@@ -30,9 +31,9 @@ function domToNode(domNode) {
   return nodeElement;
 }
 
-const toDom = (html) => {
+const toDom = html => {
   logger('todom');
-  let dom = new JSDOM(`<!DOCTYPE html>${html}`);
+  const dom = new JSDOM(`<!DOCTYPE html>${html}`);
   return domToNode(dom.window.document.body).children;
 };
-module.exports = { toDom };
+module.exports = {toDom};

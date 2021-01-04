@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
-const { mongo } = require('./vars');
+const {mongo} = require('./vars');
 
 exports.connect = () => {
-  if (!mongo.uri) return false;
+  if (!mongo.uri) {
+    return false;
+  }
   mongoose.connect(mongo.uri, {
     keepAlive: 1,
     connectTimeoutMS: 30000,

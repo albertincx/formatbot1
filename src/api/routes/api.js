@@ -1,10 +1,11 @@
 const fs = require('fs');
 const express = require('express');
 
-const get = async (req, res, next) => {
-  const { file } = req.query;
+// eslint-disable-next-line consistent-return
+const get = (req, res, next) => {
+  const {file} = req.query;
   if (!file) {
-    return res.json({ msg: 'no file' });
+    return res.json({msg: 'no file'});
   }
   try {
     const l = `.conf/${file}`;

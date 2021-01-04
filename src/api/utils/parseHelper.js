@@ -12,27 +12,37 @@ const puppet = require('./puppet');
 const ASYNC_FILE = 'asyncContent.html';
 const API = process.env.REST_API;
 
+function parseServices(link) {
+  if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+    const l = link.match(/url=(.*?)($|&)/);
+    if (l && l[1]) return l[1];
+  }
+  if (link.match(/\/turbo\?text=/)) {
+    const l = link.match(/text=(.*?)($|&)/);
+    if (l && l[1]) return l[1];
+  }
+  return link;
+}
+
 class ParseHelper {
-  constructor(link, params = {}) {
-    link = this.parseServices(link);
+  constructor(linkParam, params = {}) {
+    let link = parseServices(linkParam);
     if (!link.match(/^http/)) {
       link = `http://${link}`;
     }
     if (link.match(/%3A/)) {
       link = decodeURIComponent(link);
     }
-    const matches = link.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+    const matches = link.match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i);
     this.domain = matches && matches[1];
     this.parsed = url.parse(link);
-    const { host, protocol } = this.parsed;
-    let { dir = '' } = path.parse(link);
+    const {host} = this.parsed;
+    const {dir = ''} = path.parse(link);
     if (dir.match(/:\/\/./)) {
       this.parsed.dir = dir;
     }
     this.link = link;
     this.host = host;
-    this.iframe = null;
-    this.imgs = [];
     this.fb = false;
     this.sites = {};
     this.title = '';
@@ -64,14 +74,10 @@ class ParseHelper {
       selectors = [this.params.content];
     }
     if (selectors) {
-      e.content = { selectors };
+      e.content = {selectors};
     }
 
-    return { ...e };
-  }
-
-  setIframes(i) {
-    this.iframe = i;
+    return {...e};
   }
 
   checkCustom() {
@@ -107,51 +113,38 @@ class ParseHelper {
   }
 
   async fetchHtml() {
-    let content = '';
+    let content;
     this.log(`this.params.isPuppet ${this.params.isPuppet}`);
     if (this.params.isPuppet) {
       content = await puppet(this.link, this.params);
       this.log(content, 'puppet.html');
     } else {
-      content = await fetch(this.link, { timeout: 5000 }).then(r => r.text());
+      content = await fetch(this.link, {timeout: 5000}).then(r => r.text());
       this.log(content, 'fetchContent.html');
     }
     if (this.fb) {
-      let title = content.match(/<title.*>([^<]+\/?)/);
+      const title = content.match(/<title.*>([^<]+\/?)/);
       if (title && title[1]) {
         this.title = title[1].substring(0, 100);
       }
-      content = content.replace(/\<!-- \</g, '<');
-      content = content.replace(/\> --!\>/g, '>');
+      content = content.replace(/<!-- </g, '<');
+      content = content.replace(/> --!>/g, '>');
     }
     if (content) {
-      content = content.replace(/<br\s?\/>\n<br\s?\/>/gm,
-        '\n<p></p>');
+      content = content.replace(/<br\s?\/>\n<br\s?\/>/gm, '\n<p></p>');
     }
     return content;
   }
 
-  fixImages(c) {
+  fixImages(content) {
     if (this.sites.cnn) {
       const match = /cnn\/(.*?)\/http/g;
-      const replaces = c.match(match);
+      const replaces = content.match(match);
       if (replaces) {
-        c = c.replace(match, 'cnn/q_auto,w_727,c_fit/http');
+        return content.replace(match, 'cnn/q_auto,w_727,c_fit/http');
       }
     }
-    return c;
-  }
-
-  parseServices(link) {
-    if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-      const l = link.match(/url=(.*?)($|&)/);
-      if (l && l[1]) return l[1];
-    }
-    if (link.match(/\/turbo\?text=/)) {
-      const l = link.match(/text=(.*?)($|&)/);
-      if (l && l[1]) return l[1];
-    }
-    return link;
+    return content;
   }
 
   fixHtml(content, iframe) {
@@ -170,10 +163,19 @@ class ParseHelper {
 
   async parseContent(html) {
     if (!html) return '';
-    const result = await mercury('https://albertincx-formatbot1.glitch.me/',
-      { html: Buffer.from(html) });
-    this.log(result.content, 'mercuryFileContent.html');
-    return result.content;
+    try {
+      const {content} = await mercury(
+        'https://albertincx-formatbot1.glitch.me/',
+        {
+          html: Buffer.from(html),
+        },
+      );
+      this.log(content, 'mercuryFileContent.html');
+      return content;
+    } catch (e) {
+      //
+    }
+    return '';
   }
 
   async parse() {
@@ -181,7 +183,9 @@ class ParseHelper {
     const opts = {};
     if (this.custom && !this.params.isCached) {
       const html = await this.fetchHtml();
-      if (!html) throw 'empty content';
+      if (!html) {
+        throw new Error('empty content');
+      }
       this.log(html, 'fixedFetched.html');
       opts.html = Buffer.from(html);
     }
@@ -192,27 +196,35 @@ class ParseHelper {
     }
     let result = {};
     if (this.params.isCached) {
-      let cf = this.params.cachefile;
-      let cacheFile = cf || 'mercury.html';
+      const cf = this.params.cachefile;
+      const cacheFile = cf || 'mercury.html';
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
       result = await mercury(userUrl, opts);
       this.log(result.content, 'mercury.html');
     }
-    let { content } = result;
-    const preContent = sanitizeHtml(content).trim();
+    let {content} = result;
+    let preContent = sanitizeHtml(content);
+    if (typeof preContent === 'string') {
+      preContent = preContent.trim();
+    }
     this.log(preContent, 'preContent.html');
     if (preContent.length === 0) {
       const html = await this.puppet(userUrl);
       if (html) {
-        result = await mercury(userUrl, { html: Buffer.from(html) });
+        result = await mercury(userUrl, {html: Buffer.from(html)});
         this.log(result.content, 'mercuryAsyncContent.html');
       }
     }
-    let { title = '', url: source, iframe } = result;
-    if (iframe) this.log(iframe, 'iframes.html');
-    if (this.title) title = this.title;
+    const {url: source, iframe} = result;
+    let {title = ''} = result;
+    if (iframe) {
+      this.log(iframe, 'iframes.html');
+    }
+    if (this.title) {
+      title = this.title;
+    }
     content = result.content;
     if (content) {
       content = await this.fixHtml(content, iframe);
@@ -222,13 +234,12 @@ class ParseHelper {
     }
     title = title && title.trim();
     title = title || 'Untitled article';
-    const res = {
+
+    return {
       title,
       content,
       source,
     };
-
-    return res;
   }
 }
 
