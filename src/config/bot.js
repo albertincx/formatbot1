@@ -1,6 +1,6 @@
 const Telegraf = require('telegraf');
 
-const opts = { channelMode: true };
+const opts = {channelMode: true};
 
 let bot = false;
 const botToken = process.env.TBTKN;

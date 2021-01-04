@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 
-const anySchema = new mongoose.Schema({}, {
-  timestamps: true,
-  strict: false,
-});
+const anySchema = new mongoose.Schema(
+  {},
+  {
+    timestamps: true,
+    strict: false,
+  },
+);
 
 anySchema.method({
   transform() {
@@ -20,13 +23,14 @@ const models = {
 anySchema.statics = {
   connect(modelName) {
     try {
-      const { conn } = this.collection;
+      const {conn} = this.collection;
       const model = models[modelName];
-      const { schema } = this;
+      const {schema} = this;
       if (model) {
         return conn.model(model, schema);
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log(e);
     }
 

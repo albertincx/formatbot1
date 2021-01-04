@@ -11,4 +11,4 @@ async function run(params, botHelper) {
   }
 }
 
-module.exports = { run };
+module.exports = {run};

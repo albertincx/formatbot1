@@ -1,7 +1,9 @@
-const { chunk } = require('lodash');
+import {timeout} from './index';
+
+const {chunk} = require('lodash');
 const fetch = require('isomorphic-fetch');
 
-const { toDom } = require('./dom');
+const {toDom} = require('./dom');
 const logger = require('./logger');
 
 const MAX_LENGHT_CONTENT = 65000;
@@ -26,15 +28,15 @@ const makeTelegraphLink = async (obj, content) => {
   return fetch('https://api.telegra.ph/createPage', {
     body: JSON.stringify(body),
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
-  }).then((res) => {
+    headers: {'content-type': 'application/json'},
+  }).then(res => {
     if (!res.ok) {
       const err = new Error(res.statusText || 'Error calling telegra.ph');
       err.statusCode = res.status;
       throw err;
     }
-    return res.json().then((json) => {
-      if (('ok' in json && !json.ok)) {
+    return res.json().then(json => {
+      if ('ok' in json && !json.ok) {
         throw new Error(json.error || 'Error calling telegra.ph');
       }
       return json.result.url;
@@ -65,11 +67,6 @@ const makeLink = (obj, dom, link, index) => {
   }
   return '';
 };
-
-function timeout(s) {
-  const tm = (r) => setTimeout(() => r(true), s * 1000);
-  return new Promise((r) => tm(r));
-}
 
 const makeTelegaphMany = async (obj, domObj, chunksLen) => {
   let dom = domObj;

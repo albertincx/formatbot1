@@ -16,16 +16,16 @@ function convert(strParam) {
   str = str.replace(/&gt;/g, '>');
   str = str.replace(/&lt;/g, '<');
   str = str.replace(/&quot;/g, '"');
-  str = str.replace(/&#039;/g, '\'');
+  str = str.replace(/&#039;/g, "'");
   return str;
 }
 
-const findIframes = (content) => content.match(iframes);
+const findIframes = content => content.match(iframes);
 
 const replaceDir = (imgParam, parsedUrl) => {
   let img = imgParam;
   if (img.match(/src=['"]..\//)) {
-    let { dir } = parsedUrl;
+    let {dir} = parsedUrl;
     dir = dir.replace(/[^/]+\/?$/, '');
     if (dir.substr(-2, 2) !== '//') {
       img = img.replace('../', dir);
@@ -56,20 +56,22 @@ const findImages = (content, parsedUrl, params) => {
         }
         s = convert(s);
         if (params.isCached) {
-          tasks.push({ isValid: true, i });
+          tasks.push({isValid: true, i});
         } else {
-          tasks.push(checkImage(s).then((isValid) => (
-            {
-              isValid,
-              i,
-            }
-          )).catch(() => ({ isValid: false, i })));
+          tasks.push(
+            checkImage(s)
+              .then(isValid => ({
+                isValid,
+                i,
+              }))
+              .catch(() => ({isValid: false, i})),
+          );
         }
       }
     }
   }
 
-  return Promise.all(tasks).then((checked) => {
+  return Promise.all(tasks).then(checked => {
     for (let i = 0; i < checked.length; i += 1) {
       if (!checked[i].isValid) imgs[checked[i].i] = '';
     }
@@ -122,13 +124,13 @@ const restoreTags = (contentParam, images, replaceFrom, parsedUrl) => {
   return content;
 };
 
-const replaceImages = (content, imgs) => replaceTags(content, imgs,
-  imgReplacer);
+const replaceImages = (content, imgs) =>
+  replaceTags(content, imgs, imgReplacer);
 
-const restoreImages = (content, imgs, parsedUrl) => restoreTags(content, imgs,
-  imgReplacer, parsedUrl);
+const restoreImages = (content, imgs, parsedUrl) =>
+  restoreTags(content, imgs, imgReplacer, parsedUrl);
 
-const replaceServices = (contentParam) => {
+const replaceServices = contentParam => {
   let content = contentParam;
   const srvs = [/<a.+(imgur\.com).+\/a>/g];
   for (let i = 0; i < srvs.length; i += 1) {
@@ -137,7 +139,10 @@ const replaceServices = (contentParam) => {
       for (let fi = 0; fi < found.length; fi += 1) {
         const href = found[fi].match(/href="([^>]+)"/);
         if (href) {
-          content = content.replace(found[fi], `<img alt="" src="${href[1]}/zip" />`);
+          content = content.replace(
+            found[fi],
+            `<img alt="" src="${href[1]}/zip" />`,
+          );
         }
       }
     }

@@ -1,7 +1,7 @@
 const amqp = require('amqplib');
 const logger = require('../api/utils/logger');
 
-const { FILESLAVE } = process.env;
+const {FILESLAVE} = process.env;
 const TASKS_CHANNEL = process.env.TASKS_DEV || 'tasks';
 
 const TASKS2_CHANNEL = process.env.TASKS2_DEV || 'tasks2';
@@ -15,7 +15,7 @@ const starts = {
 };
 let availableOne = true;
 
-const getStartName = (q) => {
+const getStartName = q => {
   let startName = 'start';
   switch (q) {
     case TASKS2_CHANNEL:
@@ -29,7 +29,7 @@ const getStartName = (q) => {
   }
   return startName;
 };
-const elapsedSec = (q) => {
+const elapsedSec = q => {
   const startName = getStartName(q);
   logger(startName);
   return process.hrtime(starts[startName])[0];
@@ -50,7 +50,7 @@ const createChannel = async (queueName = TASKS_CHANNEL) => {
   try {
     const connection = await amqp.connect(process.env.MESSAGE_QUEUE);
     channel = await connection.createChannel();
-    await channel.assertQueue(queueName, { durable: true });
+    await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
     logger(e);
   }
@@ -65,23 +65,25 @@ const run = async (job, qName) => {
       queueName = TASKS_CHANNEL;
     }
     if (FILESLAVE && queueName !== FILES_CHANNEL) {
-      return;
+      //
+    } else {
+      const channel = await createChannel(queueName);
+      await channel.prefetch(1);
+      channel.consume(queueName, async message => {
+        const content = message.content.toString();
+        const task = JSON.parse(content);
+        if (queueName !== TASKS_CHANNEL) task.q = queueName;
+        await job(task);
+        channel.ack(message);
+      });
     }
-    const channel = await createChannel(queueName);
-    await channel.prefetch(1);
-    channel.consume(queueName, async (message) => {
-      const content = message.content.toString();
-      const task = JSON.parse(content);
-      if (queueName !== TASKS_CHANNEL) task.q = queueName;
-      await job(task);
-      channel.ack(message);
-    });
   } catch (e) {
     logger(e);
   }
 };
-const runSecond = (job) => run(job, TASKS2_CHANNEL);
-const runPuppet = (job) => run(job, TASKS3_CHANNEL);
+
+const runSecond = job => run(job, TASKS2_CHANNEL);
+const runPuppet = job => run(job, TASKS3_CHANNEL);
 
 const keys = [
   process.env.TGPHTOKEN_0,
@@ -93,8 +95,9 @@ const keys = [
   process.env.TGPHTOKEN_6,
 ];
 function shuffle(arr) {
-  let currentIndex = arr.length; let temporaryValue; let
-    randomIndex;
+  let currentIndex = arr.length;
+  let temporaryValue;
+  let randomIndex;
 
   // While there remain elements to shuffle...
   while (currentIndex !== 0) {
@@ -141,15 +144,14 @@ const addToQueue = async (task, qName = TASKS_CHANNEL) => {
       queueName = chanSecond();
     }
     logger(el);
-    await rchannel.sendToQueue(queueName,
-      Buffer.from(JSON.stringify(task)), {
-        contentType: 'application/json',
-        persistent: true,
-      });
+    await rchannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
+      contentType: 'application/json',
+      persistent: true,
+    });
   }
 };
-const addToQueueFile = async (task) => addToQueue(task, FILES_CHANNEL);
-const isMain = (q) => !q || q === TASKS_CHANNEL;
+const addToQueueFile = async task => addToQueue(task, FILES_CHANNEL);
+const isMain = q => !q || q === TASKS_CHANNEL;
 const chanSecond = () => TASKS2_CHANNEL;
 const chanPuppet = () => TASKS3_CHANNEL;
 

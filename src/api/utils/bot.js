@@ -1,8 +1,8 @@
 const fs = require('fs');
 
-const TGADMIN = parseInt(process.env.TGADMIN, 10);
-const _OFF = 'Off';
-const _ON = 'On';
+const TG_ADMIN = parseInt(process.env.TGADMIN, 10);
+const OFF = 'Off';
+const ON = 'On';
 
 class BotHelper {
   constructor(bot) {
@@ -14,7 +14,7 @@ class BotHelper {
       //
     }
     this.config = c;
-    this.tgAdmin = TGADMIN;
+    this.tgAdmin = TG_ADMIN;
   }
 
   isAdmin(chatId) {
@@ -24,10 +24,11 @@ class BotHelper {
   botMes(chatId, text, mark = true) {
     let opts = {};
     if (mark) {
-      opts = { parse_mode: 'Markdown' };
+      opts = {parse_mode: 'Markdown'};
     }
-    return this.bot.sendMessage(chatId, text, opts)
-      .catch((e) => this.sendError(e, `${chatId}${text}`));
+    return this.bot
+      .sendMessage(chatId, text, opts)
+      .catch(e => this.sendError(e, `${chatId}${text}`));
   }
 
   sendAdmin(textParam, chatIdParam = '', mark = false) {
@@ -41,7 +42,7 @@ class BotHelper {
       };
     }
     if (!chatId) {
-      chatId = TGADMIN;
+      chatId = TG_ADMIN;
     }
     if (`${chatId}` === `${this.tgAdmin}`) {
       text = `service: ${text}`;
@@ -50,16 +51,16 @@ class BotHelper {
   }
 
   sendAdminOpts(text, opts) {
-    const chatId = process.env.TGGROUPBUGS || TGADMIN;
+    const chatId = process.env.TGGROUPBUGS || TG_ADMIN;
     return this.bot.sendMessage(chatId, text, opts);
   }
 
-  sendInline({ title, messageId, ivLink }) {
+  sendInline({title, messageId, ivLink}) {
     const queryResult = {
       type: 'article',
       id: messageId,
       title,
-      input_message_content: { message_text: ivLink },
+      input_message_content: {message_text: ivLink},
     };
 
     return this.bot.answerInlineQuery(messageId, [queryResult]);
@@ -71,8 +72,8 @@ class BotHelper {
 
   getParams(hostname, chatId, force) {
     const params = {};
-    const contentSelector = force === 'content'
-      || this.getConf(`${hostname}_content`);
+    const contentSelector =
+      force === 'content' || this.getConf(`${hostname}_content`);
     if (contentSelector) {
       params.content = contentSelector;
     }
@@ -96,15 +97,16 @@ class BotHelper {
     if (scroll) {
       params.scroll = scroll;
     }
-    const noLinks = force === 'nolinks' || this.getConf(`${hostname}_nolinks`);
+    const noLinks =
+      force === 'no_links' || this.getConf(`${hostname}_no_links`);
     if (noLinks) {
       params.noLinks = true;
     }
-    const pcache = force === 'pcache';
+    const pcache = force === 'p_cache';
     if (pcache) {
       params.isCached = true;
       params.cachefile = 'puppet.html';
-      params.content = this.getConf('pcache_content');
+      params.content = this.getConf('p_cache_content');
     }
     if (this.isAdmin(chatId)) {
       if (this.getConf('test_puppet')) {
@@ -119,7 +121,7 @@ class BotHelper {
 
   getConf(param) {
     let c = this.config[param] || '';
-    if (c === _OFF) c = '';
+    if (c === OFF) c = '';
     return c;
   }
 
@@ -128,7 +130,7 @@ class BotHelper {
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
     }
-    const { param, content } = this.parseConfig(params);
+    const {param, content} = this.parseConfig(params);
     const c = {};
     c[param] = content;
     fs.writeFileSync(`.conf/custom/${param}.json`, JSON.stringify(c));
@@ -144,13 +146,13 @@ class BotHelper {
       content = c[1].replace(/~/g, ' ');
     } else {
       [param] = c;
-      if (this.config[param] === _ON) {
-        content = _OFF;
+      if (this.config[param] === ON) {
+        content = OFF;
       } else {
-        content = _ON;
+        content = ON;
       }
     }
-    return { param, content };
+    return {param, content};
   }
 
   toggleConfig(msg) {
@@ -159,10 +161,10 @@ class BotHelper {
       return Promise.resolve('no param or forbidden');
     }
 
-    const { param, content } = this.parseConfig(params);
+    const {param, content} = this.parseConfig(params);
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
-    return this.botMes(TGADMIN, content, false);
+    return this.botMes(TG_ADMIN, content, false);
   }
 
   sendError(error, text = '') {
