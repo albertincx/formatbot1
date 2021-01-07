@@ -103,8 +103,12 @@ const makeTelegaph = async (objParam, parsedHtml) => {
   if (obj.title && obj.title.length > 256) {
     obj.title = obj.title.substring(0, 256);
   }
-  if (obj.author_url && obj.author_url.length > 512) {
-    obj.title = obj.title.substring(0, 512);
+  if (obj.author_url) {
+    if (obj.author_url.length > 512) {
+      obj.title = obj.title.substring(0, 512);
+    }
+  } else {
+    obj.author_url = 'https://t.me/corsabot';
   }
   if (obj.author_name && obj.author_name.length > 128) {
     obj.title = obj.title.substring(0, 128);
