@@ -1,42 +1,39 @@
 const fs = require('fs');
-const TGADMIN = parseInt(process.env.TGADMIN);
-const _OFF = 'Off';
-const _ON = 'On';
+
+const TG_ADMIN = parseInt(process.env.TGADMIN, 10);
+const OFF = 'Off';
+const ON = 'On';
 
 class BotHelper {
   constructor(bot) {
     this.bot = bot;
-    let c = {};
+    let c = {nopuppet: false};
     try {
       c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {
+      //
     }
     this.config = c;
+    this.tgAdmin = TG_ADMIN;
   }
 
   isAdmin(chatId) {
-    return chatId === TGADMIN;
-  }
-
-  checkForce(txt) {
-    const m = txt.match(
-      /(pcache|content|custom|puppet|wget|cached)_force(.*?)$/);
-    if (m && m[1]) {
-      return m[1];
-    }
-    return false;
+    return chatId === this.tgAdmin;
   }
 
   botMes(chatId, text, mark = true) {
     let opts = {};
     if (mark) {
-      opts = { parse_mode: 'Markdown' };
+      opts = {parse_mode: 'Markdown'};
     }
-    return this.bot.sendMessage(chatId, text, opts).
-      catch(e => this.sendError(e, `${chatId}${text}`));
+    return this.bot
+      .sendMessage(chatId, text, opts)
+      .catch(e => this.sendError(e, `${chatId}${text}`));
   }
 
-  sendAdmin(text, chatId = TGADMIN, mark = false) {
+  sendAdmin(textParam, chatIdParam = '', mark = false) {
+    let chatId = chatIdParam;
+    let text = textParam;
     let opts = {};
     if (mark === true) {
       opts = {
@@ -44,26 +41,26 @@ class BotHelper {
         disable_web_page_preview: true,
       };
     }
-    if (chatId === null) {
-      chatId = TGADMIN;
+    if (!chatId) {
+      chatId = TG_ADMIN;
     }
-    if (chatId === TGADMIN) {
+    if (`${chatId}` === `${this.tgAdmin}`) {
       text = `service: ${text}`;
     }
     return this.bot.sendMessage(chatId, text, opts).catch(() => {});
   }
 
   sendAdminOpts(text, opts) {
-    const chatId = process.env.TGGROUPBUGS || TGADMIN;
+    const chatId = process.env.TGGROUPBUGS || TG_ADMIN;
     return this.bot.sendMessage(chatId, text, opts);
   }
 
-  sendInline({ title, messageId, ivLink }) {
+  sendInline({title, messageId, ivLink}) {
     const queryResult = {
       type: 'article',
       id: messageId,
-      title: title,
-      input_message_content: { message_text: ivLink },
+      title,
+      input_message_content: {message_text: ivLink},
     };
 
     return this.bot.answerInlineQuery(messageId, [queryResult]);
@@ -74,9 +71,9 @@ class BotHelper {
   }
 
   getParams(hostname, chatId, force) {
-    let params = {};
-    const contentSelector = force === 'content' ||
-      this.getConf(`${hostname}_content`);
+    const params = {};
+    const contentSelector =
+      force === 'content' || this.getConf(`${hostname}_content`);
     if (contentSelector) {
       params.content = contentSelector;
     }
@@ -100,15 +97,16 @@ class BotHelper {
     if (scroll) {
       params.scroll = scroll;
     }
-    const noLinks = force === 'nolinks' || this.getConf(`${hostname}_nolinks`);
+    const noLinks =
+      force === 'no_links' || this.getConf(`${hostname}_no_links`);
     if (noLinks) {
       params.noLinks = true;
     }
-    const pcache = force === 'pcache';
+    const pcache = force === 'p_cache';
     if (pcache) {
       params.isCached = true;
       params.cachefile = 'puppet.html';
-      params.content = this.getConf('pcache_content');
+      params.content = this.getConf('p_cache_content');
     }
     if (this.isAdmin(chatId)) {
       if (this.getConf('test_puppet')) {
@@ -123,52 +121,54 @@ class BotHelper {
 
   getConf(param) {
     let c = this.config[param] || '';
-    if (c === _OFF) c = '';
+    if (c === OFF) c = '';
     return c;
   }
 
   togglecConfig(msg) {
-    let params = msg.text.replace('/cconfig', '').trim();
+    const params = msg.text.replace('/cconfig', '').trim();
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
     }
-    let { param, content } = this.parseConfig(params);
-    let c = {};
+    const {param, content} = this.parseConfig(params);
+    const c = {};
     c[param] = content;
     fs.writeFileSync(`.conf/custom/${param}.json`, JSON.stringify(c));
+    return false;
   }
 
   parseConfig(params) {
-    let content = '';
-    let param = '';
-    let c = params.replace(' _content', '_content').split(/\s/);
+    let content;
+    let param;
+    const c = params.replace(' _content', '_content').split(/\s/);
     if (c.length === 2) {
-      param = c[0];
+      [param] = c;
       content = c[1].replace(/~/g, ' ');
     } else {
-      param = c[0];
-      if (this.config[param] === _ON) {
-        content = _OFF;
+      [param] = c;
+      if (this.config[param] === ON) {
+        content = OFF;
       } else {
-        content = _ON;
+        content = ON;
       }
     }
-    return { param, content };
+    return {param, content};
   }
 
   toggleConfig(msg) {
-    let params = msg.text.replace('/config', '').trim();
+    const params = msg.text.replace('/config', '').trim();
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
     }
 
-    let { param, content } = this.parseConfig(params);
+    const {param, content} = this.parseConfig(params);
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
-    return this.botMes(TGADMIN, content, false);
+    return this.botMes(TG_ADMIN, content, false);
   }
 
-  sendError(e, text = '') {
+  sendError(error, text = '') {
+    let e = error;
     if (typeof e === 'object') {
       if (e.response && typeof e.response === 'object') {
         e = e.response.description || 'unknown error';

@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 
 async function run(params, botHelper) {
   try {
-    let url = process.env.TEST_API;
+    const url = process.env.TEST_API;
     if (!url) return;
     await fetch(url);
     await botHelper.sendAdmin('cron test check url', process.env.TGGROUPLOGS);
@@ -11,4 +11,4 @@ async function run(params, botHelper) {
   }
 }
 
-module.exports = { run };
+module.exports = {run};
