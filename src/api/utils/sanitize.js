@@ -9,7 +9,7 @@ const san = (contentParam, params) => {
     content = content.replace(/<a href="(.*?)">(.*?)<\/a>/gi, '$1');
   }
   content = content.replace(/<a href="(.*?)"><\/a>/gi, '');
-  const r = `<a href="(.*?)">(.*?)[${atob(v1.join(''))}](.*?)<\\/a>`;
+  const r = `<a href="(.*?)">(.*?)(${atob(v1.join(''))})(.*?)<\\/a>`;
   content = content.replace(new RegExp(r, 'gi'), '');
 
   return content;
