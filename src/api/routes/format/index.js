@@ -9,6 +9,8 @@ const {log} = require('../../utils/db');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
 const {check, timeout, checkData} = require('../../utils');
+const {getAllLinks, getLinkFromEntity, getLink} = require('../../utils/links');
+
 const {validRegex} = require('../../../config/config.json');
 
 const rabbitmq = require('../../../service/rabbitmq');
@@ -23,40 +25,8 @@ if (SLAVE_PROCESS) {
   MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
 }
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
-const INLINE_TITLE = 'InstantView created. Click me to send';
 rabbitmq.startChannel();
-
-let skipCount = 0;
-
-const getLinkFromEntity = (entities, txt) => {
-  const links = [];
-  for (let i = 0; i < entities.length; i += 1) {
-    if (entities[i].url) {
-      links.push(entities[i].url);
-    } else if (entities[i].type === 'url') {
-      const checkFf = txt.substr(0, entities[i].length + 1).match(/\[(.*?)]/);
-      if (!checkFf) {
-        links.push(txt.substr(entities[i].offset, entities[i].length));
-      }
-    }
-  }
-  return links;
-};
-
-function getLink(links) {
-  let lnk = links[0];
-  for (let i = 1; i < links.length; i += 1) {
-    if (links[i].startsWith(lnk)) {
-      lnk = links[i];
-    }
-  }
-  return lnk;
-}
-
-function getAllLinks(text) {
-  const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
-  return text.match(urlRegex) || [];
-}
+global.lastIvTime = +new Date();
 
 const support = ({message, reply}, botHelper) => {
   let system = JSON.stringify(message.from);
@@ -111,9 +81,6 @@ const format = (bot, botHelper) => {
   bot.command(['/createBroadcast', '/startBroadcast'], ctx =>
     broadcast(ctx, botHelper),
   );
-  bot.command('/skipCount', () => {
-    skipCount = 10;
-  });
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
@@ -143,7 +110,6 @@ const format = (bot, botHelper) => {
     if (ivObj) {
       return botHelper
         .sendInline({
-          title: INLINE_TITLE,
           messageId: id,
           ivLink: ivObj.iv,
         })
@@ -294,6 +260,12 @@ const format = (bot, botHelper) => {
         if (force) {
           rabbitMes.force = force;
         }
+        let newIvTime = +new Date();
+        newIvTime = (newIvTime - global.lastIvTime) / 1000;
+        if (newIvTime > 3600) {
+          global.lastIvTime = +new Date();
+          botHelper.sendAdmin(`alert ${newIvTime} sec`);
+        }
         await rabbitmq.addToQueue(rabbitMes);
       } catch (e) {
         botHelper.sendError(e);
@@ -305,7 +277,7 @@ const format = (bot, botHelper) => {
   bot.on('message', ({update, reply}) => addToQueue({...update, reply}));
 
   let browserWs = null;
-  if (!botHelper.config.nopuppet && !process.env.NOPUPPET) {
+  if (!botHelper.config.no_puppet && !process.env.NOPUPPET) {
     puppet.getBrowser().then(ws => {
       browserWs = ws;
     });
@@ -326,11 +298,13 @@ const format = (bot, botHelper) => {
     const resolveMsgId = false;
     let logGroup = group;
     let ivLink = '';
+    let skipTimer = 0;
     try {
       let RESULT = '';
       let TITLE = '';
       let isFile = false;
       let linkData = '';
+      let timeOutLink = false;
       try {
         logger(`db is ${botHelper.db}`);
         logger(`queue job ${q}`);
@@ -384,10 +358,12 @@ const format = (bot, botHelper) => {
             logger(hostname);
             logger(link);
             checkData(hostname.match('djvu'));
+            clearInterval(skipTimer);
             // console.log(link)
-            if (skipCount) {
-              skipCount -= 1;
-              checkData(1, `skip links buffer ${skipCount}`);
+            if (global.skipCount) {
+              global.skipCount -= 1;
+              timeOutLink = true;
+              checkData(1, `skip links buffer ${global.skipCount}`);
             }
             checkData(botHelper.isBlackListed(hostname), 'BlackListed');
             const botParams = botHelper.getParams(hostname, chatId, force);
@@ -398,6 +374,12 @@ const format = (bot, botHelper) => {
             await timeout(0.1);
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise(resolve => {
+              skipTimer = setInterval(() => {
+                if (global.skipCount) {
+                  clearInterval(skipTimer);
+                  resolve('timedOut');
+                }
+              }, 1000);
               setTimeout(resolve, IV_MAKING_TIMEOUT * 1000, 'timedOut');
             });
             await Promise.race([ivTimer, ivTask]).then(value => {
@@ -406,14 +388,19 @@ const format = (bot, botHelper) => {
                   `timedOut ${link}`,
                   process.env.TGGROUPBUGS,
                 );
+                timeOutLink = true;
               } else {
                 linkData = value;
               }
             });
+            clearInterval(skipTimer);
           }
         }
         if (isFile) {
           RESULT = messages.isLooksLikeFile(link);
+        } else if (timeOutLink) {
+          TITLE = '';
+          RESULT = messages.timeOut();
         } else if (linkData.error) {
           RESULT = messages.brokenFile(linkData.error);
         } else {
@@ -425,15 +412,21 @@ const format = (bot, botHelper) => {
         }
       } catch (e) {
         logger(e);
+        clearInterval(skipTimer);
         isBroken = true;
-        RESULT = messages.broken(link);
+        if (timeOutLink) {
+          TITLE = '';
+          RESULT = messages.timeOut();
+        } else {
+          RESULT = messages.broken(link);
+        }
         error = `broken ${link} ${e}`;
       }
       const t = rabbitmq.time(q);
       const extra = {parse_mode: 'Markdown'};
       const messageText = `${TITLE}${RESULT}`;
       if (inline) {
-        let title = INLINE_TITLE;
+        let title = '';
         if (error) {
           title = 'Sorry IV not found';
           ivLink = error;
@@ -450,6 +443,7 @@ const format = (bot, botHelper) => {
         await bot.telegram
           .editMessageText(chatId, messageId, null, messageText, extra)
           .catch(() => {});
+        global.lastIvTime = +new Date();
       }
 
       if (!error) {
