@@ -385,7 +385,6 @@ const format = (bot, botHelper) => {
             logger(link);
             checkData(hostname.match('djvu'));
             // console.log(link)
-            //throw '3'
             if (skipCount) {
               skipCount -= 1;
               checkData(1, `skip links buffer ${skipCount}`);
