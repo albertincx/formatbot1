@@ -10,6 +10,8 @@ module.exports = {
   broken: link =>
     `Sorry, but your [link](${link}) is broken, restricted, or content is empty`,
   brokenFile: reason => `Sorry, but your file invalid, reason: ${reason}`,
+  timeOut: () =>
+    'Process has been reset/server is not responding, please try again later',
   isLooksLikeFile: link => `It looks like a file [link](${link})`,
   resolved: () => 'This error resolved, please check link again',
   support: links => {

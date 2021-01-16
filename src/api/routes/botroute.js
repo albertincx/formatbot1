@@ -4,12 +4,14 @@ const BotHelper = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
 
+global.skipCount = 0;
+
 const router = express.Router();
 const filepath = 'count.txt';
 if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, '0');
 
 let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
-const botroute = (bot, conn) => {
+const botRoute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {
     conn.on('error', () => {
@@ -57,6 +59,10 @@ const botroute = (bot, conn) => {
     }
   });
 
+  bot.command('/skipCount', () => {
+    global.skipCount = 5;
+  });
+
   format(bot, botHelper);
   bot.launch();
 
@@ -70,4 +76,4 @@ const botroute = (bot, conn) => {
   return {router, bot: botHelper};
 };
 
-module.exports = botroute;
+module.exports = botRoute;

@@ -3,11 +3,12 @@ const fs = require('fs');
 const TG_ADMIN = parseInt(process.env.TGADMIN, 10);
 const OFF = 'Off';
 const ON = 'On';
+const INLINE_TITLE = 'InstantView created. Click me to send';
 
 class BotHelper {
   constructor(bot) {
     this.bot = bot;
-    let c = {nopuppet: false};
+    let c = {no_puppet: false};
     try {
       c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {
@@ -56,10 +57,14 @@ class BotHelper {
   }
 
   sendInline({title, messageId, ivLink}) {
+    let inlineTitle = title;
+    if (!title) {
+      inlineTitle = INLINE_TITLE;
+    }
     const queryResult = {
       type: 'article',
       id: messageId,
-      title,
+      title: inlineTitle,
       input_message_content: {message_text: ivLink},
     };
 
