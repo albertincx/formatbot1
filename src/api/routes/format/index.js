@@ -372,6 +372,7 @@ const format = (bot, botHelper) => {
             params.db = botHelper.db !== false;
             logger(params);
             await timeout(0.1);
+            //throw 't'
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise(resolve => {
               skipTimer = setInterval(() => {
