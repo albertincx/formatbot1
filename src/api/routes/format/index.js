@@ -360,6 +360,7 @@ const format = (bot, botHelper) => {
             checkData(hostname.match('djvu'));
             clearInterval(skipTimer);
             // console.log(link)
+            //throw 1
             if (global.skipCount) {
               global.skipCount -= 1;
               timeOutLink = true;
