@@ -377,14 +377,17 @@ const format = (bot, botHelper) => {
             const ivTask = ivMaker.makeIvLink(link, params);
             const ivTimer = new Promise(resolve => {
               skipTimer = setInterval(() => {
+                console.log(IV_MAKING_TIMEOUT * 1000)
                 if (global.skipCount) {
                   clearInterval(skipTimer);
                   resolve('timedOut');
                 }
               }, 1000);
+              console.log(IV_MAKING_TIMEOUT * 1000)
               setTimeout(resolve, IV_MAKING_TIMEOUT * 1000, 'timedOut');
             });
             await Promise.race([ivTimer, ivTask]).then(value => {
+              console.log(value)
               if (value === 'timedOut') {
                 botHelper.sendAdmin(
                   `timedOut ${link}`,
