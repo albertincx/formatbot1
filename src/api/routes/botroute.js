@@ -59,8 +59,13 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('/skipCount', () => {
-    global.skipCount = 5;
+  bot.command('/skipCount', ({message}) => {
+    if (botHelper.isAdmin(message.from.id)) {
+      if (!global.skipCount) {
+        global.skipCount = 5;
+      }
+      botHelper.sendAdmin(`skipCount is ${global.skipCount}`);
+    }
   });
 
   format(bot, botHelper);
