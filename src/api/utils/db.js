@@ -93,21 +93,21 @@ const createBroadcast = async (reply, txt) => {
   if (process.env.DEV) {
     filter.username = {$in: ['safiullin']};
   }
-  await model.updateMany(
-    {cId: 10, error: /:429/},
-    {$unset: {sent: '', error: ''}},
-  );
+  // await model.updateMany(
+  //   {cId: 10, error: /:429/},
+  //   {$unset: {sent: '', error: ''}},
+  // );
   /* await model.updateMany({ cId: 10, code: 403 },
     { $unset: { sent: '', error: '', code:'' } }); */
   const cursor = messages.find(filter).cursor();
   await processRows(cursor, 500, 10, items => {
     const updates = [];
     // eslint-disable-next-line no-unused-vars
-    items.forEach(({_id, ...it}) => {
+    items.forEach(({_id, id}) => {
       updates.push({
         updateOne: {
-          filter: {id: it.id, cId, sent: {$exists: false}},
-          update: {...it, cId},
+          filter: {id, cId, sent: {$exists: false}},
+          update: {id, cId},
           upsert: true,
         },
       });
@@ -119,12 +119,10 @@ const createBroadcast = async (reply, txt) => {
 };
 
 const startBroadcast = async (reply, txtParam, bot) => {
-  let txt = txtParam;
-  const [cId, Mid, FromId] = getCids(txt);
+  const [cId, Mid, FromId] = getCids(txtParam);
   if (!cId) {
     return reply('broad completed no id');
   }
-  txt = txt.replace(/\sr_c_id_(.*?)\s/, '');
   const result = {err: 0, success: 0};
   let model;
   let connSecond;
@@ -155,7 +153,8 @@ const startBroadcast = async (reply, txtParam, bot) => {
         if (Mid) {
           runCmd = () => bot[sendCmd](Mid, FromId, id);
         } else {
-          runCmd = () => bot[sendCmd](txt, id);
+          runCmd = () =>
+            bot[sendCmd](txtParam.replace(/(\s|_)?r_c_id_(.*?)\s/, ''), id);
         }
         try {
           // eslint-disable-next-line no-await-in-loop
