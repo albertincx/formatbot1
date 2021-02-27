@@ -27,21 +27,21 @@ if (SLAVE_PROCESS) {
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 rabbitmq.startChannel();
 global.lastIvTime = +new Date();
+const supportLinks = [process.env.SUP_LINK];
+for (let i = 1; i < 10; i += 1) {
+  if (process.env[`SUP_LINK${i}`]) {
+    supportLinks.push(process.env[`SUP_LINK${i}`]);
+  }
+}
 
 const support = ({message, reply}, botHelper) => {
   let system = JSON.stringify(message.from);
   try {
-    const sup = [
-      process.env.SUP_LINK,
-      process.env.SUP_LINK1,
-      process.env.SUP_LINK2,
-      process.env.SUP_LINK3,
-    ];
     const hide = Object.create(keyboards.hide());
-    reply(messages.support(sup), {
+    reply(messages.support(supportLinks), {
       hide,
       disable_web_page_preview: true,
-    }).catch(e => botHelper.sendError(e));
+    });
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -57,7 +57,6 @@ const startOrHelp = ({message, reply, update}, botHelper) => {
     reply(messages.start(), keyboards.start());
   } catch (e) {
     system = `${e}${system}`;
-    botHelper.sendError(e);
   }
 
   return botHelper.sendAdmin(system);
@@ -68,12 +67,11 @@ const broadcast = ({message: msg, reply}, botHelper) => {
     chat: {id: chatId},
     text,
   } = msg;
-  const isAdm = botHelper.isAdmin(chatId);
-  if (isAdm && text) {
-    return db.processBroadcast(text, reply, botHelper);
+  if (!botHelper.isAdmin(chatId) || !text) {
+    return;
   }
 
-  return Promise.resolve();
+  db.processBroadcast(text, reply, botHelper);
 };
 
 const format = (bot, botHelper) => {
@@ -184,6 +182,14 @@ const format = (bot, botHelper) => {
 
   const addToQueue = async ({message = {}, reply, update}) => {
     if (SLAVE_PROCESS) {
+      return;
+    }
+    if (
+      message &&
+      message.text &&
+      message.text.match(/(createBroadcast|startBroadcast)/)
+    ) {
+      broadcast({message, reply, update}, botHelper);
       return;
     }
     let isChanMesId = false;
@@ -360,6 +366,10 @@ const format = (bot, botHelper) => {
             checkData(hostname.match('djvu'));
             clearInterval(skipTimer);
             // console.log(link)
+            if (process.env.SKIP_ITEMS === '1') {
+              // eslint-disable-next-line no-throw-literal
+              throw 1;
+            }
             if (global.skipCount) {
               global.skipCount -= 1;
               timeOutLink = true;
