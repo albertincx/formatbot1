@@ -32,24 +32,32 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('showconfig', ({message, reply}) => {
-    if (botHelper.isAdmin(message.chat.id)) {
+  bot.command('showconfig', ctx => {
+    if (botHelper.isAdmin(ctx.message.chat.id)) {
       let c = JSON.stringify(botHelper.config);
       c = `${c} db ${botHelper.db}`;
-      reply(c).catch(e => botHelper.sendError(e));
+      try {
+        ctx.reply(c);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
     }
   });
 
-  bot.command('stat', ({message, reply}) => {
-    if (botHelper.isAdmin(message.chat.id)) {
-      db.stat().then(r => reply(r).catch(e => botHelper.sendError(e)));
+  bot.command('stat', ctx => {
+    if (botHelper.isAdmin(ctx.message.chat.id)) {
+      db.stat().then(r => ctx.reply(r).catch(e => botHelper.sendError(e)));
     }
   });
 
-  bot.command('cleardb', async ({message, reply}) => {
-    if (botHelper.isAdmin(message.chat.id)) {
-      const r = await db.clear(message);
-      reply(r).catch(e => botHelper.sendError(e));
+  bot.command('cleardb', async ctx => {
+    if (botHelper.isAdmin(ctx.message.chat.id)) {
+      const r = await db.clear(ctx.message);
+      try {
+        ctx.reply(r);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
     }
   });
 

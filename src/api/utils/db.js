@@ -61,16 +61,16 @@ const processRows = async (cc, limit = 25, timeout, cb) => {
 const cBroad = '/createBroadcast';
 const sBroad = '/startBroadcast';
 
-const processBroadcast = async (txtParam, reply, botHelper) => {
+const processBroadcast = async (txtParam, ctx, botHelper) => {
   let txt = txtParam;
   if (txt.match(cBroad)) {
-    reply('broad new started');
-    return createBroadcast(reply, txt);
+    ctx.reply('broad new started');
+    return createBroadcast(ctx, txt);
   }
   if (txt.match(sBroad)) {
     txt = txt.replace(sBroad, '');
-    reply('broad send started');
-    return startBroadcast(reply, txt, botHelper);
+    ctx.reply('broad send started');
+    return startBroadcast(ctx, txt, botHelper);
   }
   return Promise.resolve();
 };
@@ -81,10 +81,10 @@ const getCids = txt => {
   return l || [];
 };
 
-const createBroadcast = async (reply, txt) => {
+const createBroadcast = async (ctx, txt) => {
   const [cId] = getCids(txt);
   if (!cId) {
-    return reply('broad completed no id');
+    return ctx.reply('broad completed no id');
   }
   const connSecond = connectDb();
   const messages = Any.collection.conn.model('messages', Any.schema);
@@ -114,14 +114,14 @@ const createBroadcast = async (reply, txt) => {
     });
     return updates.length ? model.bulkWrite(updates) : null;
   });
-  reply('broad completed');
+  ctx.reply('broad completed');
   return connSecond.close();
 };
 
-const startBroadcast = async (reply, txtParam, bot) => {
+const startBroadcast = async (ctx, txtParam, bot) => {
   const [cId, Mid, FromId] = getCids(txtParam);
   if (!cId) {
-    return reply('broad completed no id');
+    return ctx.reply('broad completed no id');
   }
   const result = {err: 0, success: 0};
   let model;
@@ -203,7 +203,7 @@ const startBroadcast = async (reply, txtParam, bot) => {
   if (connSecond) {
     await connSecond.close();
   }
-  return reply(`broad completed: ${r} with ${breakProcess || ''}`);
+  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''}`);
 };
 
 const clear = async msg => {
