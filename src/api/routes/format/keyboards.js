@@ -1,5 +1,4 @@
-const Extra = require('telegraf/extra');
-const Markup = require('telegraf/markup');
+const {Markup} = require('telegraf');
 const BUTTONS = require('../../../config/buttons');
 
 function start() {
@@ -8,27 +7,26 @@ function start() {
     [BUTTONS.hide.label],
     [BUTTONS.support.label],
   ]);
-  return Extra.markup(replyMarkup);
+  return replyMarkup;
 }
 
 function hide() {
-  const replyMarkup = Markup.removeKeyboard();
-  return Extra.markup(replyMarkup);
+  return Markup.removeKeyboard();
 }
 
 function report() {
   const replyMarkup = Markup.inlineKeyboard([
-    Markup.callbackButton('No images', 'no_img'),
-    Markup.callbackButton('No InstantViewButton', 'no_button'),
+    Markup.button('No images', 'no_img'),
+    Markup.button('No InstantViewButton', 'no_button'),
   ]);
-  return Extra.markup(replyMarkup);
+  return replyMarkup;
 }
 
 function resolvedBtn(rmsgId, chatId) {
   const replyMarkup = Markup.inlineKeyboard([
-    Markup.callbackButton('Report Resolved', `r_${rmsgId}_${chatId}`),
+    Markup.button('Report Resolved', `r_${rmsgId}_${chatId}`),
   ]);
-  return Extra.markup(replyMarkup);
+  return replyMarkup;
 }
 
 module.exports.hide = hide;

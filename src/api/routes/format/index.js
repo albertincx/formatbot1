@@ -34,11 +34,11 @@ for (let i = 1; i < 10; i += 1) {
   }
 }
 
-const support = ({message, reply}, botHelper) => {
-  let system = JSON.stringify(message.from);
+const support = (ctx, botHelper) => {
+  let system = JSON.stringify(ctx.message.from);
   try {
     const hide = Object.create(keyboards.hide());
-    reply(messages.support(supportLinks), {
+    ctx.reply(messages.support(supportLinks), {
       hide,
       disable_web_page_preview: true,
     });
@@ -48,13 +48,13 @@ const support = ({message, reply}, botHelper) => {
   botHelper.sendAdmin(`support ${system}`);
 };
 
-const startOrHelp = ({message, reply, update}, botHelper) => {
-  if (!message) {
-    return botHelper.sendAdmin(JSON.stringify(update));
+const startOrHelp = (ctx, botHelper) => {
+  if (!ctx.message) {
+    return botHelper.sendAdmin(JSON.stringify(ctx.update));
   }
-  let system = JSON.stringify(message.from);
+  let system = JSON.stringify(ctx.message.from);
   try {
-    reply(messages.start(), keyboards.start());
+    ctx.reply(messages.start(), keyboards.start());
   } catch (e) {
     system = `${e}${system}`;
   }
@@ -62,16 +62,16 @@ const startOrHelp = ({message, reply, update}, botHelper) => {
   return botHelper.sendAdmin(system);
 };
 
-const broadcast = ({message: msg, reply}, botHelper) => {
+const broadcast = (ctx, botHelper) => {
   const {
     chat: {id: chatId},
     text,
-  } = msg;
+  } = ctx.message;
   if (!botHelper.isAdmin(chatId) || !text) {
     return;
   }
 
-  db.processBroadcast(text, reply, botHelper);
+  db.processBroadcast(text, ctx, botHelper);
 };
 
 const format = (bot, botHelper) => {
@@ -82,9 +82,9 @@ const format = (bot, botHelper) => {
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
-  bot.hears('⌨️ Hide keyboard', ({reply}) => {
+  bot.hears('⌨️ Hide keyboard', ctx => {
     try {
-      reply('Type /help to show.', keyboards.hide());
+      ctx.reply('Type /help to show.', keyboards.hide());
     } catch (e) {
       botHelper.sendError(e);
     }
@@ -180,16 +180,17 @@ const format = (bot, botHelper) => {
     }
   });
 
-  const addToQueue = async ({message = {}, reply, update}) => {
+  const addToQueue = async ctx => {
     if (SLAVE_PROCESS) {
       return;
     }
+    const {message, update} = ctx;
     if (
       message &&
       message.text &&
       message.text.match(/(createBroadcast|startBroadcast)/)
     ) {
-      broadcast({message, reply, update}, botHelper);
+      broadcast(ctx, botHelper);
       return;
     }
     let isChanMesId = false;
@@ -242,9 +243,11 @@ const format = (bot, botHelper) => {
           if (botHelper.db !== false) {
             await log({link, type: 'return'});
           }
-          reply(messages.showIvMessage('', link, link), {
-            parse_mode: 'Markdown',
-          }).catch(e => botHelper.sendError(e));
+          ctx
+            .reply(messages.showIvMessage('', link, link), {
+              parse_mode: 'Markdown',
+            })
+            .catch(e => botHelper.sendError(e));
           return;
         }
         if (!parsed.pathname) {
@@ -254,7 +257,7 @@ const format = (bot, botHelper) => {
           return;
         }
         const res =
-          (await reply('Waiting for instantView...').catch(() => {})) || {};
+          (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
         const messageId = res && res.message_id;
         checkData(!messageId, 'blocked');
         const rabbitMes = {
@@ -280,7 +283,7 @@ const format = (bot, botHelper) => {
   };
 
   bot.hears(/.*/, ctx => addToQueue(ctx));
-  bot.on('message', ({update, reply}) => addToQueue({...update, reply}));
+  bot.on('message', ctx => addToQueue(ctx));
 
   let browserWs = null;
   if (!botHelper.config.no_puppet && !process.env.NOPUPPET) {
