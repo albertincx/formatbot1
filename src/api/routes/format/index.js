@@ -184,7 +184,8 @@ const format = (bot, botHelper) => {
     if (SLAVE_PROCESS) {
       return;
     }
-    const {message, update} = ctx;
+    const {update} = ctx;
+    let {message} = ctx;
     if (
       message &&
       message.text &&
@@ -194,17 +195,20 @@ const format = (bot, botHelper) => {
       return;
     }
     let isChanMesId = false;
-    if (update && update.channel_post) logger(update.channel_post.chat);
+    if (update && update.channel_post) {
+      logger(update.channel_post.chat);
+      message = update.channel_post;
+    }
     logger(message);
-    const {reply_to_message: rplToMsg, caption_entities: cEntities} = message;
+    const {reply_to_message: rplToMsg, caption_entities: cEntities} =
+      message || {};
     if (rplToMsg) {
       return;
     }
     let {entities} = message;
 
-    let msg = message;
+    const msg = message;
     if (update && update.channel_post) {
-      msg = update.channel_post;
       isChanMesId = msg.message_id;
     }
     const {
@@ -281,7 +285,7 @@ const format = (bot, botHelper) => {
       }
     }
   };
-
+  bot.on('channel_post', ctx => addToQueue(ctx));
   bot.hears(/.*/, ctx => addToQueue(ctx));
   bot.on('message', ctx => addToQueue(ctx));
 
