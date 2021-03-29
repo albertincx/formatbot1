@@ -464,8 +464,8 @@ const format = (bot, botHelper) => {
       }
 
       if (!error) {
-        let mark = inline ? 'inl' : '';
-        if (isChanMesId) mark += 'chan';
+        let mark = inline ? 'i' : '';
+        if (isChanMesId) mark += 'c';
         const text = `${mark ? `${mark} ` : ''}${RESULT}${
           q ? ` from ${q}` : ''
         }\n${t}`;
