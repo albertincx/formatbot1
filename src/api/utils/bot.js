@@ -200,6 +200,16 @@ class BotHelper {
   forward(mid, from, to) {
     return this.bot.forwardMessage(to, from, mid);
   }
+
+  sendIV(chatId, messageId, inlineMessageId, messageText, extra) {
+    return this.bot
+      .editMessageText(chatId, messageId, inlineMessageId, messageText, extra)
+      .catch(() => {});
+  }
+
+  delMessage(chatId, messageId) {
+    return this.bot.deleteMessage(chatId, messageId).catch(() => {});
+  }
 }
 
 module.exports = BotHelper;
