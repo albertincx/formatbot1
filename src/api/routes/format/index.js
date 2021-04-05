@@ -326,9 +326,9 @@ const format = (bot, botHelper) => {
         if (isAdm) {
           params.isadmin = true;
         }
+        // await timeout(5);
         if (SLAVE_PROCESS) {
           logger(task);
-          // await timeout(120);
           try {
             const {isHtml, content} = await fileSlave.putFile(
               task.doc,
@@ -457,9 +457,17 @@ const format = (bot, botHelper) => {
           .then(() => db.removeInline(link))
           .catch(() => {});
       } else {
-        await bot.telegram
-          .editMessageText(chatId, messageId, null, messageText, extra)
-          .catch(() => {});
+        if (isChanMesId) {
+          let toDelete = messageId;
+          if (!error) {
+            await botHelper.sendIV(chatId, messageId, null, messageText, extra);
+            toDelete = isChanMesId;
+          }
+          await botHelper.delMessage(chatId, toDelete);
+        } else {
+          await botHelper.sendIV(chatId, messageId, null, messageText, extra);
+        }
+
         global.lastIvTime = +new Date();
       }
 
