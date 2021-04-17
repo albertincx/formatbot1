@@ -7,7 +7,6 @@ const logger = require('./logger');
 
 const MAX_LENGHT_CONTENT = 65000;
 let pages = 0;
-let push = 0;
 
 function lengthInUtf8Bytes(str) {
   if (!str) return 0;
@@ -52,8 +51,6 @@ const makeLink = (obj, dom, link, index) => {
       return makeTelegaphMany(obj, dom, chunksLen + 1);
     }
     if (link) {
-      logger(`push ${link}`);
-      push += 1;
       const nextBtn = `<p><br /><br /><a href="${link}">Read Next page</a></p>`;
       dom.push(...toDom(nextBtn)[0].children);
     }
@@ -129,7 +126,6 @@ const makeTelegaph = async (objParam, parsedHtml) => {
   logger(`bytes ${bytes}`);
   let isLong = false;
   pages = 0;
-  push = 0;
   if (content && content.length) {
     logger(`domed ${content.length}`);
     if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
@@ -145,7 +141,6 @@ const makeTelegaph = async (objParam, parsedHtml) => {
     telegraphLink,
     isLong,
     pages,
-    push,
   };
 };
 

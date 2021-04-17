@@ -1,5 +1,4 @@
 const url = require('url');
-const fileSlave = require('./files');
 const keyboards = require('./keyboards');
 
 const messages = require('../../../messages/format');
@@ -17,13 +16,7 @@ const rabbitmq = require('../../../service/rabbitmq');
 
 const group = process.env.TGGROUP;
 const fileGroup = process.env.TGFILEGROUP;
-const {SLAVE_PROCESS} = process.env;
-// const TG_UPDATES_CHANID = process.env.TG_UPDATES_CHANID;
-let MAIN_CHAN = '';
 
-if (SLAVE_PROCESS) {
-  MAIN_CHAN = process.env.FILESCHAN_DEV || 'files';
-}
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 rabbitmq.startChannel();
 global.lastIvTime = +new Date();
@@ -181,9 +174,6 @@ const format = (bot, botHelper) => {
   });
 
   const addToQueue = async ctx => {
-    if (SLAVE_PROCESS) {
-      return;
-    }
     const {update} = ctx;
     let {message} = ctx;
     if (
@@ -313,7 +303,7 @@ const format = (bot, botHelper) => {
     let ivLink = '';
     let skipTimer = 0;
     try {
-      let RESULT = '';
+      let RESULT;
       let TITLE = '';
       let isFile = false;
       let linkData = '';
@@ -327,33 +317,6 @@ const format = (bot, botHelper) => {
           params.isadmin = true;
         }
         // await timeout(5);
-        if (SLAVE_PROCESS) {
-          logger(task);
-          try {
-            const {isHtml, content} = await fileSlave.putFile(
-              task.doc,
-              botHelper,
-            );
-            linkData = await ivMaker.makeIvLinkFromContent(
-              {
-                content,
-                isHtml,
-                file_name: task.doc.file_name,
-              },
-              params,
-            );
-          } catch (e) {
-            error = `${e}`;
-            linkData = {error};
-            botHelper.sendAdmin(error, process.env.TGGROUPBUGS);
-          }
-          await rabbitmq.addToQueue({
-            document: linkData,
-            chatId,
-            message_id: messageId,
-          });
-          return;
-        }
         rabbitmq.time(q, true);
         let source = `${link}`;
         if (document) {
@@ -421,9 +384,9 @@ const format = (bot, botHelper) => {
         } else if (linkData.error) {
           RESULT = messages.brokenFile(linkData.error);
         } else {
-          const {iv, isLong, pages = '', push = '', title = ''} = linkData;
+          const {iv, isLong, pages = '', ti: title = ''} = linkData;
           ivLink = iv;
-          const longStr = isLong ? `Long ${pages}/${push} ` : '';
+          const longStr = isLong ? `Long ${pages}` : '';
           TITLE = `${title}\n`;
           RESULT = messages.showIvMessage(longStr, iv, source);
         }
@@ -487,7 +450,7 @@ const format = (bot, botHelper) => {
     }
     logger(error);
     if (error) {
-      if (botHelper.db !== false && !SLAVE_PROCESS) {
+      if (botHelper.db !== false) {
         await log({url: link, type: 'error', error});
       }
       if (isBroken && resolveMsgId) {
@@ -502,7 +465,7 @@ const format = (bot, botHelper) => {
 
   try {
     setTimeout(() => {
-      rabbitmq.run(jobMessage, MAIN_CHAN);
+      rabbitmq.run(jobMessage);
       rabbitmq.runSecond(jobMessage);
       rabbitmq.runPuppet(jobMessage);
     }, 5000);

@@ -13,42 +13,12 @@ function from64(v) {
 
 const G = from64('bmV3cy5nb29nbGUuY29t');
 
-const makeIvLinkFromContent = async (file, paramsObj) => {
-  const {access_token: accessToken, ...params} = paramsObj;
-  const authorUrl = 'from File';
-  const parseHelper = new ParseHelper('', params);
-  let {content} = file;
-  const title = file.file_name;
-  if (file.isHtml) {
-    content = await parseHelper.parseContent(content);
-  } else {
-    content = `<div>${content}</div>`;
-  }
-  if (!content) {
-    throw new Error('empty content');
-  }
-  const obj = {title, access_token: accessToken, authorUrl};
-  const tgRes = await makeTelegaph(obj, content);
-  const {telegraphLink, pages, push} = tgRes;
-  if (!telegraphLink) {
-    throw new Error('empty ivlink');
-  }
-  const res = {
-    iv: telegraphLink,
-    pages,
-    push,
-    title,
-  };
-  res.isLong = res.pages;
-  return res;
-};
-
 const makeIvLink = async (urlParam, paramsObj) => {
   if (paramsObj.db) {
     const exist = await db.get(urlParam);
     if (exist) {
       logger('from db');
-      exist.isLong = exist.pages;
+      exist.isLong = exist.p;
       return exist;
     }
   }
@@ -66,22 +36,22 @@ const makeIvLink = async (urlParam, paramsObj) => {
     obj.author_url = authorUrl;
   }
   const tgRes = await makeTelegaph(obj, content);
-  const {telegraphLink, pages, push} = tgRes;
+  const {telegraphLink, pages} = tgRes;
   if (!telegraphLink) {
     throw new Error('empty ivlink');
   }
   const res = {
     iv: telegraphLink,
-    pages,
-    push,
-    title,
+    ti: title,
   };
-
+  if (pages) {
+    res.p = pages;
+  }
   if (paramsObj.db) {
     await db.updateOne({url, ...res});
   }
 
-  res.isLong = res.pages;
+  res.isLong = res.p;
   return res;
 };
 
@@ -127,4 +97,3 @@ const isText = async (urlParam, q) => {
 exports.parse = parse;
 exports.isText = isText;
 exports.makeIvLink = makeIvLink;
-exports.makeIvLinkFromContent = makeIvLinkFromContent;

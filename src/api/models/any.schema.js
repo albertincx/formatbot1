@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const anySchema = new mongoose.Schema(
   {},
   {
-    timestamps: true,
+    timestamps: {createdAt: true, updatedAt: false},
     strict: false,
   },
 );
