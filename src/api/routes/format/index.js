@@ -15,7 +15,6 @@ const {validRegex} = require('../../../config/config.json');
 const rabbitmq = require('../../../service/rabbitmq');
 
 const group = process.env.TGGROUP;
-const fileGroup = process.env.TGFILEGROUP;
 
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 rabbitmq.startChannel();
@@ -291,7 +290,6 @@ const format = (bot, botHelper) => {
       message_id: messageId,
       q,
       force,
-      document,
       isChanMesId,
       inline,
     } = task;
@@ -299,7 +297,6 @@ const format = (bot, botHelper) => {
     let error = '';
     let isBroken = false;
     const resolveMsgId = false;
-    let logGroup = group;
     let ivLink = '';
     let skipTimer = 0;
     try {
@@ -318,63 +315,53 @@ const format = (bot, botHelper) => {
         }
         // await timeout(5);
         rabbitmq.time(q, true);
-        let source = `${link}`;
-        if (document) {
-          linkData = document;
-          logGroup = fileGroup;
-          source = 'document';
+        link = ivMaker.parse(link);
+        const {isText, url: baseUrl} = await ivMaker.isText(link, force);
+        if (baseUrl !== link) link = baseUrl;
+        if (!isText) {
+          isFile = true;
         } else {
-          link = ivMaker.parse(link);
-          const {isText, url: baseUrl} = await ivMaker.isText(link, force);
-          if (baseUrl !== link) link = baseUrl;
-          if (!isText) {
-            isFile = true;
-          } else {
-            const {hostname} = url.parse(link);
-            logger(hostname);
-            logger(link);
-            checkData(hostname.match('djvu'));
-            clearInterval(skipTimer);
-            // console.log(link)
-            if (process.env.SKIP_ITEMS === '1') {
-              // eslint-disable-next-line no-throw-literal
-              throw 1;
-            }
-            if (global.skipCount) {
-              global.skipCount -= 1;
-              timeOutLink = true;
-              checkData(1, `skip links buffer ${global.skipCount}`);
-            }
-            checkData(botHelper.isBlackListed(hostname), 'BlackListed');
-            const botParams = botHelper.getParams(hostname, chatId, force);
-            params = {...params, ...botParams};
-            params.browserWs = browserWs;
-            params.db = botHelper.db !== false;
-            logger(params);
-            await timeout(0.1);
-            const ivTask = ivMaker.makeIvLink(link, params);
-            const ivTimer = new Promise(resolve => {
-              skipTimer = setInterval(() => {
-                if (global.skipCount) {
-                  clearInterval(skipTimer);
-                  resolve('timedOut');
-                }
-              }, 1000);
-              setTimeout(resolve, IV_MAKING_TIMEOUT * 1000, 'timedOut');
-            });
-            await Promise.race([ivTimer, ivTask]).then(value => {
-              if (value === 'timedOut') {
-                botHelper.sendAdmin(
-                  `timedOut ${link}`,
-                  process.env.TGGROUPBUGS,
-                );
-                timeOutLink = true;
-              } else {
-                linkData = value;
-              }
-            });
-            clearInterval(skipTimer);
+          const {hostname} = url.parse(link);
+          logger(hostname);
+          logger(link);
+          checkData(hostname.match('djvu'));
+          clearInterval(skipTimer);
+          // console.log(link)
+          if (process.env.SKIP_ITEMS === '1') {
+            // eslint-disable-next-line no-throw-literal
+            throw 1;
           }
+          if (global.skipCount) {
+            global.skipCount -= 1;
+            timeOutLink = true;
+            checkData(1, `skip links buffer ${global.skipCount}`);
+          }
+          checkData(botHelper.isBlackListed(hostname), 'BlackListed');
+          const botParams = botHelper.getParams(hostname, chatId, force);
+          params = {...params, ...botParams};
+          params.browserWs = browserWs;
+          params.db = botHelper.db !== false;
+          logger(params);
+          await timeout(0.1);
+          const ivTask = ivMaker.makeIvLink(link, params);
+          const ivTimer = new Promise(resolve => {
+            skipTimer = setInterval(() => {
+              if (global.skipCount) {
+                clearInterval(skipTimer);
+                resolve('timedOut');
+              }
+            }, 1000);
+            setTimeout(resolve, IV_MAKING_TIMEOUT * 1000, 'timedOut');
+          });
+          await Promise.race([ivTimer, ivTask]).then(value => {
+            if (value === 'timedOut') {
+              botHelper.sendAdmin(`timedOut ${link}`, process.env.TGGROUPBUGS);
+              timeOutLink = true;
+            } else {
+              linkData = value;
+            }
+          });
+          clearInterval(skipTimer);
         }
         if (isFile) {
           RESULT = messages.isLooksLikeFile(link);
@@ -388,7 +375,7 @@ const format = (bot, botHelper) => {
           ivLink = iv;
           const longStr = isLong ? `Long ${pages}` : '';
           TITLE = `${title}\n`;
-          RESULT = messages.showIvMessage(longStr, iv, source);
+          RESULT = messages.showIvMessage(longStr, iv, `${link}`);
         }
       } catch (e) {
         logger(e);
@@ -440,7 +427,7 @@ const format = (bot, botHelper) => {
         const text = `${mark ? `${mark} ` : ''}${RESULT}${
           q ? ` from ${q}` : ''
         }\n${t}`;
-        botHelper.sendAdminMark(text, logGroup).catch(() => {});
+        botHelper.sendAdminMark(text, group).catch(() => {});
       }
     } catch (e) {
       logger(e);
