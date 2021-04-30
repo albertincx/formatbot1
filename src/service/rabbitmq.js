@@ -1,7 +1,6 @@
 const amqp = require('amqplib');
 const logger = require('../api/utils/logger');
 
-const {FILESLAVE} = process.env;
 const TASKS_CHANNEL = process.env.TASKS_DEV || 'tasks';
 
 const TASKS2_CHANNEL = process.env.TASKS2_DEV || 'tasks2';
@@ -75,19 +74,15 @@ const run = async (job, qName) => {
     if (!queueName) {
       queueName = TASKS_CHANNEL;
     }
-    if (FILESLAVE && queueName !== FILES_CHANNEL) {
-      //
-    } else {
-      const channel = await createChannel(queueName);
-      await channel.prefetch(1);
-      channel.consume(queueName, async message => {
-        const content = message.content.toString();
-        const task = JSON.parse(content);
-        if (queueName !== TASKS_CHANNEL) task.q = queueName;
-        await job(task);
-        channel.ack(message);
-      });
-    }
+    const channel = await createChannel(queueName);
+    await channel.prefetch(1);
+    channel.consume(queueName, async message => {
+      const content = message.content.toString();
+      const task = JSON.parse(content);
+      if (queueName !== TASKS_CHANNEL) task.q = queueName;
+      await job(task);
+      channel.ack(message);
+    });
   } catch (e) {
     logger(e);
   }

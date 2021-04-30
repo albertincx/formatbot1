@@ -102,7 +102,6 @@ const createBroadcast = async (ctx, txt) => {
   const cursor = messages.find(filter).cursor();
   await processRows(cursor, 500, 10, items => {
     const updates = [];
-    // eslint-disable-next-line no-unused-vars
     items.forEach(({_id, id}) => {
       updates.push({
         updateOne: {
@@ -119,7 +118,7 @@ const createBroadcast = async (ctx, txt) => {
 };
 
 const startBroadcast = async (ctx, txtParam, bot) => {
-  const [cId, Mid, FromId] = getCids(txtParam);
+  const [cId, Mid, FromId, isChannel] = getCids(txtParam);
   if (!cId) {
     return ctx.reply('broad completed no id');
   }
@@ -151,7 +150,7 @@ const startBroadcast = async (ctx, txtParam, bot) => {
         const {_id, id} = items[i];
         let runCmd;
         if (Mid) {
-          runCmd = () => bot[sendCmd](Mid, FromId, id);
+          runCmd = () => bot[sendCmd](Mid, FromId * (isChannel ? -1 : 1), id);
         } else {
           runCmd = () =>
             bot[sendCmd](txtParam.replace(/(\s|_)?r_c_id_(.*?)\s/, ''), id);
