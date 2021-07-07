@@ -52,6 +52,7 @@ const createChannel = async (queueName = TASKS_CHANNEL) => {
     channel = await connection.createChannel();
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
+    console.log(e)
     logger(e);
   }
   rchannel = channel;
