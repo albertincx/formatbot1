@@ -56,3 +56,5 @@ yarn.lock
 count.txt
 
 .now
+distr/*
+src/test.js
