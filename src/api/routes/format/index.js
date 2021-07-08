@@ -326,7 +326,7 @@ const format = (bot, botHelper) => {
           logger(link);
           checkData(hostname.match('djvu'));
           clearInterval(skipTimer);
-          console.log(link)
+          // console.log(link)
           if (process.env.SKIP_ITEMS === '1') {
             // eslint-disable-next-line no-throw-literal
             throw 1;

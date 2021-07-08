@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const {mongo} = require('./vars');
 
 exports.connect = () => {
-  console.log(mongo.uri)
+
   if (!mongo.uri) {
     return false;
   }
