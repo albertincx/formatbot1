@@ -285,14 +285,7 @@ const format = (bot, botHelper) => {
     });
   }
   const jobMessage = async task => {
-    const {
-      chatId,
-      message_id: messageId,
-      q,
-      force,
-      isChanMesId,
-      inline,
-    } = task;
+    const {chatId, message_id: messageId, q, force, isChanMesId, inline} = task;
     let {link} = task;
     let error = '';
     let isBroken = false;
@@ -313,7 +306,6 @@ const format = (bot, botHelper) => {
         if (isAdm) {
           params.isadmin = true;
         }
-        // await timeout(5);
         rabbitmq.time(q, true);
         link = ivMaker.parse(link);
         const {isText, url: baseUrl} = await ivMaker.isText(link, force);
@@ -326,7 +318,6 @@ const format = (bot, botHelper) => {
           logger(link);
           checkData(hostname.match('djvu'));
           clearInterval(skipTimer);
-          // console.log(link)
           if (process.env.SKIP_ITEMS === '1') {
             // eslint-disable-next-line no-throw-literal
             throw 1;
@@ -337,6 +328,7 @@ const format = (bot, botHelper) => {
             checkData(1, `skip links buffer ${global.skipCount}`);
           }
           checkData(botHelper.isBlackListed(hostname), 'BlackListed');
+
           const botParams = botHelper.getParams(hostname, chatId, force);
           params = {...params, ...botParams};
           params.browserWs = browserWs;

@@ -48,12 +48,13 @@ let connection = null;
 const createChannel = async (queueName = TASKS_CHANNEL) => {
   let channel;
   try {
-    // console.log(process.env.MESSAGE_QUEUE)
-    if(!connection) connection = await amqp.connect(process.env.MESSAGE_QUEUE);
+    if (!connection) {
+      connection = await amqp.connect(process.env.MESSAGE_QUEUE);
+    }
     channel = await connection.createChannel();
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
-    console.log(e)
+    console.log(e);
     logger(e);
   }
   rchannel = channel;

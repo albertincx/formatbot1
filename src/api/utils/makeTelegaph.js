@@ -27,19 +27,21 @@ const makeTelegraphLink = async (obj, content) => {
     body: JSON.stringify(body),
     method: 'POST',
     headers: {'content-type': 'application/json'},
-  }).then(res => {
-    if (!res.ok) {
-      const err = new Error(res.statusText || 'Error calling telegra.ph');
-      err.statusCode = res.status;
-      throw err;
-    }
-    return res.json().then(json => {
-      if ('ok' in json && !json.ok) {
-        throw new Error(json.error || 'Error calling telegra.ph');
+  })
+    .then(res => {
+      if (!res.ok) {
+        const err = new Error(res.statusText || 'Error calling telegra.ph');
+        err.statusCode = res.status;
+        throw err;
       }
-      return json.result.url;
-    });
-  });
+      return res.json().then(json => {
+        if ('ok' in json && !json.ok) {
+          throw new Error(json.error || 'Error calling telegra.ph');
+        }
+        return json.result.url;
+      });
+    })
+    .catch(() => '');
 };
 
 const makeLink = (obj, dom, link, index) => {
