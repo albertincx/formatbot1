@@ -119,7 +119,11 @@ class ParseHelper {
       content = await puppet(this.link, this.params);
       this.log(content, 'puppet.html');
     } else {
-      content = await fetch(this.link, {timeout: 5000}).then(r => r.text());
+      try {
+        content = await fetch(this.link, {timeout: 5000}).then(r => r.text());
+      } catch (e) {
+        content = '';
+      }
       this.log(content, 'fetchContent.html');
     }
     if (this.fb) {

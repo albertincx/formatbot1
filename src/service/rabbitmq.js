@@ -44,14 +44,17 @@ const resetTime = (q = TASKS_CHANNEL) => {
   logger(`reset ${startName}`);
   starts[startName] = process.hrtime();
 };
-
+let connection = null;
 const createChannel = async (queueName = TASKS_CHANNEL) => {
   let channel;
   try {
-    const connection = await amqp.connect(process.env.MESSAGE_QUEUE);
+    if (!connection) {
+      connection = await amqp.connect(process.env.MESSAGE_QUEUE);
+    }
     channel = await connection.createChannel();
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
+    console.log(e);
     logger(e);
   }
   rchannel = channel;

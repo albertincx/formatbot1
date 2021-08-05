@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+
 const makeTelegaph = require('./makeTelegaph');
 const logger = require('./logger');
 const ParseHelper = require('./parseHelper');
@@ -86,11 +87,18 @@ const isText = async (urlParam, q) => {
     Accept: 'text/html',
     'user-agent': USER_AGENT,
   };
-  const r = await fetch(u, {timeout: 5000, headers: headersCheck});
-  const {url, headers} = r;
-  const contentType = headers.get('content-type') || '';
-  logger(contentType);
-  const startsText = contentType.startsWith('text/');
+  let startsText = false;
+  let url = '';
+  try {
+    const r = await fetch(u, {timeout: 5000, headers: headersCheck});
+    const {url: newUrl, headers} = r;
+    url = newUrl;
+    const contentType = headers.get('content-type') || '';
+    logger(contentType);
+    startsText = contentType.startsWith('text/');
+  } catch (e) {
+    //
+  }
   return {isText: startsText, url};
 };
 
