@@ -173,105 +173,110 @@ const format = (bot, botHelper) => {
   });
 
   const addToQueue = async ctx => {
-    const {update} = ctx;
-    let {message} = ctx;
-    if (
-      message &&
-      message.text &&
-      message.text.match(/(createBroadcast|startBroadcast)/)
-    ) {
-      broadcast(ctx, botHelper);
-      return;
-    }
-    let isChanMesId = false;
-    if (update && update.channel_post) {
-      logger(update.channel_post.chat);
-      message = update.channel_post;
-    }
-    logger(message);
-    const {reply_to_message: rplToMsg, caption_entities: cEntities} =
-      message || {};
-    if (rplToMsg) {
-      return;
-    }
-    let {entities} = message;
-
-    const msg = message;
-    if (update && update.channel_post) {
-      isChanMesId = msg.message_id;
-    }
-    const {
-      chat: {id: chatId},
-      caption,
-    } = msg;
-    let {text} = msg;
-    const isAdm = botHelper.isAdmin(chatId);
-    const rpl = rplToMsg;
-    if (msg.document || (rpl && rpl.document)) {
-      return;
-    }
-
-    if (caption) {
-      text = caption;
-      if (cEntities) {
-        entities = cEntities;
+    try {
+      const {update} = ctx;
+      let {message} = ctx;
+      if (
+        message &&
+        message.text &&
+        message.text.match(/(createBroadcast|startBroadcast)/)
+      ) {
+        broadcast(ctx, botHelper);
+        return;
       }
-    }
-    if (msg && text) {
-      const force = isAdm && check(text);
-      let links = getAllLinks(text);
-      try {
-        let link = links[0];
-        if (!link && entities) {
-          links = getLinkFromEntity(entities, text);
-        }
-        link = getLink(links);
-        if (!link) return;
-        const parsed = url.parse(link);
-        if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-          const l = link.match(/url=(.*?)($|&)/);
-          if (l && l[1]) link = decodeURIComponent(l[1]);
-        }
-        if (link.match(new RegExp(validRegex))) {
-          if (botHelper.db !== false) {
-            await log({link, type: 'return'});
-          }
-          ctx
-            .reply(messages.showIvMessage('', link, link), {
-              parse_mode: 'Markdown',
-            })
-            .catch(e => botHelper.sendError(e));
-          return;
-        }
-        if (!parsed.pathname) {
-          if (botHelper.db !== false) {
-            await log({link, type: 'nopath'});
-          }
-          return;
-        }
-        const res =
-          (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
-        const messageId = res && res.message_id;
-        checkData(!messageId, 'blocked');
-        const rabbitMes = {
-          message_id: messageId,
-          chatId,
-          link,
-          isChanMesId,
-        };
-        if (force) {
-          rabbitMes.force = force;
-        }
-        let newIvTime = +new Date();
-        newIvTime = (newIvTime - global.lastIvTime) / 1000;
-        if (newIvTime > 3600) {
-          global.lastIvTime = +new Date();
-          botHelper.sendAdmin(`alert ${newIvTime} sec`);
-        }
-        await rabbitmq.addToQueue(rabbitMes);
-      } catch (e) {
-        botHelper.sendError(e);
+      let isChanMesId = false;
+      if (update && update.channel_post) {
+        logger(update.channel_post.chat);
+        message = update.channel_post;
       }
+      logger(message);
+      const {reply_to_message: rplToMsg, caption_entities: cEntities} =
+        message || {};
+      if (rplToMsg) {
+        return;
+      }
+      let {entities} = message;
+
+      const msg = message;
+      if (update && update.channel_post) {
+        isChanMesId = msg.message_id;
+      }
+      const {
+        chat: {id: chatId},
+        caption,
+      } = msg;
+      let {text} = msg;
+      const isAdm = botHelper.isAdmin(chatId);
+      const rpl = rplToMsg;
+      if (msg.document || (rpl && rpl.document)) {
+        return;
+      }
+
+      if (caption) {
+        text = caption;
+        if (cEntities) {
+          entities = cEntities;
+        }
+      }
+      if (msg && text) {
+        try {
+          const force = isAdm && check(text);
+          let links = getAllLinks(text);
+          let link = links[0];
+          if (!link && entities) {
+            links = getLinkFromEntity(entities, text);
+          }
+          link = getLink(links);
+          if (!link) return;
+          const parsed = url.parse(link);
+          if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+            const l = link.match(/url=(.*?)($|&)/);
+            if (l && l[1]) link = decodeURIComponent(l[1]);
+          }
+          if (link.match(new RegExp(validRegex))) {
+            if (botHelper.db !== false) {
+              await log({link, type: 'return'});
+            }
+            ctx
+              .reply(messages.showIvMessage('', link, link), {
+                parse_mode: 'Markdown',
+              })
+              .catch(e => botHelper.sendError(e));
+            return;
+          }
+          if (!parsed.pathname) {
+            if (botHelper.db !== false) {
+              await log({link, type: 'nopath'});
+            }
+            return;
+          }
+          const res =
+            (await ctx.reply('Waiting for instantView...').catch(() => {})) ||
+            {};
+          const messageId = res && res.message_id;
+          checkData(!messageId, 'blocked');
+          const rabbitMes = {
+            message_id: messageId,
+            chatId,
+            link,
+            isChanMesId,
+          };
+          if (force) {
+            rabbitMes.force = force;
+          }
+          let newIvTime = +new Date();
+          newIvTime = (newIvTime - global.lastIvTime) / 1000;
+          if (newIvTime > 3600) {
+            global.lastIvTime = +new Date();
+            botHelper.sendAdmin(`alert ${newIvTime} sec`);
+          }
+          await rabbitmq.addToQueue(rabbitMes);
+        } catch (e) {
+          botHelper.sendError(e).catch(() => {});
+        }
+      }
+    } catch (e) {
+      botHelper.sendError(e).catch(() => {});
     }
   };
   bot.on('channel_post', ctx => addToQueue(ctx));
