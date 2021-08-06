@@ -233,7 +233,10 @@ const format = (bot, botHelper) => {
             links = getLinkFromEntity(entities, text);
           }
           link = getLink(links);
-          if (!link) return;
+          if (!link) {
+            logger('no link')
+            return;
+          }
           const parsed = url.parse(link);
           if (link.match(/^(https?:\/\/)?(www.)?google/)) {
             const l = link.match(/url=(.*?)($|&)/);
@@ -260,7 +263,13 @@ const format = (bot, botHelper) => {
             (await ctx.reply('Waiting for instantView...').catch(() => {})) ||
             {};
           const messageId = res && res.message_id;
-          checkData(!messageId, 'blocked');
+          logger('test')
+          await timeout(0.1);
+          if (!messageId) {
+            
+            return;
+          }
+          //checkData(!messageId, 'blocked');
           logger('link')
           logger(link)
           const rabbitMes = {
