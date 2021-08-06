@@ -133,6 +133,7 @@ const format = (bot, botHelper) => {
 
   bot.action(/.*/, async ctx => {
     const [data] = ctx.match;
+    logger('action')
     const s = data === 'no_img';
     if (s) {
       const {message} = ctx.update.callback_query;
@@ -174,6 +175,7 @@ const format = (bot, botHelper) => {
 
   const addToQueue = async ctx => {
     try {
+      logger('action add')
       const {update} = ctx;
       let {message} = ctx;
       if (
@@ -189,10 +191,12 @@ const format = (bot, botHelper) => {
         logger(update.channel_post.chat);
         message = update.channel_post;
       }
+      logger('message')
       logger(message);
       const {reply_to_message: rplToMsg, caption_entities: cEntities} =
         message || {};
       if (rplToMsg) {
+        logger('return');
         return;
       }
       let {entities} = message;
