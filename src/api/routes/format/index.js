@@ -223,6 +223,8 @@ const format = (bot, botHelper) => {
         }
       }
       if (msg && text) {
+        logger(msg)
+        logger(text)
         try {
           const force = isAdm && check(text);
           let links = getAllLinks(text);
@@ -259,6 +261,8 @@ const format = (bot, botHelper) => {
             {};
           const messageId = res && res.message_id;
           checkData(!messageId, 'blocked');
+          logger('link')
+          logger(link)
           const rabbitMes = {
             message_id: messageId,
             chatId,
