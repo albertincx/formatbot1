@@ -195,7 +195,7 @@ const format = (bot, botHelper) => {
       logger(message);
       const {reply_to_message: rplToMsg, caption_entities: cEntities} =
         message || {};
-      if (rplToMsg) {
+      if (rplToMsg || message.audio) {
         logger('return');
         return;
       }
