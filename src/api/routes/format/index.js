@@ -223,8 +223,8 @@ const format = (bot, botHelper) => {
         }
       }
       if (msg && text) {
-        logger(msg)
-        logger(text)
+        //logger(msg)
+        //logger(text)
         try {
           const force = isAdm && check(text);
           let links = getAllLinks(text);
