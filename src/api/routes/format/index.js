@@ -175,7 +175,7 @@ const format = (bot, botHelper) => {
 
   const addToQueue = async ctx => {
     try {
-      logger('action add')
+      
       const {update} = ctx;
       let {message} = ctx;
       if (
@@ -188,17 +188,18 @@ const format = (bot, botHelper) => {
       }
       let isChanMesId = false;
       if (update && update.channel_post) {
-        logger(update.channel_post.chat);
+        logger('chp');
         message = update.channel_post;
       }
       logger('message')
-      logger(message);
       const {reply_to_message: rplToMsg, caption_entities: cEntities} =
         message || {};
       if (rplToMsg || message.audio) {
         logger('return');
         return;
       }
+      
+      
       let {entities} = message;
 
       const msg = message;
@@ -223,8 +224,6 @@ const format = (bot, botHelper) => {
         }
       }
       if (msg && text) {
-        //logger(msg)
-        //logger(text)
         try {
           const force = isAdm && check(text);
           let links = getAllLinks(text);
