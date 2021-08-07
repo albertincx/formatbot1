@@ -158,7 +158,7 @@ const fixHtml = async (contentParam, iframeParam, parsedUrl, params) => {
     iframe = findIframes(content);
   }
   content = replaceImages(content, imgs);
-  logger(`before san ${content.length}`);
+  //logger(`before san ${content.length}`);
   content = sanitizeHtml(content);
   content = sanitizeHtmlForce(content, params);
   content = restoreImages(content, imgs, parsedUrl);

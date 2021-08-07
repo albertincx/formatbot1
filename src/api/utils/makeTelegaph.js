@@ -125,7 +125,7 @@ const makeTelegaph = async (objParam, parsedHtml) => {
   const bytes = lengthInUtf8Bytes(content);
   logger(content, 'domed.json');
   logger(`length ${parsedHtml.length}`);
-  logger(`bytes ${bytes}`);
+  //logger(`bytes ${bytes}`);
   let isLong = false;
   pages = 0;
   if (content && content.length) {

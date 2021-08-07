@@ -32,7 +32,7 @@ const puppet = async (url, params) => {
     return Promise.resolve('');
   }
   try {
-    logger(url);
+    //logger(url);
     const browser = await puppeteer.connect({browserWSEndpoint: ws});
     const page = await browser.newPage();
     const status = await page.goto(url, {});

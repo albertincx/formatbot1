@@ -32,7 +32,6 @@ function domToNode(domNode) {
 }
 
 const toDom = html => {
-  logger('todom');
   const dom = new JSDOM(`<!DOCTYPE html>${html}`);
   return domToNode(dom.window.document.body).children;
 };

@@ -175,7 +175,6 @@ const format = (bot, botHelper) => {
 
   const addToQueue = async ctx => {
     try {
-      
       const {update} = ctx;
       let {message} = ctx;
       if (
@@ -191,11 +190,10 @@ const format = (bot, botHelper) => {
         logger('chp');
         message = update.channel_post;
       }
-      logger('message')
+
       const {reply_to_message: rplToMsg, caption_entities: cEntities} =
         message || {};
       if (rplToMsg || message.audio) {
-        logger('return');
         return;
       }
       
@@ -262,15 +260,12 @@ const format = (bot, botHelper) => {
             (await ctx.reply('Waiting for instantView...').catch(() => {})) ||
             {};
           const messageId = res && res.message_id;
-          logger('test')
+          
           await timeout(0.1);
           if (!messageId) {
-            
+            logger('no messageId')
             return;
           }
-          //checkData(!messageId, 'blocked');
-          logger('link')
-          logger(link)
           const rabbitMes = {
             message_id: messageId,
             chatId,
@@ -354,7 +349,7 @@ const format = (bot, botHelper) => {
           params = {...params, ...botParams};
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
-          logger(params);
+          //logger(params);
           await timeout(0.1);
           const ivTask = ivMaker.makeIvLink(link, params);
           const ivTimer = new Promise(resolve => {
