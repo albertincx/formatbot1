@@ -237,14 +237,14 @@ const updateOne = async (item, collection = links) => {
   const {url} = item;
   // eslint-disable-next-line no-param-reassign
   item.$inc = {af: 1};
-  return collection.updateOne({url}, item, {upsert: true});
+  //return collection.updateOne({url}, item, {upsert: true});
 };
 
 const log = async item => {
   const {url} = item;
   // eslint-disable-next-line no-param-reassign
   item.$inc = {af: 1};
-  return logs.updateOne({url}, item, {upsert: true});
+  //return logs.updateOne({url}, item, {upsert: true});
 };
 
 module.exports.stat = stat;
