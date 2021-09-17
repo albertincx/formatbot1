@@ -252,7 +252,7 @@ const format = (bot, botHelper) => {
           }
           if (!parsed.pathname) {
             if (botHelper.db !== false) {
-              await log({link, type: 'nopath'});
+              //await log({link, type: 'nopath'});
             }
             return;
           }

@@ -49,7 +49,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
     res.p = pages;
   }
   if (paramsObj.db) {
-    await db.updateOne({url, ...res});
+    //await db.updateOne({url, ...res});
   }
 
   res.isLong = res.p;
