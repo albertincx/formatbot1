@@ -220,14 +220,14 @@ const removeInline = url => inlineLinks.deleteMany({url});
 
 const getInine = async url => {
   const exists = await inlineLinks.findOne({url});
-  await updateOne({url}, inlineLinks);
+  // await updateOne({url}, inlineLinks);
   return exists;
 };
 
 const get = async url => {
   const me = await links.findOne({url});
   if (me) {
-    await updateOne({url});
+    // await updateOne({url});
     return me.toObject();
   }
   return false;
