@@ -85,7 +85,7 @@ const botRoute = (bot, conn) => {
   startCnt += 1;
   if (startCnt >= 500) startCnt = 0;
 
-  fs.writeFileSync(filepath, startCnt);
+  fs.writeFileSync(filepath, parseInt(startCnt, 10).toString());
   return {router, bot: botHelper};
 };
 
