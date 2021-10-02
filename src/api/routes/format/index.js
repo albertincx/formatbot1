@@ -1,6 +1,6 @@
 const url = require('url');
-const keyboards = require('./keyboards');
 
+const keyboards = require('../../../keyboards/keyboards');
 const messages = require('../../../messages/format');
 const db = require('../../utils/db');
 const logger = require('../../utils/logger');
@@ -133,7 +133,7 @@ const format = (bot, botHelper) => {
 
   bot.action(/.*/, async ctx => {
     const [data] = ctx.match;
-    logger('action')
+    logger('action');
     const s = data === 'no_img';
     if (s) {
       const {message} = ctx.update.callback_query;
@@ -196,8 +196,6 @@ const format = (bot, botHelper) => {
       if (rplToMsg || message.audio) {
         return;
       }
-      
-      
       let {entities} = message;
 
       const msg = message;
@@ -231,7 +229,7 @@ const format = (bot, botHelper) => {
           }
           link = getLink(links);
           if (!link) {
-            logger('no link')
+            logger('no link');
             return;
           }
           const parsed = url.parse(link);
@@ -251,19 +249,15 @@ const format = (bot, botHelper) => {
             return;
           }
           if (!parsed.pathname) {
-            if (botHelper.db !== false) {
-              //await log({link, type: 'nopath'});
-            }
             return;
           }
           const res =
             (await ctx.reply('Waiting for instantView...').catch(() => {})) ||
             {};
           const messageId = res && res.message_id;
-          
           await timeout(0.1);
           if (!messageId) {
-            logger('no messageId')
+            logger('no messageId');
             return;
           }
           const rabbitMes = {
@@ -349,7 +343,7 @@ const format = (bot, botHelper) => {
           params = {...params, ...botParams};
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
-          //logger(params);
+          // logger(params);
           await timeout(0.2);
           const ivTask = ivMaker.makeIvLink(link, params);
           const ivTimer = new Promise(resolve => {
