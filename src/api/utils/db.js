@@ -2,6 +2,9 @@ const co = require('co');
 const mongoose = require('mongoose');
 const Any = require('../models/any.model');
 
+const LINKS_COLL = process.env.MONGO_COLL_LINKS || 'links';
+const ILINKS_COLL = process.env.MONGO_COLL_ILINKS || 'ilinks';
+
 const connectDb = () =>
   mongoose.createConnection(process.env.MONGO_URI_SECOND, {
     keepAlive: 1,
@@ -10,18 +13,19 @@ const connectDb = () =>
     useUnifiedTopology: true,
   });
 
-const links = Any.collection.conn.model(
-  process.env.MONGO_COLL_LINKS || 'links',
-  Any.schema,
-);
-const inlineLinks = Any.collection.conn.model(
-  process.env.MONGO_COLL_ILINKS || 'ilinks',
-  Any.schema,
-);
-const logs = Any.collection.conn.model(
-  process.env.MONGO_COLL_LOGS || 'logs',
-  Any.schema,
-);
+const links = Any.collection.conn.model(LINKS_COLL, Any.schema);
+const inlineLinks = Any.collection.conn.model(ILINKS_COLL, Any.schema);
+
+const conn2 = mongoose.createConnection(process.env.MONGO_URI_OLD1, {
+  keepAlive: 1,
+  connectTimeoutMS: 30000,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const linksOld1 = conn2.model(LINKS_COLL, Any.schema);
+const inlineLinksOld1 = conn2.model(ILINKS_COLL, Any.schema);
+
 const stat = () => links.countDocuments();
 
 const processRows = async (cc, limit = 25, timeout, cb) => {
@@ -102,7 +106,7 @@ const createBroadcast = async (ctx, txt) => {
   const cursor = messages.find(filter).cursor();
   await processRows(cursor, 500, 10, items => {
     const updates = [];
-    items.forEach(({_id, id}) => {
+    items.forEach(({id}) => {
       updates.push({
         updateOne: {
           filter: {id, cId, sent: {$exists: false}},
@@ -218,33 +222,40 @@ const clear = async msg => {
 
 const removeInline = url => inlineLinks.deleteMany({url});
 
-const getInine = async url => {
-  const exists = await inlineLinks.findOne({url});
-  await updateOne({url}, inlineLinks);
-  return exists;
-};
-
-const get = async url => {
-  const me = await links.findOne({url});
-  if (me) {
-    await updateOne({url});
-    return me.toObject();
-  }
-  return false;
-};
-
-const updateOne = async (item, collection = links) => {
+const updateOne = (item, collection = links) => {
   const {url} = item;
   // eslint-disable-next-line no-param-reassign
   item.$inc = {af: 1};
   return collection.updateOne({url}, item, {upsert: true});
 };
 
-const log = async item => {
-  const {url} = item;
-  // eslint-disable-next-line no-param-reassign
-  item.$inc = {af: 1};
-  return logs.updateOne({url}, item, {upsert: true});
+const getFromCollection = async (url, coll, insert = true) => {
+  const me = await coll.findOne({url});
+  if (insert || me) {
+    await updateOne({url}, coll);
+  }
+  return me;
+};
+
+const getInine = async url => {
+  // check from old DB without insert
+  let me = await getFromCollection(url, inlineLinksOld1, false);
+  if (!me) {
+    me = await getFromCollection(url, inlineLinks);
+  }
+  return me;
+};
+
+const getIV = async url => {
+  // check from old DB without insert
+  let me = await getFromCollection(url, linksOld1, false);
+  if (!me) {
+    me = await getFromCollection(url, links);
+  }
+  if (me) {
+    return me.toObject();
+  }
+  return false;
 };
 
 module.exports.stat = stat;
@@ -252,8 +263,7 @@ module.exports.clear = clear;
 module.exports.updateOne = updateOne;
 module.exports.removeInline = removeInline;
 module.exports.getInine = getInine;
-module.exports.get = get;
-module.exports.log = log;
+module.exports.getIV = getIV;
 module.exports.createBroadcast = createBroadcast;
 module.exports.startBroadcast = startBroadcast;
 module.exports.processBroadcast = processBroadcast;
