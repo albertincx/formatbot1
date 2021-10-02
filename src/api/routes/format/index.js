@@ -4,7 +4,6 @@ const keyboards = require('../../../keyboards/keyboards');
 const messages = require('../../../messages/format');
 const db = require('../../utils/db');
 const logger = require('../../utils/logger');
-const {log} = require('../../utils/db');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
 const {check, timeout, checkData} = require('../../utils');
@@ -96,7 +95,7 @@ const format = (bot, botHelper) => {
       };
       return msg.answerInlineQuery([res]).catch(() => {});
     }
-    const ivObj = await db.get(links[0]);
+    const ivObj = await db.getIV(links[0]);
     if (ivObj) {
       return botHelper
         .sendInline({
@@ -238,9 +237,6 @@ const format = (bot, botHelper) => {
             if (l && l[1]) link = decodeURIComponent(l[1]);
           }
           if (link.match(new RegExp(validRegex))) {
-            if (botHelper.db !== false) {
-              await log({link, type: 'return'});
-            }
             ctx
               .reply(messages.showIvMessage('', link, link), {
                 parse_mode: 'Markdown',
@@ -439,9 +435,6 @@ const format = (bot, botHelper) => {
     }
     logger(error);
     if (error) {
-      if (botHelper.db !== false) {
-        await log({url: link, type: 'error', error});
-      }
       if (isBroken && resolveMsgId) {
         botHelper
           .sendAdminOpts(error, keyboards.resolvedBtn(resolveMsgId, chatId))

@@ -16,7 +16,7 @@ const G = from64('bmV3cy5nb29nbGUuY29t');
 
 const makeIvLink = async (urlParam, paramsObj) => {
   if (paramsObj.db) {
-    const exist = await db.get(urlParam);
+    const exist = await db.getIV(urlParam);
     if (exist) {
       logger('from db');
       exist.isLong = exist.p;
@@ -49,7 +49,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
     res.p = pages;
   }
   if (paramsObj.db) {
-    //await db.updateOne({url, ...res});
+    await db.updateOne({url, ...res});
   }
 
   res.isLong = res.p;
@@ -94,7 +94,6 @@ const isText = async (urlParam, q) => {
     const {url: newUrl, headers} = r;
     url = newUrl;
     const contentType = headers.get('content-type') || '';
-    //logger(contentType);
     startsText = contentType.startsWith('text/');
   } catch (e) {
     //
