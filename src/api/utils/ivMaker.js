@@ -17,7 +17,7 @@ const G = from64('bmV3cy5nb29nbGUuY29t');
 const makeIvLink = async (urlParam, paramsObj) => {
   if (paramsObj.db) {
     const exist = await db.getIV(urlParam);
-    if (exist) {
+    if (exist && exist.iv) {
       logger('from db');
       exist.isLong = exist.p;
       return exist;

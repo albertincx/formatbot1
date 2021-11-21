@@ -16,8 +16,8 @@ const rabbitmq = require('../../../service/rabbitmq');
 const group = process.env.TGGROUP;
 
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
-const IV_CHAN_ID = +(process.env.IV_CHAN_ID);
-const IV_CHAN_MID = +(process.env.IV_CHAN_MID);
+const IV_CHAN_ID = +process.env.IV_CHAN_ID;
+const IV_CHAN_MID = +process.env.IV_CHAN_MID;
 const USERIDS = (process.env.USERIDS || '').split(',');
 
 rabbitmq.startChannel();
@@ -27,7 +27,7 @@ for (let i = 1; i < 10; i += 1) {
   if (process.env[`SUP_LINK${i}`]) {
     supportLinks.push(process.env[`SUP_LINK${i}`]);
   }
-};
+}
 
 const support = async (ctx, botHelper) => {
   let system = JSON.stringify(ctx.message.from);
@@ -45,7 +45,7 @@ const support = async (ctx, botHelper) => {
       disable_web_page_preview: true,
       parse_mode: 'Markdown',
     });
-    
+
     if (IV_CHAN_MID) {
       botHelper.forward(IV_CHAN_MID, IV_CHAN_ID * -1, chatId);
     }
@@ -79,6 +79,7 @@ const startOrHelp = (ctx, botHelper) => {
     system = `${e}${system}`;
   }
 
+  // eslint-disable-next-line consistent-return
   return botHelper.sendAdmin(system);
 };
 
@@ -139,7 +140,7 @@ const format = (bot, botHelper) => {
     const res = {
       type: 'article',
       id,
-      title: "Waiting for InstantView... Type 'Space' to check",
+      title: "Waiting for InstantView... Type 'Any symbol' to check",
       input_message_content: {message_text: links[0]},
     };
     if (!exist) {
@@ -437,7 +438,9 @@ const format = (bot, botHelper) => {
             ivLink,
           })
           .then(() => db.removeInline(link))
-          .catch(() => {});
+          .catch(() => {
+            db.removeInline(link);
+          });
       } else {
         if (isChanMesId) {
           let toDelete = messageId;

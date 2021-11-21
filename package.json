@@ -42,7 +42,7 @@
     "jsdom": "^16.7.0",
     "lodash": "^4.17.21",
     "mongoose": "^5.13.5",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.5",
     "nodemon": "^2.0.12",
     "puppeteer": "^10.2.0",
     "sanitize-html": "^2.4.0",
