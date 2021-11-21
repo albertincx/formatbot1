@@ -57,4 +57,4 @@ count.txt
 
 .now
 distr/*
-src/test.js
+src/tests/*
