@@ -14,6 +14,7 @@ const {validRegex} = require('../../../config/config.json');
 const rabbitmq = require('../../../service/rabbitmq');
 
 const group = process.env.TGGROUP;
+const groupBugs = process.env.TGGROUPBUGS;
 
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 const IV_CHAN_ID = +process.env.IV_CHAN_ID;
@@ -388,7 +389,9 @@ const format = (bot, botHelper) => {
           });
           await Promise.race([ivTimer, ivTask]).then(value => {
             if (value === 'timedOut') {
-              botHelper.sendAdmin(`timedOut ${link}`, process.env.TGGROUPBUGS);
+              if (groupBugs) {
+                botHelper.sendAdmin(`timedOut ${link}`, groupBugs);
+              }
               timeOutLink = true;
             } else {
               linkData = value;
@@ -462,7 +465,9 @@ const format = (bot, botHelper) => {
         const text = `${mark ? `${mark} ` : ''}${RESULT}${
           q ? ` from ${q}` : ''
         }\n${t}`;
-        botHelper.sendAdminMark(text, group).catch(() => {});
+        if (group) {
+          botHelper.sendAdminMark(text, group).catch(() => {});
+        }
       }
     } catch (e) {
       logger(e);
@@ -477,7 +482,9 @@ const format = (bot, botHelper) => {
           .sendAdminOpts(error, keyboards.resolvedBtn(resolveMsgId, chatId))
           .catch(() => {});
       } else {
-        botHelper.sendAdmin(error, process.env.TGGROUPBUGS).catch(() => {});
+        if (groupBugs) {
+          botHelper.sendAdmin(error, groupBugs).catch(() => {});
+        }
       }
     }
   };
