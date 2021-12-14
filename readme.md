@@ -29,4 +29,4 @@ bash dev-install.txt
 npm install
 npm run dev
 ```
-Wiki [Instruction to run](https://github.com/albertincx/formatbot1/wiki/How-to-RUN)
+### Wiki [Instruction to run](https://github.com/albertincx/formatbot1/wiki/How-to-RUN)
