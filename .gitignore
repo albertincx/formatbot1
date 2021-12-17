@@ -15,7 +15,7 @@ npm-debug.log*
 
 # Documentation
 docs
-
+.test
 # Runtime data
 pids
 *.pid

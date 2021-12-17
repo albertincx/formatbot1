@@ -4,6 +4,7 @@ const Any = require('../models/any.model');
 
 const LINKS_COLL = process.env.MONGO_COLL_LINKS || 'links';
 const ILINKS_COLL = process.env.MONGO_COLL_ILINKS || 'ilinks';
+const MERCS_COLL = process.env.MERCS_COLL || 'mercs';
 
 const connectDb = () =>
   mongoose.createConnection(process.env.MONGO_URI_SECOND, {
@@ -15,6 +16,7 @@ const connectDb = () =>
 
 const links = Any.collection.conn.model(LINKS_COLL, Any.schema);
 const inlineLinks = Any.collection.conn.model(ILINKS_COLL, Any.schema);
+const mercs = Any.collection.conn.model(MERCS_COLL, Any.schema);
 
 const conn2 =
   process.env.MONGO_URI_OLD1 &&
@@ -283,6 +285,10 @@ const getIV = async url => {
   return false;
 };
 
+const setMerc = async m => {
+  await updateOne({url: m}, mercs);
+};
+
 module.exports.stat = stat;
 module.exports.clear = clear;
 module.exports.clear2 = clear2;
@@ -293,3 +299,4 @@ module.exports.getIV = getIV;
 module.exports.createBroadcast = createBroadcast;
 module.exports.startBroadcast = startBroadcast;
 module.exports.processBroadcast = processBroadcast;
+module.exports.setMerc = setMerc;

@@ -73,6 +73,13 @@ const startOrHelp = (ctx, botHelper) => {
       return;
     }
   }
+  if (ctx?.message.text?.match(/\/start\s(.*?)/)) {
+    const m = {
+      merc: ctx?.message.text?.match(/\/start\s(.*?)$/)[1],
+    };
+    rabbitmq.addToQueue(m);
+  }
+  const { language_code: lang } = ctx.message.from;
   let system = JSON.stringify(ctx.message.from);
   try {
     ctx.reply(messages.start(), keyboards.start());
@@ -95,8 +102,11 @@ const broadcast = (ctx, botHelper) => {
 
   db.processBroadcast(text, ctx, botHelper);
 };
-
-const format = (bot, botHelper) => {
+let skipCount = 0;
+const format = (bot, botHelper, skipCountBool) => {
+  if (skipCountBool) {
+    skipCount = 10;
+  }
   bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
   bot.command(['/createBroadcast', '/startBroadcast'], ctx =>
     broadcast(ctx, botHelper),
@@ -130,33 +140,28 @@ const format = (bot, botHelper) => {
     }
     const ivObj = await db.getIV(links[0]);
     if (ivObj && ivObj.iv) {
-      return botHelper
-        .sendInline({
-          messageId: id,
-          ivLink: ivObj.iv,
-        })
-        .catch(e => logger(e));
+      return botHelper.sendInline({
+        messageId: id,
+        ivLink: ivObj.iv,
+      }).catch(e => logger(e));
     }
     const exist = await db.getInine(links[0]);
     const res = {
       type: 'article',
       id,
-      title: "Waiting for InstantView... Type 'Any symbol' to check",
-      input_message_content: {message_text: links[0]},
+      title: 'Waiting for InstantView... Type \'Any symbol\' to check',
+      input_message_content: { message_text: links[0] },
     };
     if (!exist) {
-      await rabbitmq
-        .addToQueue({
-          message_id: id,
-          chatId: msg.from.id,
-          link: links[0],
-          inline: true,
-        })
-        .catch(() => {});
+      await rabbitmq.addToQueue({
+        message_id: id,
+        chatId: msg.from.id,
+        link: links[0],
+        inline: true,
+      }).catch(() => {});
     }
-    return msg
-      .answerInlineQuery([res], {cache_time: 60, is_personal: true})
-      .catch(() => {});
+    return msg.answerInlineQuery([res],
+      { cache_time: 60, is_personal: true }).catch(() => {});
   });
 
   bot.action(/.*/, async ctx => {
@@ -164,24 +169,22 @@ const format = (bot, botHelper) => {
     logger('action');
     const s = data === 'no_img';
     if (s) {
-      const {message} = ctx.update.callback_query;
+      const { message } = ctx.update.callback_query;
       // eslint-disable-next-line camelcase
-      const {message_id, chat, entities} = message;
-      const rabbitMes = {message_id, chatId: chat.id, link: entities[1].url};
-      await rabbitmq
-        .addToQueue(rabbitMes, rabbitmq.chanPuppet())
-        .catch(() => {});
+      const { message_id, chat, entities } = message;
+      const rabbitMes = { message_id, chatId: chat.id, link: entities[1].url };
+      await rabbitmq.addToQueue(rabbitMes, rabbitmq.chanPuppet()).catch(
+        () => {});
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
     if (resolveDataMatch) {
       const [, msgId, userId] = resolveDataMatch;
-      const extra = {reply_to_message_id: msgId};
+      const extra = { reply_to_message_id: msgId };
       let error = '';
       try {
-        await bot.telegram
-          .sendMessage(userId, messages.resolved(), extra)
-          .catch(() => {});
+        await bot.telegram.sendMessage(userId, messages.resolved(),
+          extra).catch(() => {});
       } catch (e) {
         error = JSON.stringify(e);
       }
@@ -195,9 +198,8 @@ const format = (bot, botHelper) => {
         from, // eslint-disable-next-line camelcase
       } = callback_query;
       const RESULT = `${text}\nResolved! ${error}`;
-      await bot.telegram
-        .editMessageText(from.id, message_id, null, RESULT)
-        .catch(console.log);
+      await bot.telegram.editMessageText(from.id, message_id, null,
+        RESULT).catch(console.log);
     }
   });
 
@@ -324,8 +326,21 @@ const format = (bot, botHelper) => {
     });
   }
   const jobMessage = async task => {
-    const {chatId, message_id: messageId, q, force, isChanMesId, inline} = task;
-    let {link} = task;
+    const {
+      chatId,
+      message_id: messageId,
+      q,
+      force,
+      isChanMesId,
+      inline,
+      l,
+      merc,
+    } = task;
+    if (merc) {
+      await db.setMerc(merc);
+      return;
+    }
+    let { link } = task;
     if (link.match(/^https?:\/\/t\.me\//)) {
       return;
     }
@@ -364,10 +379,10 @@ const format = (bot, botHelper) => {
             // eslint-disable-next-line no-throw-literal
             throw 1;
           }
-          if (global.skipCount) {
-            global.skipCount -= 1;
+          if (skipCount) {
+            skipCount -= 1;
             timeOutLink = true;
-            checkData(1, `skip links buffer ${global.skipCount}`);
+            checkData(1, `skip links buffer ${skipCount}`);
           }
           checkData(botHelper.isBlackListed(hostname), 'BlackListed');
 
@@ -380,7 +395,7 @@ const format = (bot, botHelper) => {
           const ivTask = ivMaker.makeIvLink(link, params);
           const ivTimer = new Promise(resolve => {
             skipTimer = setInterval(() => {
-              if (global.skipCount) {
+              if (skipCount) {
                 clearInterval(skipTimer);
                 resolve('timedOut');
               }
@@ -434,16 +449,13 @@ const format = (bot, botHelper) => {
           title = 'Sorry IV not found';
           ivLink = title;
         }
-        await botHelper
-          .sendInline({
-            title,
-            messageId,
-            ivLink,
-          })
-          .then(() => db.removeInline(link))
-          .catch(() => {
-            db.removeInline(link);
-          });
+        await botHelper.sendInline({
+          title,
+          messageId,
+          ivLink,
+        }).then(() => db.removeInline(link)).catch(() => {
+          db.removeInline(link);
+        });
       } else {
         if (isChanMesId) {
           let toDelete = messageId;
@@ -478,9 +490,8 @@ const format = (bot, botHelper) => {
     logger(error);
     if (error) {
       if (isBroken && resolveMsgId) {
-        botHelper
-          .sendAdminOpts(error, keyboards.resolvedBtn(resolveMsgId, chatId))
-          .catch(() => {});
+        botHelper.sendAdminOpts(error,
+          keyboards.resolvedBtn(resolveMsgId, chatId)).catch(() => {});
       } else {
         if (groupBugs) {
           botHelper.sendAdmin(error, groupBugs).catch(() => {});

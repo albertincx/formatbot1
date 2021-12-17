@@ -8,6 +8,11 @@ global.skipCount = 0;
 const filepath = 'count.txt';
 if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, '0');
 
+const skipCountFile = '.test';
+let skipCount;
+if (fs.existsSync(skipCountFile)) {
+  skipCount = +`${fs.readFileSync(skipCountFile)}`.replace('SKIP_ITEMS=', '');
+}
 let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
 const botRoute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
@@ -85,7 +90,7 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  format(bot, botHelper);
+  format(bot, botHelper, skipCount);
   bot.launch();
 
   if (startCnt % 10 === 0 || process.env.DEV) {
