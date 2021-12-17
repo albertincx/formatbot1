@@ -1,12 +1,10 @@
 const fs = require('fs');
-const express = require('express');
 const BotHelper = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
 
 global.skipCount = 0;
 
-const router = express.Router();
 const filepath = 'count.txt';
 if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, '0');
 
@@ -61,6 +59,17 @@ const botRoute = (bot, conn) => {
     }
   });
 
+  bot.command('cleardb2', async ctx => {
+    if (botHelper.isAdmin(ctx.message.chat.id)) {
+      const r = await db.clear2(ctx.message);
+      try {
+        ctx.reply(r);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
+    }
+  });
+
   bot.command('srv', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.sendAdmin(`srv: ${JSON.stringify(message)}`);
@@ -85,8 +94,8 @@ const botRoute = (bot, conn) => {
   startCnt += 1;
   if (startCnt >= 500) startCnt = 0;
 
-  fs.writeFileSync(filepath, startCnt);
-  return {router, bot: botHelper};
+  fs.writeFileSync(filepath, parseInt(startCnt, 10).toString());
+  return {bot: botHelper};
 };
 
 module.exports = botRoute;
