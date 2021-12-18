@@ -31,6 +31,8 @@ const puppet = async (url, params) => {
   if (!ws) {
     return Promise.resolve('');
   }
+  logger('puppet start');
+  logger(new Date());
   try {
     logger(url);
     const browser = await puppeteer.connect({browserWSEndpoint: ws});
@@ -57,6 +59,8 @@ const puppet = async (url, params) => {
       logger('wait 2');
       const content = await page.content();
       await page.close();
+      logger('puppet end');
+      logger(new Date());
       return content;
     }
   } catch (e) {
