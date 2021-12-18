@@ -278,6 +278,9 @@ const format = (bot, botHelper, skipCountBool) => {
           if (link.match(/^https?:\/\/t\.me\//)) {
             return;
           }
+          if (link.match(/yandex.ru\/showcap/)) {
+            return;
+          }
           if (!parsed.pathname) {
             return;
           }
