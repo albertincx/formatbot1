@@ -37,7 +37,9 @@ const puppet = async (url, params) => {
     logger(url);
     const browser = await puppeteer.connect({browserWSEndpoint: ws});
     const page = await browser.newPage();
-    const status = await page.goto(url, {waitUntil: 'load', timeout: 30000});
+    const status = await page
+      .goto(url, {waitUntil: 'load', timeout: 30000})
+      .catch(() => page.close().then(() => page.content()));
     if (!status.ok) {
       logger('cannot open google.com');
     } else {

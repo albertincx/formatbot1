@@ -158,7 +158,7 @@ class ParseHelper {
   log(content, file) {
     if (process.env.DEV || this.params.isadmin) {
       if (file) {
-        fs.writeFileSync(`.conf/${file}`, content);
+        fs.writeFileSync(`.conf/${file}`, String(content));
       } else {
         console.log(content);
       }
