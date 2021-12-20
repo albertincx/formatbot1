@@ -25,6 +25,9 @@ const makeIvLink = async (urlParam, paramsObj) => {
   }
 
   const url = toUrl(urlParam);
+  if (url.match(/yandex\.ru\/showcap/)) {
+    throw new Error('unsupported');
+  }
   const {access_token: accessToken, ...params} = paramsObj;
   const authorUrl = `${url}`;
   const parseHelper = new ParseHelper(url, params);
