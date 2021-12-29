@@ -288,6 +288,7 @@ const getIV = async url => {
 const setMerc = async m => {
   await updateOne({url: m}, mercs);
 };
+const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: 1}});
 
 module.exports.stat = stat;
 module.exports.clear = clear;
@@ -300,3 +301,4 @@ module.exports.createBroadcast = createBroadcast;
 module.exports.startBroadcast = startBroadcast;
 module.exports.processBroadcast = processBroadcast;
 module.exports.setMerc = setMerc;
+module.exports.checkTimeFromLast = checkTimeFromLast;
