@@ -396,8 +396,8 @@ const format = (bot, botHelper, skipCountBool) => {
           // logger(params);
           await timeout(0.2);
           const ivTask = ivMaker.makeIvLink(link, params);
-		const isAdm = botHelper.isAdmin(chatId);
-let ivmt = isAdm ? 120 : IV_MAKING_TIMEOUT;
+		  const isAdm = botHelper.isAdmin(chatId);
+          let ivmt = isAdm ? 120 : IV_MAKING_TIMEOUT;
 
           const ivTimer = new Promise(resolve => {
             skipTimer = setInterval(() => {
