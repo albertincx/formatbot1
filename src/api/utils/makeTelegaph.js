@@ -18,7 +18,7 @@ function lengthInUtf8Bytes(str) {
 const makeTelegraphLink = async (obj, content) => {
   logger(`access ${obj.access_token}`);
   const body = Object.assign(obj, {
-    author_name: 'Source',
+    // author_name: 'Source',
     return_content: false,
     content,
   });
@@ -71,10 +71,13 @@ const makeTelegaphMany = async (obj, domObj, chunksLen) => {
   if (dom.length === 1) {
     dom = dom[0].children;
   }
-  const partsLen = Math.ceil(dom.length / chunksLen);
-  const parts = chunk(dom, partsLen);
   let link = '';
+  if (!dom || dom.length === 0) {
+    return link;
+  }
   try {
+    const partsLen = Math.ceil(dom.length / chunksLen);
+    const parts = chunk(dom, partsLen);
     for (let i = parts.length - 1; i > 0; i -= 1) {
       const domed = parts[i];
       // eslint-disable-next-line no-await-in-loop
@@ -125,7 +128,6 @@ const makeTelegaph = async (objParam, parsedHtml) => {
   const bytes = lengthInUtf8Bytes(content);
   logger(content, 'domed.json');
   logger(`length ${parsedHtml.length}`);
-  logger(`bytes ${bytes}`);
   let isLong = false;
   pages = 0;
   if (content && content.length) {

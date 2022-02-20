@@ -44,7 +44,7 @@ const support = async (ctx, botHelper) => {
     await ctx.reply(messages.support(supportLinks), {
       hide,
       disable_web_page_preview: true,
-      parse_mode: 'Markdown',
+      parse_mode: botHelper.markdown(),
     });
 
     if (IV_CHAN_MID) {
@@ -270,7 +270,7 @@ const format = (bot, botHelper, skipCountBool) => {
           if (link.match(new RegExp(validRegex))) {
             ctx
               .reply(messages.showIvMessage('', link, link), {
-                parse_mode: 'Markdown',
+                parse_mode: botHelper.markdown(),
               })
               .catch(e => botHelper.sendError(e));
             return;
@@ -444,7 +444,7 @@ const format = (bot, botHelper, skipCountBool) => {
         error = `broken ${link} ${e}`;
       }
       const t = rabbitmq.time(q);
-      const extra = {parse_mode: 'Markdown'};
+      const extra = {parse_mode: botHelper.markdown()};
       const messageText = `${TITLE}${RESULT}`;
       if (inline) {
         let title = '';

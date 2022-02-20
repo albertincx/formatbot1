@@ -3,6 +3,9 @@ const fs = require('fs');
 const TG_ADMIN = parseInt(process.env.TGADMIN, 10);
 const OFF = 'Off';
 const ON = 'On';
+
+const PARSE_MODE_MARK = 'Markdown';
+
 const INLINE_TITLE = 'InstantView created. Click me to send';
 
 class BotHelper {
@@ -25,7 +28,7 @@ class BotHelper {
   botMes(chatId, text, mark = true) {
     let opts = {};
     if (mark) {
-      opts = {parse_mode: 'Markdown'};
+      opts = {parse_mode: PARSE_MODE_MARK};
     }
     return this.bot
       .sendMessage(chatId, text, opts)
@@ -38,7 +41,7 @@ class BotHelper {
     let opts = {};
     if (mark === true) {
       opts = {
-        parse_mode: 'Markdown',
+        parse_mode: PARSE_MODE_MARK,
         disable_web_page_preview: true,
       };
     }
@@ -202,13 +205,22 @@ class BotHelper {
   }
 
   sendIV(chatId, messageId, inlineMessageId, messageText, extra) {
+    let text = messageText;
+    if (extra && extra.parse_mode === PARSE_MODE_MARK) {
+      text = text.replace(/[*`]/gi, '');
+    }
     return this.bot
-      .editMessageText(chatId, messageId, inlineMessageId, messageText, extra)
+      .editMessageText(chatId, messageId, inlineMessageId, text, extra)
       .catch(() => {});
   }
 
   delMessage(chatId, messageId) {
     return this.bot.deleteMessage(chatId, messageId).catch(() => {});
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  markdown() {
+    return PARSE_MODE_MARK;
   }
 }
 

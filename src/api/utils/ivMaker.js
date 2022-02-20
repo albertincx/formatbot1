@@ -38,6 +38,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
   const obj = {title, access_token: accessToken};
   if (authorUrl.length <= 255) {
     obj.author_url = authorUrl;
+    obj.author_name = authorUrl.substring(0, 127);
   }
   const tgRes = await makeTelegaph(obj, content);
   const {telegraphLink, pages} = tgRes;
