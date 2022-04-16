@@ -18,7 +18,6 @@ function cron(crontime, tasks, botHelper) {
       try {
         // eslint-disable-next-line global-require,import/no-dynamic-require
         const microtasks = require(`./service/commands/${taskName}`);
-        // eslint-disable-next-line no-await-in-loop
         await microtasks.run({cronJob: crontime}, botHelper);
       } catch (e) {
         if (process.env.DEV) {

@@ -56,7 +56,7 @@ class BotHelper {
 
   sendAdminOpts(text, opts) {
     const chatId = process.env.TGGROUPBUGS || TG_ADMIN;
-    return this.bot.sendMessage(chatId, text, opts);
+    return this.bot.sendMessage(chatId, text, opts).catch(() => {});
   }
 
   sendInline({title, messageId, ivLink}) {
@@ -197,11 +197,11 @@ class BotHelper {
   }
 
   isBlackListed(h) {
-    return this.bllist.match(h);
+    return this.bllist && this.bllist.match(h);
   }
 
   forward(mid, from, to) {
-    return this.bot.forwardMessage(to, from, mid);
+    return this.bot.forwardMessage(to, from, mid).catch(() => {});
   }
 
   sendIV(chatId, messageId, inlineMessageId, messageText, extra) {

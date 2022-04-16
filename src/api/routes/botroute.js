@@ -17,9 +17,10 @@ let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
 const botRoute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {
-    conn.on('error', () => {
-      botHelper.disDb();
-    });
+    botHelper.disDb();
+    // conn.on('error', () => {
+    //   botHelper.disDb();
+    // });
   } else {
     botHelper.disDb();
   }
@@ -49,6 +50,9 @@ const botRoute = (bot, conn) => {
 
   bot.command('stat', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
+      if (!botHelper.db) {
+        return ctx.reply('db off');
+      }
       db.stat().then(r => ctx.reply(r).catch(e => botHelper.sendError(e)));
     }
   });

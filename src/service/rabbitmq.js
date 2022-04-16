@@ -83,7 +83,11 @@ const run = async (job, qName) => {
       const content = message.content.toString();
       const task = JSON.parse(content);
       if (queueName !== TASKS_CHANNEL) task.q = queueName;
-      await job(task);
+      try {
+        await job(task);
+      } catch (e) {
+        // console.log(e);
+      }
       channel.ack(message);
     });
   } catch (e) {
@@ -155,10 +159,14 @@ const addToQueue = async (task, qName = TASKS_CHANNEL) => {
       queueName = chanSecond();
     }
     logger(el);
-    await rchannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
-      contentType: 'application/json',
-      persistent: true,
-    });
+    try {
+      await rchannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
+        contentType: 'application/json',
+        persistent: true,
+      });
+    } catch (e) {
+      //
+    }
   }
 };
 const addToQueueFile = async task => addToQueue(task, FILES_CHANNEL);
