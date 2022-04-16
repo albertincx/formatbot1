@@ -351,6 +351,8 @@ const format = (bot, botHelper, skipCountBool) => {
     const resolveMsgId = false;
     let ivLink = '';
     let skipTimer = 0;
+    let timeoutRes;
+
     try {
       let RESULT;
       let TITLE = '';
@@ -372,6 +374,8 @@ const format = (bot, botHelper, skipCountBool) => {
         if (!isText) {
           isFile = true;
         } else {
+          const isAdm = botHelper.isAdmin(chatId);
+          const IV_LIMIT = isAdm ? 120 : IV_MAKING_TIMEOUT;
           const {hostname} = url.parse(link);
           checkData(hostname.match('djvu'));
           clearInterval(skipTimer);
@@ -390,12 +394,8 @@ const format = (bot, botHelper, skipCountBool) => {
           params = {...params, ...botParams};
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
-          // logger(params);
           await timeout(0.2);
           const ivTask = ivMaker.makeIvLink(link, params);
-		  const isAdm = botHelper.isAdmin(chatId);
-          let ivmt = isAdm ? 120 : IV_MAKING_TIMEOUT;
-
           const ivTimer = new Promise(resolve => {
             skipTimer = setInterval(() => {
               if (skipCount) {
@@ -403,7 +403,7 @@ const format = (bot, botHelper, skipCountBool) => {
                 resolve('timedOut');
               }
             }, 1000);
-            setTimeout(resolve, ivmt * 1000, 'timedOut');
+            timeoutRes = setTimeout(resolve, IV_LIMIT * 1000, 'timedOut');
           });
           await Promise.race([ivTimer, ivTask]).then(value => {
             if (value === 'timedOut') {
@@ -416,6 +416,7 @@ const format = (bot, botHelper, skipCountBool) => {
             }
           });
           clearInterval(skipTimer);
+          clearTimeout(timeoutRes);
         }
         if (isFile) {
           RESULT = messages.isLooksLikeFile(link);
@@ -490,6 +491,7 @@ const format = (bot, botHelper, skipCountBool) => {
         e,
       )} ${e.toString()} ${chatId} ${messageId}`;
     }
+    clearTimeout(timeoutRes);
     if (error) {
       logger('error = ', error);
       if (isBroken && resolveMsgId) {
