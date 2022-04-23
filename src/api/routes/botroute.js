@@ -114,7 +114,9 @@ const botRoute = (bot, conn) => {
       botHelper.sendAdmin(`skipCount is ${global.skipCount}`);
     }
   });
-
+  process.on('unhandledRejection', (reason, p) => {
+    botHelper.sendAdmin(`unhandledRejection: ${reason}`);
+  });
   format(bot, botHelper, skipCount);
   bot.launch();
 
