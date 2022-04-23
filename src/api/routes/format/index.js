@@ -78,7 +78,7 @@ const startOrHelp = (ctx, botHelper) => {
     };
     rabbitmq.addToQueue(m);
   }
-  const { language_code: lang } = ctx.message.from;
+  // const { language_code: lang } = ctx.message.from;
   let system = JSON.stringify(ctx.message.from);
   try {
     ctx.reply(messages.start(), keyboards.start());
@@ -216,7 +216,7 @@ const format = (bot, botHelper, skipCountBool) => {
       }
       let isChanMesId = false;
       if (update && update.channel_post) {
-        logger('chp');
+
         message = update.channel_post;
       }
 
@@ -258,7 +258,7 @@ const format = (bot, botHelper, skipCountBool) => {
           }
           link = getLink(links);
           if (!link) {
-            logger('no link');
+            // logger('no link');
             return;
           }
           const parsed = url.parse(link);
@@ -289,7 +289,7 @@ const format = (bot, botHelper, skipCountBool) => {
           const messageId = res && res.message_id;
           await timeout(0.1);
           if (!messageId) {
-            logger('no messageId');
+            // logger('no messageId');
             return;
           }
           const rabbitMes = {
@@ -335,7 +335,6 @@ const format = (bot, botHelper, skipCountBool) => {
       force,
       isChanMesId,
       inline,
-      l,
       merc,
     } = task;
     if (merc) {
@@ -369,7 +368,7 @@ const format = (bot, botHelper, skipCountBool) => {
         }
         rabbitmq.time(q, true);
         link = ivMaker.parse(link);
-        const {isText, url: baseUrl} = await ivMaker.isText(link, force).catch(() => {isText: false});
+        const {isText, url: baseUrl} = await ivMaker.isText(link, force).catch(() => ({isText: false}));
         if (baseUrl !== link) link = baseUrl;
         if (!isText) {
           isFile = true;

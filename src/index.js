@@ -1,4 +1,5 @@
 const express = require('express');
+require('trace-unhandled/register');
 
 const {PORT, blacklistFile} = require('./config/vars');
 const mongoose = require('./config/mongoose');

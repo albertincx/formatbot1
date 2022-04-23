@@ -14,6 +14,7 @@ if (fs.existsSync(skipCountFile)) {
   skipCount = +`${fs.readFileSync(skipCountFile)}`.replace('SKIP_ITEMS=', '');
 }
 let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
+let limit90Sec = 0;
 const botRoute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {
@@ -24,6 +25,21 @@ const botRoute = (bot, conn) => {
   } else {
     botHelper.disDb();
   }
+
+  bot.catch(e => {
+    if (limit90Sec > 5) {
+      // restart app
+      const spawn = require('child_process').spawn;
+      spawn('pm2', ['restart', 'Format'],
+          { stdio: 'ignore', detached: true }).unref();
+      return;
+    }
+    if (`${e}`.match('out after 90000 milliseconds')) {
+      limit90Sec += 1;
+    }
+    botHelper.sendError(`${e} Unhandled`);
+  });
+
   bot.command('config', ({message}) => {
     if (botHelper.isAdmin(message.chat.id)) {
       botHelper.toggleConfig(message);
