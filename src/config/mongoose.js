@@ -3,7 +3,7 @@ const {mongo} = require('./vars');
 
 exports.connect = uri => {
   const dbUri = uri || mongo.uri;
-  if (!dbUri) {
+  if (!dbUri || mongo.disabled) {
     return false;
   }
   mongoose.connect(dbUri, {

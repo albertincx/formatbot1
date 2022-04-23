@@ -2,16 +2,13 @@ const express = require('express');
 require('trace-unhandled/register');
 
 const {PORT, blacklistFile} = require('./config/vars');
-const mongoose = require('./config/mongoose');
 const botRoute = require('./api/routes/botroute');
 const botInstance = require('./config/bot');
 const api = require('./api/routes/api');
-
-const conn = mongoose.connect();
+const conn = require('./config/mongoose').connect();
 const app = express();
 
 app.use(api);
-
 if (process.env.TBTKN && botInstance) {
   const {bot} = botRoute(botInstance, conn);
   bot.setBlacklist(blacklistFile);

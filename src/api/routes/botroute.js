@@ -18,10 +18,9 @@ let limit90Sec = 0;
 const botRoute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {
-    botHelper.disDb();
-    // conn.on('error', () => {
-    //   botHelper.disDb();
-    // });
+    conn.on('error', () => {
+      botHelper.disDb();
+    });
   } else {
     botHelper.disDb();
   }
@@ -114,7 +113,7 @@ const botRoute = (bot, conn) => {
       botHelper.sendAdmin(`skipCount is ${global.skipCount}`);
     }
   });
-  process.on('unhandledRejection', (reason, p) => {
+  process.on('unhandledRejection', reason => {
     botHelper.sendAdmin(`unhandledRejection: ${reason}`);
   });
   format(bot, botHelper, skipCount);

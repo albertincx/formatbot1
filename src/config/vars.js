@@ -1,7 +1,6 @@
 const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv-safe');
-// test
 const envPath = path.join(__dirname, '../../.env');
 
 const confFile = path.join(__dirname, '../../.conf');
@@ -28,6 +27,7 @@ module.exports = {
   uploadDir: cacheFile,
   mongo: {
     uri: process.env.MONGO_URI,
+    disabled: process.env.DB_DISABLED === '1',
   },
   blacklistFile,
 };
