@@ -1,5 +1,5 @@
 {
-  "name": "InstantViewBot",
+  "name": "instantviewbot",
   "version": "1.2.0",
   "description": "Telegram Bot For InstantView",
   "author": "Al <albertincx@gmail.com>",
@@ -51,6 +51,7 @@
     "statuses": "^2.0.1",
     "sync-request": "^6.1.0",
     "telegraf": "^4.4.1",
+    "trace-unhandled": "^2.0.1",
     "wget-improved": "^3.2.1"
   },
   "devDependencies": {

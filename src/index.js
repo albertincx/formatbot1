@@ -2,7 +2,7 @@ const express = require('express');
 require('trace-unhandled/register');
 
 const {PORT, blacklistFile} = require('./config/vars');
-const mongoose = require('./config/mongoose');
+require('./config/mongoose');
 const botRoute = require('./api/routes/botroute');
 const botInstance = require('./config/bot');
 const api = require('./api/routes/api');
