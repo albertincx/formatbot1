@@ -177,7 +177,7 @@ class BotHelper {
 
   sendError(error, text = '') {
     let e = error;
-    if (typeof e === 'object') {
+    if (typeof e === 'object' && !global.isDevEnabled) {
       if (e.response && typeof e.response === 'object') {
         e = e.response.description || 'unknown error';
       }
