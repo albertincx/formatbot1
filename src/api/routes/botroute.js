@@ -27,16 +27,17 @@ const botRoute = (bot, conn) => {
 
   bot.catch(e => {
     if (limit90Sec > 5) {
-      // restart app
-      const spawn = require('child_process').spawn;
-      spawn('pm2', ['restart', 'Format'],
-          { stdio: 'ignore', detached: true }).unref();
+      botHelper.sendError(`${e} Unhandled 90000 Restarted`);
+      setTimeout(() => {
+        botHelper.restartApp();
+      }, 4000)
       return;
     }
     if (`${e}`.match('out after 90000 milliseconds')) {
       limit90Sec += 1;
+    } else {
+      botHelper.sendError(`${e} Unhandled`);
     }
-    botHelper.sendError(`${e} Unhandled`);
   });
 
   bot.command('config', ({message}) => {
@@ -113,7 +114,18 @@ const botRoute = (bot, conn) => {
       botHelper.sendAdmin(`skipCount is ${global.skipCount}`);
     }
   });
+  bot.command('/restartApp', ({message}) => {
+    if (botHelper.isAdmin(message.from.id)) {
+      botHelper.restartApp();
+    }
+  });
   process.on('unhandledRejection', reason => {
+    if (`${reason}`.match('bot was blocked by the user')) {
+      return;
+    }
+    if (`${reason}`.match(BotHelper.BANNED_ERROR)) {
+      return;
+    }
     botHelper.sendAdmin(`unhandledRejection: ${reason}`);
   });
   format(bot, botHelper, skipCount);

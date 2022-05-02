@@ -35,9 +35,10 @@ const elapsedSec = q => {
 };
 const elapsedTime = (q = TASKS_CHANNEL) => {
   const startName = getStartName(q);
-  let elapsed = process.hrtime(starts[startName])[1] / 1000000;
-  elapsed = `${process.hrtime(starts[startName])[0]}s, ${elapsed.toFixed(0)}`;
-  return `${elapsed}ms ${q}`;
+  const elapsed = process.hrtime(starts[startName])[1] / 1000000;
+  const sec = process.hrtime(starts[startName])[0];
+  const ms = elapsed.toFixed(0);
+  return {durationTime: `${sec}s, ${ms}ms ${q}`, sec, ms, q};
 };
 const resetTime = (q = TASKS_CHANNEL) => {
   const startName = getStartName(q);
@@ -183,6 +184,8 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
   }
   return t;
 };
+const timeStart = (q) => time(q);
+
 module.exports.createChannel = createChannel;
 module.exports.startChannel = startChannel;
 module.exports.addToQueue = addToQueue;
@@ -194,3 +197,4 @@ module.exports.chanPuppet = chanPuppet;
 module.exports.getParams = getParams;
 module.exports.time = time;
 module.exports.run = run;
+module.exports.timeStart = timeStart;

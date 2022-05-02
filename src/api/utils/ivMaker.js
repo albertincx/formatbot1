@@ -20,6 +20,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
     if (exist && exist.iv) {
       logger('from db');
       exist.isLong = exist.p;
+      exist.isFromDb = true;
       return exist;
     }
   }

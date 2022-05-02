@@ -19,7 +19,8 @@ const groupBugs = process.env.TGGROUPBUGS;
 const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
 const IV_CHAN_ID = +process.env.IV_CHAN_ID;
 const IV_CHAN_MID = +process.env.IV_CHAN_MID;
-const USERIDS = (process.env.USERIDS || '').split(',');
+const USER_IDS = (process.env.USERIDS || '').split(',');
+const TIMEOUT_EXCEEDED = 'timedOut';
 
 rabbitmq.startChannel();
 global.lastIvTime = +new Date();
@@ -36,7 +37,7 @@ const support = async (ctx, botHelper) => {
     chat: {id: chatId},
   } = ctx.message;
 
-  if (USERIDS.length && USERIDS.includes(`${chatId}`)) {
+  if (USER_IDS.length && USER_IDS.includes(`${chatId}`)) {
     return;
   }
   try {
@@ -61,14 +62,14 @@ const startOrHelp = (ctx, botHelper) => {
     const {
       chat: {id: chatId},
     } = ctx.message;
-    if (USERIDS.length && USERIDS.includes(`${chatId}`)) {
+    if (USER_IDS.length && USER_IDS.includes(`${chatId}`)) {
       return;
     }
   } else {
     const {
       chat: {id: chatId},
     } = ctx.message;
-    if (USERIDS.length && USERIDS.includes(`${chatId}`)) {
+    if (USER_IDS.length && USER_IDS.includes(`${chatId}`)) {
       return;
     }
   }
@@ -102,6 +103,7 @@ const broadcast = (ctx, botHelper) => {
   db.processBroadcast(text, ctx, botHelper);
 };
 let skipCount = 0;
+global.emptyTextCount = 0;
 const format = (bot, botHelper, skipCountBool) => {
   if (skipCountBool) {
     skipCount = 10;
@@ -358,30 +360,28 @@ const format = (bot, botHelper, skipCountBool) => {
       let isFile = false;
       let linkData = '';
       let timeOutLink = false;
+      let ivFromDb = false;
       try {
-        logger(`db is ${botHelper.db}`);
         logger(`queue job ${q}`);
         let params = rabbitmq.getParams(q);
         const isAdm = botHelper.isAdmin(chatId);
         if (isAdm) {
           params.isadmin = true;
         }
-        rabbitmq.time(q, true);
+        rabbitmq.timeStart(q);
         link = ivMaker.parse(link);
         const {isText, url: baseUrl} = await ivMaker.isText(link, force).catch(() => ({isText: false}));
         if (baseUrl !== link) link = baseUrl;
         if (!isText) {
           isFile = true;
+          global.emptyTextCount = (global.emptyTextCount || 0) + 1;
         } else {
+          global.emptyTextCount = 0;
           const isAdm = botHelper.isAdmin(chatId);
           const IV_LIMIT = isAdm ? 120 : IV_MAKING_TIMEOUT;
           const {hostname} = url.parse(link);
           checkData(hostname.match('djvu'));
           clearInterval(skipTimer);
-          if (process.env.SKIP_ITEMS === '1') {
-            // eslint-disable-next-line no-throw-literal
-            throw 1;
-          }
           if (skipCount) {
             skipCount -= 1;
             timeOutLink = true;
@@ -399,13 +399,13 @@ const format = (bot, botHelper, skipCountBool) => {
             skipTimer = setInterval(() => {
               if (skipCount) {
                 clearInterval(skipTimer);
-                resolve('timedOut');
+                resolve(TIMEOUT_EXCEEDED);
               }
             }, 1000);
-            timeoutRes = setTimeout(resolve, IV_LIMIT * 1000, 'timedOut');
+            timeoutRes = setTimeout(resolve, IV_LIMIT * 1000, TIMEOUT_EXCEEDED);
           });
           await Promise.race([ivTimer, ivTask]).then(value => {
-            if (value === 'timedOut') {
+            if (value === TIMEOUT_EXCEEDED) {
               if (groupBugs) {
                 botHelper.sendAdmin(`timedOut ${link}`, groupBugs);
               }
@@ -425,7 +425,10 @@ const format = (bot, botHelper, skipCountBool) => {
         } else if (linkData.error) {
           RESULT = messages.brokenFile(linkData.error);
         } else {
-          const {iv, isLong, pages = '', ti: title = ''} = linkData;
+          const {iv, isLong, pages = '', ti: title = '', isFromDb = false} = linkData;
+          if (isFromDb) {
+            ivFromDb = true;
+          }
           ivLink = iv;
           const longStr = isLong ? `Long ${pages}` : '';
           TITLE = `${title}\n`;
@@ -443,7 +446,10 @@ const format = (bot, botHelper, skipCountBool) => {
         }
         error = `broken ${link} ${e}`;
       }
-      const t = rabbitmq.time(q);
+      const {durationTime} = rabbitmq.time(q);
+      if (global.emptyTextCount > 10) {
+        botHelper.sendAdmin('need to /restartApp');
+      }
       const extra = {parse_mode: botHelper.markdown()};
       const messageText = `${TITLE}${RESULT}`;
       if (inline) {
@@ -476,10 +482,13 @@ const format = (bot, botHelper, skipCountBool) => {
 
       if (!error) {
         let mark = inline ? 'i' : '';
-        if (isChanMesId) mark += 'c';
-        const text = `${mark ? `${mark} ` : ''}${RESULT}${
-          q ? ` from ${q}` : ''
-        }\n${t}`;
+        if (isChanMesId) {
+          mark += 'c';
+        }
+        if (ivFromDb) {
+          mark += ' db';
+        }
+        const text = `${mark}${RESULT}${q ? ` from ${q}` : ''}\n${durationTime}`;
         if (group) {
           botHelper.sendAdminMark(text, group);
         }

@@ -227,6 +227,12 @@ class BotHelper {
   markdown() {
     return PARSE_MODE_MARK;
   }
+  restartApp() {
+    const spawn = require('child_process').spawn;
+    spawn('pm2', ['restart', 'Format'],
+        { stdio: 'ignore', detached: true }).unref();
+  }
 }
 
 module.exports = BotHelper;
+module.exports.BANNED_ERROR = BANNED_ERROR;
