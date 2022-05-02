@@ -183,7 +183,7 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
   }
   return t;
 };
-const timeStart = (q) => time(q);
+const timeStart = (q) => time(q, true);
 
 module.exports.createChannel = createChannel;
 module.exports.startChannel = startChannel;
