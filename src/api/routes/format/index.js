@@ -446,7 +446,7 @@ const format = (bot, botHelper, skipCountBool) => {
         }
         error = `broken ${link} ${e}`;
       }
-      const {durationTime} = rabbitmq.time(q);
+      const durationTime = rabbitmq.time(q);
       if (global.emptyTextCount > 10) {
         botHelper.sendAdmin('need to /restartApp');
       }

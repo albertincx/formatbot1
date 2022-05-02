@@ -35,10 +35,9 @@ const elapsedSec = q => {
 };
 const elapsedTime = (q = TASKS_CHANNEL) => {
   const startName = getStartName(q);
-  const elapsed = process.hrtime(starts[startName])[1] / 1000000;
-  const sec = process.hrtime(starts[startName])[0];
-  const ms = elapsed.toFixed(0);
-  return {durationTime: `${sec}s, ${ms}ms ${q}`, sec, ms, q};
+  let elapsed = process.hrtime(starts[startName])[1] / 1000000;
+  elapsed = `${process.hrtime(starts[startName])[0]}s, ${elapsed.toFixed(0)}`;
+  return `${elapsed}ms ${q}`;
 };
 const resetTime = (q = TASKS_CHANNEL) => {
   const startName = getStartName(q);
