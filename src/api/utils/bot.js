@@ -190,11 +190,10 @@ class BotHelper {
       e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
     }
 
-    this.sendAdmin(e);
+    return this.sendAdmin(e);
   }
 
   disDb() {
-    console.log('db disabled');
     this.db = false;
   }
 
@@ -219,15 +218,15 @@ class BotHelper {
       .editMessageText(chatId, messageId, inlineMessageId, text, extra)
       .catch(() => {});
   }
-
   sendIVNew(chatId, messageText, extra) {
     let text = messageText;
     if (extra && extra.parse_mode === PARSE_MODE_MARK) {
       text = text.replace(/[*`]/gi, '');
     }
-    return this.bot.sendMessage(chatId, text, extra).catch(() => {});
+    return this.bot
+      .sendMessage(chatId, text, extra)
+      .catch(() => {});
   }
-
   delMessage(chatId, messageId) {
     return this.bot.deleteMessage(chatId, messageId).catch(() => {});
   }
@@ -236,25 +235,10 @@ class BotHelper {
   markdown() {
     return PARSE_MODE_MARK;
   }
-
-  // eslint-disable-next-line class-methods-use-this
   restartApp() {
-    const {spawn} = require('child_process');
-    spawn('pm2', ['restart', 'Format'], {
-      stdio: 'ignore',
-      detached: true,
-    }).unref();
-    this.sendAdmin('restarted');
-  }
-
-  gitPull() {
-    const {spawn} = require('child_process');
-    const gpull = spawn('git', ['pull']);
-    const rest = spawn('pm2', ['restart', 'Format']);
-    gpull.stdout.pipe(rest.stdin);
-    rest.stdout.on('data', data => {
-      this.sendAdmin(data);
-    });
+    const spawn = require('child_process').spawn;
+    spawn('pm2', ['restart', 'Format'],
+        { stdio: 'ignore', detached: true }).unref();
   }
 }
 
