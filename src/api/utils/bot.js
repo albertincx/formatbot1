@@ -218,7 +218,15 @@ class BotHelper {
       .editMessageText(chatId, messageId, inlineMessageId, text, extra)
       .catch(() => {});
   }
-
+  sendIVNew(chatId, messageText, extra) {
+    let text = messageText;
+    if (extra && extra.parse_mode === PARSE_MODE_MARK) {
+      text = text.replace(/[*`]/gi, '');
+    }
+    return this.bot
+      .sendMessage(chatId, text, extra)
+      .catch(() => {});
+  }
   delMessage(chatId, messageId) {
     return this.bot.deleteMessage(chatId, messageId).catch(() => {});
   }

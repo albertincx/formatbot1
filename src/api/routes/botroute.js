@@ -1,4 +1,5 @@
 const fs = require('fs');
+
 const BotHelper = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
@@ -6,15 +7,22 @@ const db = require('../utils/db');
 global.skipCount = 0;
 
 const filepath = 'count.txt';
-if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, '0');
+if (!fs.existsSync(filepath)) {
+  fs.writeFileSync(filepath, '0');
+}
 
 const skipCountFile = '.test';
+
 let skipCount;
+
 if (fs.existsSync(skipCountFile)) {
   skipCount = +`${fs.readFileSync(skipCountFile)}`.replace('SKIP_ITEMS=', '');
 }
+
 let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
+
 let limit90Sec = 0;
+
 const botRoute = (bot, conn) => {
   const botHelper = new BotHelper(bot.telegram);
   if (conn) {

@@ -23,8 +23,11 @@ const USER_IDS = (process.env.USERIDS || '').split(',');
 const TIMEOUT_EXCEEDED = 'timedOut';
 
 rabbitmq.startChannel();
+
 global.lastIvTime = +new Date();
+
 const supportLinks = [process.env.SUP_LINK];
+
 for (let i = 1; i < 10; i += 1) {
   if (process.env[`SUP_LINK${i}`]) {
     supportLinks.push(process.env[`SUP_LINK${i}`]);
@@ -361,6 +364,7 @@ const format = (bot, botHelper, skipCountBool) => {
       let linkData = '';
       let timeOutLink = false;
       let ivFromDb = false;
+      let successIv = false;
       try {
         logger(`queue job ${q}`);
         let params = rabbitmq.getParams(q);
@@ -433,6 +437,7 @@ const format = (bot, botHelper, skipCountBool) => {
           const longStr = isLong ? `Long ${pages}` : '';
           TITLE = `${title}\n`;
           RESULT = messages.showIvMessage(longStr, iv, `${link}`);
+          successIv = true;
         }
       } catch (e) {
         logger(e);
@@ -444,6 +449,7 @@ const format = (bot, botHelper, skipCountBool) => {
         } else {
           RESULT = messages.broken(link);
         }
+        successIv = false;
         error = `broken ${link} ${e}`;
       }
       const durationTime = rabbitmq.time(q);
@@ -474,7 +480,12 @@ const format = (bot, botHelper, skipCountBool) => {
           }
           await botHelper.delMessage(chatId, toDelete);
         } else {
-          await botHelper.sendIV(chatId, messageId, null, messageText, extra);
+          if (successIv) {
+            await botHelper.sendIVNew(chatId, messageText, extra);
+            await botHelper.delMessage(chatId, messageId);
+          } else {
+            await botHelper.sendIV(chatId, messageId, null, messageText, extra);
+          }
         }
 
         global.lastIvTime = +new Date();
