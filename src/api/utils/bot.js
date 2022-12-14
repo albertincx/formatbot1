@@ -194,6 +194,7 @@ class BotHelper {
   }
 
   disDb() {
+    console.log('db disabled');
     this.db = false;
   }
 
@@ -218,15 +219,15 @@ class BotHelper {
       .editMessageText(chatId, messageId, inlineMessageId, text, extra)
       .catch(() => {});
   }
+
   sendIVNew(chatId, messageText, extra) {
     let text = messageText;
     if (extra && extra.parse_mode === PARSE_MODE_MARK) {
       text = text.replace(/[*`]/gi, '');
     }
-    return this.bot
-      .sendMessage(chatId, text, extra)
-      .catch(() => {});
+    return this.bot.sendMessage(chatId, text, extra).catch(() => {});
   }
+
   delMessage(chatId, messageId) {
     return this.bot.deleteMessage(chatId, messageId).catch(() => {});
   }
@@ -235,10 +236,22 @@ class BotHelper {
   markdown() {
     return PARSE_MODE_MARK;
   }
+
+  // eslint-disable-next-line class-methods-use-this
   restartApp() {
-    const spawn = require('child_process').spawn;
-    spawn('pm2', ['restart', 'Format'],
-        { stdio: 'ignore', detached: true }).unref();
+    const {spawn} = require('child_process');
+    spawn('pm2', ['restart', 'Format'], {
+      stdio: 'ignore',
+      detached: true,
+    }).unref();
+  }
+
+  gitPull() {
+    const {spawn} = require('child_process');
+    const ls = spawn('git', ['pull'], {detached: true});
+    ls.stdout.on('data', data => {
+      this.sendAdmin(data);
+    });
   }
 }
 
