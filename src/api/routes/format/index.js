@@ -76,6 +76,13 @@ const startOrHelp = (ctx, botHelper) => {
       return;
     }
   }
+  if (ctx && ctx.message.text && ctx.message.text.match(/\/start\s(.*?)/)) {
+    const cmd = ctx.message.text.match(/\/start\s(.*?)$/)[1];
+    if (cmd === 'support') {
+      support(ctx, botHelper);
+      return;
+    }
+  }
   let system = JSON.stringify(ctx.message.from);
   try {
     ctx.reply(messages.start(), keyboards.start());
