@@ -7,7 +7,7 @@ exports.connect = uri => {
     return false;
   }
   mongoose.connect(dbUri, {
-    keepAlive: 1,
+    keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
     useUnifiedTopology: true,

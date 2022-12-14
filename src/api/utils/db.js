@@ -7,7 +7,7 @@ const ILINKS_COLL = process.env.MONGO_COLL_ILINKS || 'ilinks';
 
 const connectDb = () =>
   mongoose.createConnection(process.env.MONGO_URI_SECOND, {
-    keepAlive: 1,
+    keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -19,7 +19,7 @@ const inlineLinks = Any.collection.conn.model(ILINKS_COLL, Any.schema);
 const conn2 =
   process.env.MONGO_URI_OLD1 &&
   mongoose.createConnection(process.env.MONGO_URI_OLD1, {
-    keepAlive: 1,
+    keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
     useUnifiedTopology: true,

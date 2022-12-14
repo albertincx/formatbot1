@@ -146,19 +146,23 @@ const getParams = (queueName = TASKS_CHANNEL) => {
 
 const addToQueue = (task, qName = TASKS_CHANNEL) => {
   if (rchannel) {
-    let queueName = qName;
-    const el = elapsedTime(queueName);
-    const elTime = elapsedSec(queueName);
-    logger(`availableOne ${availableOne}`);
-    logger(`elTime ${elTime}`);
-    if (queueName === TASKS_CHANNEL && !availableOne && elTime > 15) {
-      queueName = TASKS2_CHANNEL;
+    try {
+      let queueName = qName;
+      const el = elapsedTime(queueName);
+      const elTime = elapsedSec(queueName);
+      logger(`availableOne ${availableOne}`);
+      logger(`elTime ${elTime}`);
+      if (queueName === TASKS_CHANNEL && !availableOne && elTime > 15) {
+        queueName = TASKS2_CHANNEL;
+      }
+      logger(el);
+      rchannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
+        contentType: 'application/json',
+        persistent: true,
+      });
+    } catch (e) {
+      console.log(e);
     }
-    logger(el);
-    rchannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
-      contentType: 'application/json',
-      persistent: true,
-    });
   }
 };
 const time = (queueName = TASKS_CHANNEL, start = false) => {
