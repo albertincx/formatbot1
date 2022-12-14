@@ -190,7 +190,7 @@ class BotHelper {
       e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
     }
 
-    return this.sendAdmin(e);
+    this.sendAdmin(e);
   }
 
   disDb() {
@@ -244,12 +244,15 @@ class BotHelper {
       stdio: 'ignore',
       detached: true,
     }).unref();
+    this.sendAdmin('restarted');
   }
 
   gitPull() {
     const {spawn} = require('child_process');
-    const ls = spawn('git', ['pull'], {detached: true});
-    ls.stdout.on('data', data => {
+    const gpull = spawn('git', ['pull']);
+    const rest = spawn('pm2', ['restart', 'Format']);
+    gpull.stdout.pipe(rest.stdin);
+    rest.stdout.on('data', data => {
       this.sendAdmin(data);
     });
   }

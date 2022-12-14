@@ -6,12 +6,14 @@ const db = require('../../utils/db');
 const logger = require('../../utils/logger');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
+
 const {check, timeout, checkData} = require('../../utils');
 const {getAllLinks, getLinkFromEntity, getLink} = require('../../utils/links');
 
 const {validRegex} = require('../../../config/config.json');
 
 const rabbitmq = require('../../../service/rabbitmq');
+const {puppetQue} = require('../../../config/vars');
 
 const group = process.env.TGGROUP;
 const groupBugs = process.env.TGGROUPBUGS;
@@ -21,8 +23,6 @@ const IV_CHAN_ID = +process.env.IV_CHAN_ID;
 const IV_CHAN_MID = +process.env.IV_CHAN_MID;
 const USER_IDS = (process.env.USERIDS || '').split(',');
 const TIMEOUT_EXCEEDED = 'timedOut';
-
-rabbitmq.startChannel();
 
 global.lastIvTime = +new Date();
 
@@ -76,13 +76,6 @@ const startOrHelp = (ctx, botHelper) => {
       return;
     }
   }
-  if (ctx && ctx.message.text && ctx.message.text.match(/\/start\s(.*?)/)) {
-    const m = {
-      merc: ctx.message.text.match(/\/start\s(.*?)$/)[1],
-    };
-    rabbitmq.addToQueue(m);
-  }
-  // const { language_code: lang } = ctx.message.from;
   let system = JSON.stringify(ctx.message.from);
   try {
     ctx.reply(messages.start(), keyboards.start());
@@ -105,8 +98,10 @@ const broadcast = (ctx, botHelper) => {
 
   db.processBroadcast(text, ctx, botHelper);
 };
+
 let skipCount = 0;
 global.emptyTextCount = 0;
+
 const format = (bot, botHelper, skipCountBool) => {
   if (skipCountBool) {
     skipCount = 5;
@@ -159,14 +154,12 @@ const format = (bot, botHelper, skipCountBool) => {
       input_message_content: {message_text: links[0]},
     };
     if (!exist) {
-      await rabbitmq
-        .addToQueue({
-          message_id: id,
-          chatId: msg.from.id,
-          link: links[0],
-          inline: true,
-        })
-        .catch(() => {});
+      rabbitmq.addToQueue({
+        message_id: id,
+        chatId: msg.from.id,
+        link: links[0],
+        inline: true,
+      });
     }
     return msg
       .answerInlineQuery([res], {cache_time: 60, is_personal: true})
@@ -182,9 +175,7 @@ const format = (bot, botHelper, skipCountBool) => {
       // eslint-disable-next-line camelcase
       const {message_id, chat, entities} = message;
       const rabbitMes = {message_id, chatId: chat.id, link: entities[1].url};
-      await rabbitmq
-        .addToQueue(rabbitMes, rabbitmq.chanPuppet())
-        .catch(() => {});
+      rabbitmq.addToQueue(rabbitMes, puppetQue);
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
@@ -317,13 +308,12 @@ const format = (bot, botHelper, skipCountBool) => {
             global.lastIvTime = +new Date();
             botHelper.sendAdmin(`alert ${newIvTime} sec`);
           }
-          await rabbitmq.addToQueue(rabbitMes);
+          rabbitmq.addToQueue(rabbitMes);
         } catch (e) {
           botHelper.sendError(e);
         }
       }
     } catch (e) {
-      // console.log(e);
       botHelper.sendError(e);
     }
   };
@@ -338,19 +328,7 @@ const format = (bot, botHelper, skipCountBool) => {
     });
   }
   const jobMessage = async task => {
-    const {
-      chatId,
-      message_id: messageId,
-      q,
-      force,
-      isChanMesId,
-      inline,
-      merc,
-    } = task;
-    if (merc) {
-      await db.setMerc(merc).catch(() => {});
-      return;
-    }
+    const {chatId, message_id: messageId, q, force, isChanMesId, inline} = task;
     let {link} = task;
     if (link.match(/^https?:\/\/t\.me\//)) {
       return;

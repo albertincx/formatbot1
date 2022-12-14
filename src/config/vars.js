@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv-safe');
+
 const envPath = path.join(__dirname, '../../.env');
 
 const confFile = path.join(__dirname, '../../.conf');
@@ -23,11 +24,11 @@ if (fs.existsSync(envPath)) {
 
 module.exports = {
   root: path.join(__dirname, '/../../'),
-  PORT: process.env.PORT || 4000,
   uploadDir: cacheFile,
   mongo: {
     uri: process.env.MONGO_URI,
     disabled: process.env.DB_DISABLED === '1',
   },
   blacklistFile,
+  puppetQue: process.env.TASKSPUPPET_DEV || 'puppet',
 };
