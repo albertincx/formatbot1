@@ -38,7 +38,7 @@ const botRoute = (bot, conn) => {
       botHelper.sendError(`${e} Unhandled 90000 Restarted`);
       setTimeout(() => {
         botHelper.restartApp();
-      }, 4000)
+      }, 4000);
       return;
     }
     if (`${e}`.match('out after 90000 milliseconds')) {
@@ -72,6 +72,7 @@ const botRoute = (bot, conn) => {
     }
   });
 
+  // eslint-disable-next-line consistent-return
   bot.command('stat', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       if (!botHelper.db) {
@@ -125,6 +126,11 @@ const botRoute = (bot, conn) => {
   bot.command('/restartApp', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.restartApp();
+    }
+  });
+  bot.command('/gitPull', ({message}) => {
+    if (botHelper.isAdmin(message.from.id)) {
+      botHelper.gitPull();
     }
   });
   process.on('unhandledRejection', reason => {
