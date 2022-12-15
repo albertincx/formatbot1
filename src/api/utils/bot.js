@@ -207,7 +207,7 @@ class BotHelper {
   }
 
   forward(mid, from, to) {
-    return this.bot.forwardMessage(to, from, mid).catch(() => {});
+    return this.bot.forwardMessage(to, from, mid);
   }
 
   sendIV(chatId, messageId, inlineMessageId, messageText, extra) {

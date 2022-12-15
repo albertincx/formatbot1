@@ -49,6 +49,21 @@ const resetTime = (q = TASKS_CHANNEL) => {
 };
 
 let connection = null;
+const startFirst = async () => {
+  try {
+    if (!connection) {
+      connection = await amqp.connect(process.env.MESSAGE_QUEUE);
+    }
+    if (!rchannel) {
+      rchannel = await connection.createChannel();
+    }
+  } catch (e) {
+    console.log('err rabbit');
+    console.log(e);
+    logger(e);
+  }
+};
+
 const createChan = async (queueName = TASKS_CHANNEL) => {
   let channel;
   try {
@@ -56,12 +71,10 @@ const createChan = async (queueName = TASKS_CHANNEL) => {
       connection = await amqp.connect(process.env.MESSAGE_QUEUE);
     }
     channel = await connection.createChannel();
-    if (!rchannel) {
-      rchannel = await connection.createChannel();
-    }
     await channel.prefetch(1);
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
+    console.log('err rabbit');
     console.log(e);
     logger(e);
   }
@@ -92,6 +105,7 @@ const run = async (job, qName) => {
       }
     });
   } catch (e) {
+    console.log('err rabbit job');
     logger(e);
   }
 };
@@ -182,6 +196,7 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
 };
 const timeStart = q => time(q, true);
 
+module.exports.startFirst = startFirst;
 module.exports.addToQueue = addToQueue;
 module.exports.runSecond = runSecond;
 module.exports.runPuppet = runPuppet;

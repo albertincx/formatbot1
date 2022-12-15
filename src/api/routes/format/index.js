@@ -33,7 +33,7 @@ for (let i = 1; i < 10; i += 1) {
     supportLinks.push(process.env[`SUP_LINK${i}`]);
   }
 }
-
+rabbitmq.startFirst();
 const support = async (ctx, botHelper) => {
   let system = JSON.stringify(ctx.message.from);
   const {
@@ -52,7 +52,7 @@ const support = async (ctx, botHelper) => {
     });
 
     if (IV_CHAN_MID) {
-      botHelper.forward(IV_CHAN_MID, IV_CHAN_ID * -1, chatId);
+      botHelper.forward(IV_CHAN_MID, IV_CHAN_ID * -1, chatId).catch(() => {});
     }
   } catch (e) {
     system = `${e}${system}`;
