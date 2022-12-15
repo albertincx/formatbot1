@@ -49,19 +49,22 @@ const resetTime = (q = TASKS_CHANNEL) => {
 };
 
 let connection = null;
-const createChannel = async (queueName = TASKS_CHANNEL) => {
+const createChan = async (queueName = TASKS_CHANNEL) => {
   let channel;
   try {
     if (!connection) {
       connection = await amqp.connect(process.env.MESSAGE_QUEUE);
     }
     channel = await connection.createChannel();
+    if (!rchannel) {
+      rchannel = await connection.createChannel();
+    }
+    await channel.prefetch(1);
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
     console.log(e);
     logger(e);
   }
-  rchannel = channel;
   return channel;
 };
 
@@ -71,20 +74,22 @@ const run = async (job, qName) => {
     if (!queueName) {
       queueName = TASKS_CHANNEL;
     }
-    const channel = await createChannel(queueName);
-    await channel.prefetch(1);
-    channel.consume(queueName, async message => {
-      const content = message.content.toString();
-      const task = JSON.parse(content);
-      if (queueName !== TASKS_CHANNEL) {
-        task.q = queueName;
+    const channel = await createChan(queueName);
+    channel.consume(queueName, message => {
+      if (message) {
+        const {content} = message;
+        const task = JSON.parse(`${content}`);
+        if (queueName !== TASKS_CHANNEL) {
+          task.q = queueName;
+        }
+        job(task)
+          .then(() => {
+            channel.ack(message);
+          })
+          .catch(e => {
+            //
+          });
       }
-      try {
-        await job(task);
-      } catch (e) {
-        // console.log(e);
-      }
-      channel.ack(message);
     });
   } catch (e) {
     logger(e);
@@ -177,7 +182,6 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
 };
 const timeStart = q => time(q, true);
 
-module.exports.createChannel = createChannel;
 module.exports.addToQueue = addToQueue;
 module.exports.runSecond = runSecond;
 module.exports.runPuppet = runPuppet;
