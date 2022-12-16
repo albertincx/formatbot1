@@ -100,7 +100,9 @@ const run = async (job, qName) => {
             channel.ack(message);
           })
           .catch(e => {
-            //
+            console.log('error job task');
+            console.log(e);
+            channel.ack(message);
           });
       }
     });
@@ -169,6 +171,7 @@ const addToQueue = (task, qName = TASKS_CHANNEL) => {
       let queueName = qName;
       const el = elapsedTime(queueName);
       const elTime = elapsedSec(queueName);
+      logger('');
       logger(`availableOne ${availableOne}`);
       logger(`elTime ${elTime}`);
       if (queueName === TASKS_CHANNEL && !availableOne && elTime > 15) {
