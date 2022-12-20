@@ -512,7 +512,7 @@ const format = (bot, botHelper, skipCountBool) => {
     }
     clearTimeout(timeoutRes);
     if (error) {
-      logger('error = ', error);
+      logger(`error = ${error}`);
       if (isBroken && resolveMsgId) {
         botHelper.sendAdminOpts(
           error,

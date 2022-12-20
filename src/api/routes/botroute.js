@@ -44,7 +44,7 @@ const botRoute = (bot, conn) => {
     if (`${e}`.match('out after 90000 milliseconds')) {
       limit90Sec += 1;
     } else {
-      botHelper.sendError(`${e} Unhandled`);
+      botHelper.sendError(`${e} Unhandled x`);
     }
   });
 

@@ -51,7 +51,7 @@ class BotHelper {
       chatId = TG_ADMIN;
     }
     if (`${chatId}` === `${this.tgAdmin}`) {
-      text = `service: ${text}`;
+      text = `service: adm ${text}`;
     }
     return this.bot.sendMessage(chatId, text, opts).catch(() => {});
   }
@@ -187,7 +187,7 @@ class BotHelper {
         }
       }
     } else {
-      e = `error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
+      e = `has error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
     }
 
     this.sendAdmin(e);
