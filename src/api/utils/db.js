@@ -219,8 +219,18 @@ const startBroadcast = async (ctx, txtParam, bot) => {
 };
 
 const clear = async msg => {
-  let search = msg.text.replace('/cleardb', '').trim();
-  search = `${search}`.trim();
+  const {text} = msg;
+
+  if (text.match(/^\/cleardb2/)) {
+    return clear2(msg);
+  }
+  let search = '';
+
+  if (text.match(/^\/cleardb3_/)) {
+    search = text.replace('/cleardb3_', '').replace(/_/g, '.');
+  } else {
+    search = text.replace('/cleardb', '').trim();
+  }
   if (!search) {
     return Promise.resolve('empty');
   }
@@ -228,6 +238,7 @@ const clear = async msg => {
   const d = await links.deleteMany({url: s});
   return JSON.stringify(d);
 };
+
 const clear2 = async msg => {
   let search = msg.text.replace('/cleardb2', '').trim();
   search = `${search}`.trim();
@@ -285,6 +296,36 @@ const getIV = async url => {
 
 const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: -1}});
 
+const getCleanData = async () => {
+  const agg = [
+    {
+      $addFields: {
+        origin: {
+          $arrayElemAt: [{$split: ['$url', '/']}, 2],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$origin',
+        cnt: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $match: {
+        cnt: {
+          $gte: 6000,
+        },
+      },
+    },
+  ];
+  const result = await linksOld1.aggregate(agg);
+  // const result2 = await checkTimeFromLast();
+  return result.map(i => `${i._id.replace(/\./g, '_')} ${i.cnt}`);
+};
+
 module.exports.stat = stat;
 module.exports.clear = clear;
 module.exports.clear2 = clear2;
@@ -296,3 +337,4 @@ module.exports.createBroadcast = createBroadcast;
 module.exports.startBroadcast = startBroadcast;
 module.exports.processBroadcast = processBroadcast;
 module.exports.checkTimeFromLast = checkTimeFromLast;
+module.exports.getCleanData = getCleanData;

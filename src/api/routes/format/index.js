@@ -282,7 +282,7 @@ const format = (bot, botHelper, skipCountBool) => {
               .catch(e => botHelper.sendError(e));
             return;
           }
-          if (link.match(/^https?:\/\/t\.me\//)) {
+          if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
             return;
           }
           if (link.match(/yandex\.ru\/showcap/)) {

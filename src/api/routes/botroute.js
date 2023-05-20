@@ -3,6 +3,7 @@ const fs = require('fs');
 const BotHelper = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
+const messages = require('../../messages/format');
 
 global.skipCount = 0;
 
@@ -29,6 +30,7 @@ const botRoute = (bot, conn) => {
     conn.on('error', () => {
       botHelper.disDb();
     });
+    botHelper.setConn(conn);
   } else {
     botHelper.disDb();
   }
@@ -82,20 +84,9 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('cleardb', async ctx => {
+  bot.hears(/^\/cleardb*/, async ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       const r = await db.clear(ctx.message);
-      try {
-        ctx.reply(r);
-      } catch (e) {
-        botHelper.sendError(e);
-      }
-    }
-  });
-
-  bot.command('cleardb2', async ctx => {
-    if (botHelper.isAdmin(ctx.message.chat.id)) {
-      const r = await db.clear2(ctx.message);
       try {
         ctx.reply(r);
       } catch (e) {
@@ -135,6 +126,21 @@ const botRoute = (bot, conn) => {
   bot.command('/gitPull', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.gitPull();
+    }
+  });
+
+  bot.command('/getInfo', ({message}) => {
+    if (botHelper.isAdmin(message.from.id)) {
+      botHelper.getInfo().then(info => {
+        botHelper.sendAdmin(`${JSON.stringify(info)}`);
+      });
+    }
+  });
+  bot.command('/getCleanData', ({message}) => {
+    if (botHelper.isAdmin(message.from.id)) {
+      db.getCleanData().then(r => {
+        botHelper.sendAdmin(`${messages.cleanCommands(r)}`);
+      });
     }
   });
 

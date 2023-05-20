@@ -239,6 +239,7 @@ class BotHelper {
 
   // eslint-disable-next-line class-methods-use-this
   restartApp() {
+    // eslint-disable-next-line global-require
     const {spawn} = require('child_process');
     spawn('pm2', ['restart', 'Format'], {
       stdio: 'ignore',
@@ -248,6 +249,7 @@ class BotHelper {
   }
 
   gitPull() {
+    // eslint-disable-next-line global-require
     const {spawn} = require('child_process');
     const gpull = spawn('git', ['pull']);
     const rest = spawn('pm2', ['restart', 'Format']);
@@ -255,6 +257,17 @@ class BotHelper {
     rest.stdout.on('data', data => {
       this.sendAdmin(data);
     });
+  }
+
+  setConn(c) {
+    this.conn = c;
+  }
+
+  getInfo() {
+    if (this.conn) {
+      return this.conn.db.command({atlasSize: 1});
+    }
+    return Promise.resolve({});
   }
 }
 

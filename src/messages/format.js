@@ -19,4 +19,10 @@ module.exports = {
     s += `${links.length ? `\n${links.join('\n\n')}` : ''}`;
     return s;
   },
+  cleanCommands: links => {
+    const s = `${
+      links.length ? `\n/cleardb3_${links.join('\n/cleardb3_')}` : ''
+    }`;
+    return s;
+  },
 };
