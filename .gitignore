@@ -6,7 +6,8 @@ data/
 images/
 .idea
 # Environment variables
-.env
+.env*
+!.env.example
 upload
 # Logs
 logs
@@ -58,3 +59,4 @@ count.txt
 .now
 distr/*
 src/tests/*
+tmp/
