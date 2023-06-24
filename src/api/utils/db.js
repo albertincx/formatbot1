@@ -235,7 +235,7 @@ const clear = async msg => {
     return Promise.resolve('empty');
   }
   const s = new RegExp(`^https?://${search}`);
-  const d = await linksOld1.deleteMany({url: s});
+  const d = await links.deleteMany({url: s});
   return JSON.stringify(d);
 };
 
@@ -321,7 +321,7 @@ const getCleanData = async () => {
       },
     },
   ];
-  const result = await linksOld1.aggregate(agg);
+  const result = await links.aggregate(agg);
   // const result2 = await checkTimeFromLast();
   return result.map(i => `${i._id.replace(/\./g, '_')} ${i.cnt}`);
 };
