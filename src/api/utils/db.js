@@ -235,7 +235,7 @@ const clear = async msg => {
     return Promise.resolve('empty');
   }
   const s = new RegExp(`^https?://${search}`);
-  const d = await links.deleteMany({url: s});
+  const d = await linksOld1.deleteMany({url: s});
   return JSON.stringify(d);
 };
 
