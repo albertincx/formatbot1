@@ -3,8 +3,7 @@ package-lock.json
 data/
 .conf/
 .cache/
-images/
-.idea
+.idea/
 # Environment variables
 .env*
 !.env.example
@@ -49,14 +48,9 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
-public/dist/
-public/static/
-public/admin/
-.conf/test.txt
 yarn.lock
 count.txt
 
 .now
-distr/*
 src/tests/*
 tmp/

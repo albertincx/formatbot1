@@ -24,6 +24,8 @@ const IV_CHAN_MID = +process.env.IV_CHAN_MID;
 const USER_IDS = (process.env.USERIDS || '').split(',');
 const TIMEOUT_EXCEEDED = 'timedOut';
 
+const HELP_MESSAGE = process.env.HELP_MESSAGE || '';
+
 global.lastIvTime = +new Date();
 
 const supportLinks = [process.env.SUP_LINK];
@@ -444,14 +446,14 @@ const format = (bot, botHelper, skipCountBool) => {
           TITLE = '';
           RESULT = messages.timeOut();
         } else {
-          RESULT = messages.broken(link);
+          RESULT = messages.broken(link, HELP_MESSAGE);
         }
         successIv = false;
         error = `broken ${link} ${e}`;
       }
       const durationTime = rabbitmq.time(q);
       if (global.emptyTextCount > 10) {
-        botHelper.sendAdmin('need to /restartApp');
+        botHelper.sendAdmin('@admin need to /restartApp');
       }
       const extra = {parse_mode: botHelper.markdown()};
       const messageText = `${TITLE}${RESULT}`;

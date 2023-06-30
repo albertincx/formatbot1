@@ -4,6 +4,7 @@ const fetch = require('isomorphic-fetch');
 const {toDom} = require('./dom');
 const {timeout} = require('./index');
 const logger = require('./logger');
+const {BOT_USERNAME} = require('../../config/vars');
 
 const MAX_LENGHT_CONTENT = 65000;
 let pages = 0;
@@ -109,7 +110,7 @@ const makeTelegaph = async (objParam, parsedHtml) => {
       obj.title = obj.title.substring(0, 512);
     }
   } else {
-    obj.author_url = 'https://t.me/corsabot';
+    obj.author_url = `https://t.me/${BOT_USERNAME}`;
   }
   if (obj.author_name && obj.author_name.length > 128) {
     obj.title = obj.title.substring(0, 128);

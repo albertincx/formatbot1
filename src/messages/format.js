@@ -7,8 +7,10 @@ module.exports = {
     `${args[3] || ''}${args[0]}[InstantView](${args[1]}) from [Source](${
       args[2]
     })`,
-  broken: link =>
-    `Sorry, but your [link](${link}) is broken, restricted, or content is empty`,
+  broken: (link, helpMessage) =>
+    `Sorry, but your [link](${link}) is broken, restricted, or content is empty${
+      helpMessage ? `\n${helpMessage}` : ''
+    }`,
   brokenFile: reason => `Sorry, but your file invalid, reason: ${reason}`,
   timeOut: () =>
     'Process has been reset/server is not responding, please try again later',
@@ -19,10 +21,6 @@ module.exports = {
     s += `${links.length ? `\n${links.join('\n\n')}` : ''}`;
     return s;
   },
-  cleanCommands: links => {
-    const s = `${
-      links.length ? `\n/cleardb3_${links.join('\n/cleardb3_')}` : ''
-    }`;
-    return s;
-  },
+  cleanCommands: links =>
+    `${links.length ? `\n/cleardb3_${links.join('\n/cleardb3_')}` : ''}`,
 };

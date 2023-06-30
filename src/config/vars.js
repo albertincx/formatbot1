@@ -31,4 +31,5 @@ module.exports = {
   },
   blacklistFile,
   puppetQue: process.env.TASKSPUPPET_DEV || 'puppet',
+  BOT_USERNAME: process.env.BOT_USERNAME || '_no_username',
 };
