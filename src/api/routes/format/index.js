@@ -214,121 +214,123 @@ const format = (bot, botHelper, skipCountBool) => {
   });
 
   const addToQueue = async ctx => {
-    try {
-      const {update} = ctx;
-      let {message} = ctx;
-      if (
-        message &&
-        message.text &&
-        message.text.match(/(createBroadcast|startBroadcast)/)
-      ) {
-        broadcast(ctx, botHelper);
+    const {update} = ctx;
+    let {message} = ctx;
+    const isChannelPost = update && update.channel_post;
+    if (
+      message &&
+      message.text &&
+      message.text.match(/(createBroadcast|startBroadcast)/)
+    ) {
+      broadcast(ctx, botHelper);
+      return;
+    }
+    let isChanMesId = false;
+    if (isChannelPost) {
+      message = update.channel_post;
+    }
+
+    const {reply_to_message: rplToMsg, caption_entities: cEntities} =
+      message || {};
+    if (rplToMsg || message.audio) {
+      return;
+    }
+    let {entities} = message;
+
+    const msg = message;
+    if (isChannelPost) {
+      isChanMesId = msg.message_id;
+    }
+    const {
+      chat: {id: chatId},
+      caption,
+    } = msg;
+    let {text} = msg;
+    const isAdm = botHelper.isAdmin(chatId);
+    const rpl = rplToMsg;
+    if (msg.document || (rpl && rpl.document)) {
+      return;
+    }
+
+    if (caption) {
+      text = caption;
+      if (cEntities) {
+        entities = cEntities;
+      }
+    }
+    if (msg && text) {
+      const force = isAdm && check(text);
+      let links = getAllLinks(text);
+      let link = links[0];
+      if (!link && entities) {
+        links = getLinkFromEntity(entities, text);
+      }
+      link = getLink(links);
+      if (!link) return;
+
+      const parsed = url.parse(link);
+      if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+        const l = link.match(/url=(.*?)($|&)/);
+        if (l && l[1]) link = decodeURIComponent(l[1]);
+      }
+      if (link.match(new RegExp(validRegex))) {
+        ctx
+          .reply(messages.showIvMessage('', link, link), {
+            parse_mode: botHelper.markdown(),
+          })
+          .catch(e => botHelper.sendError(e));
         return;
       }
-      let isChanMesId = false;
-      if (update && update.channel_post) {
-        message = update.channel_post;
-      }
-
-      const {reply_to_message: rplToMsg, caption_entities: cEntities} =
-        message || {};
-      if (rplToMsg || message.audio) {
+      if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
         return;
       }
-      let {entities} = message;
-
-      const msg = message;
-      if (update && update.channel_post) {
-        isChanMesId = msg.message_id;
-      }
-      const {
-        chat: {id: chatId},
-        caption,
-      } = msg;
-      let {text} = msg;
-      const isAdm = botHelper.isAdmin(chatId);
-      const rpl = rplToMsg;
-      if (msg.document || (rpl && rpl.document)) {
+      if (link.match(/yandex\.ru\/showcap/)) {
         return;
       }
-
-      if (caption) {
-        text = caption;
-        if (cEntities) {
-          entities = cEntities;
-        }
+      if (!parsed.pathname) {
+        return;
       }
-      if (msg && text) {
-        try {
-          const force = isAdm && check(text);
-          let links = getAllLinks(text);
-          let link = links[0];
-          if (!link && entities) {
-            links = getLinkFromEntity(entities, text);
-          }
-          link = getLink(links);
-          if (!link) {
-            // logger('no link');
-            return;
-          }
-          const parsed = url.parse(link);
-          if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-            const l = link.match(/url=(.*?)($|&)/);
-            if (l && l[1]) link = decodeURIComponent(l[1]);
-          }
-          if (link.match(new RegExp(validRegex))) {
-            ctx
-              .reply(messages.showIvMessage('', link, link), {
-                parse_mode: botHelper.markdown(),
-              })
-              .catch(e => botHelper.sendError(e));
-            return;
-          }
-          if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
-            return;
-          }
-          if (link.match(/yandex\.ru\/showcap/)) {
-            return;
-          }
-          if (!parsed.pathname) {
-            return;
-          }
-          const res =
-            (await ctx.reply('Waiting for instantView...').catch(() => {})) ||
-            {};
-          const messageId = res && res.message_id;
-          await timeout(0.1);
-          if (!messageId) {
-            // logger('no messageId');
-            return;
-          }
-          const rabbitMes = {
-            message_id: messageId,
-            chatId,
-            link,
-            isChanMesId,
-          };
-          if (force) {
-            rabbitMes.force = force;
-          }
-          let newIvTime = +new Date();
-          newIvTime = (newIvTime - global.lastIvTime) / 1000;
-          if (newIvTime > 3600) {
-            global.lastIvTime = +new Date();
-            botHelper.sendAdmin(`alert ${newIvTime} sec`);
-          }
-          rabbitmq.addToQueue(rabbitMes);
-        } catch (e) {
-          botHelper.sendError(e);
-        }
+      const res =
+        (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
+      const messageId = res && res.message_id;
+      await timeout(0.1);
+      if (!messageId) {
+        // logger('no messageId');
+        return;
       }
-    } catch (e) {
-      botHelper.sendError(e);
+      const rabbitMes = {
+        message_id: messageId,
+        chatId,
+        link,
+        isChanMesId,
+      };
+      if (force) {
+        rabbitMes.force = force;
+      }
+      let newIvTime = +new Date();
+      newIvTime = (newIvTime - global.lastIvTime) / 1000;
+      if (newIvTime > 3600) {
+        global.lastIvTime = +new Date();
+        botHelper.sendAdmin(`alert ${newIvTime} sec`);
+      }
+      rabbitmq.addToQueue(rabbitMes);
     }
   };
-  bot.on('channel_post', ctx => addToQueue(ctx));
-  bot.hears(/.*/, ctx => addToQueue(ctx));
-  bot.on('message', ctx => addToQueue(ctx));
+  bot.on('channel_post', ctx =>
+    addToQueue(ctx).catch(e =>
+      botHelper.sendError(`tg err1: ${JSON.stringify(e)}`),
+    ),
+  );
+  bot.hears(/.*/, ctx =>
+    addToQueue(ctx).catch(e =>
+      botHelper.sendError(`tg err2: ${JSON.stringify(e)}`),
+    ),
+  );
+  bot.on('message', ctx =>
+    addToQueue(ctx).catch(e =>
+      botHelper.sendError(`tg err3: ${JSON.stringify(e)}`),
+    ),
+  );
 
   let browserWs = null;
   if (!botHelper.config.no_puppet && !process.env.NOPUPPET) {
