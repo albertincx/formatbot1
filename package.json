@@ -7,7 +7,8 @@
   "private": false,
   "license": "MIT",
   "engines": {
-    "yarn": "*"
+    "yarn": "*",
+    "node": ">=18.0.0"
   },
   "scripts": {
     "precommit": "yarn lint",
@@ -27,7 +28,7 @@
   ],
   "dependencies": {
     "@mozilla/readability": "^0.4.4",
-    "@postlight/mercury-parser": "^2.2.0",
+    "@postlight/mercury-parser": "^2.2.1",
     "amqplib": "^0.10.3",
     "atob": "^2.1.2",
     "co": "^4.6.0",
@@ -45,7 +46,7 @@
     "mongoose": "^6.8.0",
     "node-fetch": "^2.6.5",
     "nodemon": "^2.0.12",
-    "puppeteer": "^10.2.0",
+    "puppeteer": "^20.7.4",
     "sanitize-html": "^2.8.0",
     "showdown": "^1.9.1",
     "statuses": "^2.0.1",
