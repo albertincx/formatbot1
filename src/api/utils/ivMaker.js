@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-const makeTelegaph = require('./makeTelegaph');
+const makeTelegraph = require('./makeTelegraph');
 const logger = require('./logger');
 const ParseHelper = require('./parseHelper');
 const db = require('./db');
@@ -41,7 +41,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
     obj.author_url = authorUrl;
     obj.author_name = authorUrl.substring(0, 127);
   }
-  const tgRes = await makeTelegaph(obj, content);
+  const tgRes = await makeTelegraph(obj, content);
   const {telegraphLink, pages} = tgRes;
   if (!telegraphLink) {
     throw new Error('empty ivlink');

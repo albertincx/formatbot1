@@ -100,7 +100,7 @@ const makeTelegaphMany = async (obj, domObj, chunksLen) => {
   return link;
 };
 
-const makeTelegaph = async (objParam, parsedHtml) => {
+const makeTelegraph = async (objParam, parsedHtml) => {
   const obj = objParam;
   if (obj.title && obj.title.length > 256) {
     obj.title = obj.title.substring(0, 256);
@@ -148,4 +148,4 @@ const makeTelegaph = async (objParam, parsedHtml) => {
   };
 };
 
-module.exports = makeTelegaph;
+module.exports = makeTelegraph;
