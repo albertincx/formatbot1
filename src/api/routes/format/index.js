@@ -295,7 +295,6 @@ const format = (bot, botHelper, skipCountBool) => {
       const messageId = res && res.message_id;
       await timeout(0.1);
       if (!messageId) {
-        // logger('no messageId');
         return;
       }
       const rabbitMes = {

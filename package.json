@@ -26,6 +26,7 @@
     "eslint"
   ],
   "dependencies": {
+    "@mozilla/readability": "^0.4.4",
     "@postlight/mercury-parser": "^2.2.0",
     "amqplib": "^0.10.3",
     "atob": "^2.1.2",
@@ -39,7 +40,7 @@
     "is-url": "^1.2.4",
     "isomorphic-fetch": "^3.0.0",
     "jsbn": "^1.1.0",
-    "jsdom": "^16.7.0",
+    "jsdom": "^22.1.0",
     "lodash": "^4.17.21",
     "mongoose": "^6.8.0",
     "node-fetch": "^2.6.5",

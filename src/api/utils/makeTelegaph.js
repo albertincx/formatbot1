@@ -1,7 +1,7 @@
 const {chunk} = require('lodash');
 const fetch = require('isomorphic-fetch');
 
-const {toDom} = require('./dom');
+const {toDomNode} = require('./dom');
 const {timeout} = require('./index');
 const logger = require('./logger');
 const {BOT_USERNAME} = require('../../config/vars');
@@ -54,7 +54,7 @@ const makeLink = (obj, dom, link, index) => {
     }
     if (link) {
       const nextBtn = `<p><br /><br /><a href="${link}">Read Next page</a></p>`;
-      dom.push(...toDom(nextBtn)[0].children);
+      dom.push(...toDomNode(nextBtn)[0].children);
     }
     content = JSON.stringify(dom);
     logger(content, `page${index}.json`);
@@ -116,7 +116,7 @@ const makeTelegaph = async (objParam, parsedHtml) => {
     obj.title = obj.title.substring(0, 128);
   }
   let telegraphLink = '';
-  let domEd = toDom(parsedHtml);
+  let domEd = toDomNode(parsedHtml);
   if (!domEd) {
     throw new Error('empty dom');
   }
