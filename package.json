@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@mozilla/readability": "^0.4.4",
-    "@postlight/mercury-parser": "^2.2.1",
+    "@postlight/parser": "^2.2.3",
     "amqplib": "^0.10.3",
     "atob": "^2.1.2",
     "co": "^4.6.0",

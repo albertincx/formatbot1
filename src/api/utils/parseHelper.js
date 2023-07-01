@@ -1,5 +1,5 @@
 const fs = require('fs');
-const Mercury = require('@postlight/mercury-parser');
+const Mercury = require('@postlight/parser');
 const {Readability} = require('@mozilla/readability');
 const sanitizeHtml = require('sanitize-html');
 const path = require('path');
