@@ -1,5 +1,6 @@
 const fs = require('fs');
 const Mercury = require('@postlight/mercury-parser');
+const {Readability} = require('@mozilla/readability');
 const sanitizeHtml = require('sanitize-html');
 const path = require('path');
 const url = require('url');
@@ -8,6 +9,8 @@ const fetch = require('isomorphic-fetch');
 const mercury = require('./mercury');
 const fixImages = require('./fixImages');
 const puppet = require('./puppet');
+const {getDom} = require('./dom');
+const logger = require('./logger');
 
 const ASYNC_FILE = 'asyncContent.html';
 const API = process.env.REST_API;
@@ -47,12 +50,11 @@ class ParseHelper {
     this.sites = {};
     this.title = '';
     this.params = params;
-    this.log(JSON.stringify(params), 'params.txt');
     this.custom = this.checkCustom();
   }
 
-  getExtractor() {
-    if (!this.domain) return false;
+  addExtractor() {
+    if (!this.domain) return;
     const e = {
       domain: this.domain,
       extend: {
@@ -76,8 +78,9 @@ class ParseHelper {
     if (selectors) {
       e.content = {selectors};
     }
-
-    return {...e};
+    if (e) {
+      Mercury.addExtractor(e);
+    }
   }
 
   checkCustom() {
@@ -112,15 +115,20 @@ class ParseHelper {
     return html;
   }
 
-  async fetchHtml() {
+  async fetchHtml(link) {
+    if (this.params.mozilla || (this.custom && !this.params.isCached)) {
+      //
+    } else {
+      return '';
+    }
     let content;
     this.log(`this.params.isPuppet ${this.params.isPuppet}`);
     if (this.params.isPuppet) {
-      content = await puppet(this.link, this.params);
+      content = await puppet(link, this.params);
       this.log(content, 'puppet.html');
     } else {
       try {
-        content = await fetch(this.link, {timeout: 5000}).then(r => r.text());
+        content = await fetch(link, {timeout: 5000}).then(r => r.text());
       } catch (e) {
         content = '';
       }
@@ -137,6 +145,11 @@ class ParseHelper {
     if (content) {
       content = content.replace(/<br\s?\/>\n<br\s?\/>/gm, '\n<p></p>');
     }
+    if (!content) {
+      throw new Error('empty content');
+    }
+    this.log(content, 'fixedFetched.html');
+
     return content;
   }
 
@@ -156,48 +169,23 @@ class ParseHelper {
   }
 
   log(content, file) {
-    if (process.env.DEV || this.params.isadmin) {
-      if (file) {
-        fs.writeFileSync(`.conf/${file}`, String(content));
-      } else {
-        console.log(content);
-      }
+    if (this.params.isadmin) {
+      logger(content, file);
     }
-  }
-
-  async parseContent(html) {
-    if (!html) return '';
-    try {
-      const {content} = await mercury(
-        'https://albertincx-formatbot1.glitch.me/',
-        {
-          html: Buffer.from(html),
-        },
-      );
-      this.log(content, 'mercuryFileContent.html');
-      return content;
-    } catch (e) {
-      //
-    }
-    return '';
   }
 
   async parse() {
+    const mozillaParserEnabled = this.params.mozilla;
     const userUrl = this.link;
     const opts = {};
-    if (this.custom && !this.params.isCached) {
-      const html = await this.fetchHtml();
-      if (!html) {
-        throw new Error('empty content');
-      }
-      this.log(html, 'fixedFetched.html');
-      opts.html = Buffer.from(html);
+    const fetchedDocument = await this.fetchHtml(userUrl);
+    if (fetchedDocument) {
+      opts.html = Buffer.from(fetchedDocument);
     }
-    const extractor = this.getExtractor();
-    if (extractor) {
-      this.log(extractor);
-      Mercury.addExtractor(extractor);
+    if (!mozillaParserEnabled) {
+      this.addExtractor();
     }
+
     let result = {};
     if (this.params.isCached) {
       const cf = this.params.cachefile;
@@ -205,8 +193,15 @@ class ParseHelper {
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
-      result = await mercury(userUrl, opts);
-      this.log(result.content, 'mercury.html');
+      // eslint-disable-next-line
+      if (mozillaParserEnabled) {
+        result = new Readability(getDom(opts.html)).parse();
+        logger('mozilla');
+        this.log(result.content, 'mercury.html');
+      } else {
+        result = await mercury(userUrl, opts);
+        this.log(result.content, 'mercury.html');
+      }
     }
     let {content} = result;
     let preContent = sanitizeHtml(content);
@@ -242,7 +237,7 @@ class ParseHelper {
     return {
       title,
       content,
-      source,
+      source: source || userUrl,
     };
   }
 }

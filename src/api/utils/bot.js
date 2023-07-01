@@ -126,6 +126,10 @@ class BotHelper {
         params.isCustom = true;
       }
     }
+    const mozilla = this.getConf('mozilla');
+    if (mozilla) {
+      params.mozilla = true;
+    }
     return params;
   }
 
