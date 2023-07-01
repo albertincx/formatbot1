@@ -13,17 +13,15 @@ const getBrowser = async () => {
     '--lang=en',
     '--incognito',
   ];
-
-  return puppeteer
-    .launch({
-      headless: process.env.HDLSS !== '1',
-      args,
-    })
-    .then(browser => {
-      const browserWSEndpoint = browser.wsEndpoint();
-      browser.disconnect();
-      return browserWSEndpoint;
-    });
+  const opts = {args};
+  if (process.env.HDLSS !== '1') {
+    opts.headless = 'new';
+  }
+  return puppeteer.launch(opts).then(browser => {
+    const browserWSEndpoint = browser.wsEndpoint();
+    browser.disconnect();
+    return browserWSEndpoint;
+  });
 };
 
 const puppet = async (url, params) => {
