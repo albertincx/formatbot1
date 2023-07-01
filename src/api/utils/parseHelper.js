@@ -195,9 +195,11 @@ class ParseHelper {
     } else {
       // eslint-disable-next-line
       if (mozillaParserEnabled) {
-        result = new Readability(getDom(opts.html)).parse();
         logger('mozilla');
-        this.log(result.content, 'mercury.html');
+        if (opts.html) {
+          result = new Readability(getDom(opts.html)).parse() || {};
+          this.log(result.content, 'mozilla.html');
+        }
       } else {
         result = await mercury(userUrl, opts);
         this.log(result.content, 'mercury.html');
