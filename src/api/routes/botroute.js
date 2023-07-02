@@ -101,14 +101,14 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('/toggleDev', ({message}) => {
+  bot.command('toggleDev', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       global.isDevEnabled = !global.isDevEnabled;
       botHelper.sendAdmin(`dev is ${global.isDevEnabled}`);
     }
   });
 
-  bot.command('/skipCount', ({message}) => {
+  bot.command('skipCount', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       if (!global.skipCount) {
         global.skipCount = 5;
@@ -117,26 +117,26 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('/restartApp', ({message}) => {
+  bot.command('restartApp', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.restartApp();
     }
   });
 
-  bot.command('/gitPull', ({message}) => {
+  bot.command('gitPull', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.gitPull();
     }
   });
 
-  bot.command('/getInfo', ({message}) => {
+  bot.command('getInfo', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.getInfo().then(info => {
         botHelper.sendAdmin(`${JSON.stringify(info)}`);
       });
     }
   });
-  bot.command('/getCleanData', ({message}) => {
+  bot.command('getCleanData', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       db.getCleanData().then(r => {
         botHelper.sendAdmin(`${messages.cleanCommands(r)}`);

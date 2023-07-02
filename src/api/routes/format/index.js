@@ -115,8 +115,8 @@ const format = (bot, botHelper, skipCountBool) => {
   if (skipCountBool) {
     skipCount = 5;
   }
-  bot.command(['/start', '/help'], ctx => startOrHelp(ctx, botHelper));
-  bot.command(['/createBroadcast', '/startBroadcast'], ctx =>
+  bot.command(['start', 'help'], ctx => startOrHelp(ctx, botHelper));
+  bot.command(['createBroadcast', 'startBroadcast'], ctx =>
     broadcast(ctx, botHelper),
   );
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
