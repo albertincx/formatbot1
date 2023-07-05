@@ -51,6 +51,10 @@ const resetTime = (q = TASKS_CHANNEL) => {
 let connection = null;
 const startFirst = async () => {
   try {
+    if (!process.env.MESSAGE_QUEUE) {
+      // eslint-disable-next-line no-throw-literal
+      throw 'process.env.MESSAGE_QUEUE is NOT set';
+    }
     if (!connection) {
       connection = await amqp.connect(process.env.MESSAGE_QUEUE);
     }
@@ -59,7 +63,6 @@ const startFirst = async () => {
     }
   } catch (e) {
     console.log('err rabbit');
-    console.log(e);
     logger(e);
   }
 };
@@ -67,6 +70,10 @@ const startFirst = async () => {
 const createChan = async (queueName = TASKS_CHANNEL) => {
   let channel;
   try {
+    if (!process.env.MESSAGE_QUEUE) {
+      // eslint-disable-next-line no-throw-literal
+      throw 'process.env.MESSAGE_QUEUE is NOT set';
+    }
     if (!connection) {
       connection = await amqp.connect(process.env.MESSAGE_QUEUE);
     }
@@ -75,7 +82,6 @@ const createChan = async (queueName = TASKS_CHANNEL) => {
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
     console.log('err rabbit');
-    console.log(e);
     logger(e);
   }
   return channel;
@@ -83,11 +89,19 @@ const createChan = async (queueName = TASKS_CHANNEL) => {
 
 const run = async (job, qName) => {
   try {
+    if (!process.env.MESSAGE_QUEUE) {
+      // eslint-disable-next-line no-param-reassign
+      job.isClosed = true;
+      // eslint-disable-next-line no-throw-literal
+      throw 'process.env.MESSAGE_QUEUE is NOT set';
+    }
     let queueName = qName;
     if (!queueName) {
       queueName = TASKS_CHANNEL;
     }
     const channel = await createChan(queueName);
+    // eslint-disable-next-line no-param-reassign
+    job.isClosed = false;
     channel.consume(queueName, message => {
       if (message) {
         const {content} = message;
@@ -115,15 +129,13 @@ const run = async (job, qName) => {
 const runSecond = job => run(job, TASKS2_CHANNEL);
 const runPuppet = job => run(job, puppetQue);
 
-const keys = [
-  process.env.TGPHTOKEN_0,
-  process.env.TGPHTOKEN_1,
-  process.env.TGPHTOKEN_2,
-  process.env.TGPHTOKEN_3,
-  process.env.TGPHTOKEN_4,
-  process.env.TGPHTOKEN_5,
-  process.env.TGPHTOKEN_6,
-];
+const keys = [process.env.TGPHTOKEN_0];
+
+for (let i = 1; i < 10; i += 1) {
+  if (process.env[`TGPHTOKEN_${i}`]) {
+    keys.push(process.env[`TGPHTOKEN_${i}`]);
+  }
+}
 
 function shuffle(arr) {
   let currentIndex = arr.length;

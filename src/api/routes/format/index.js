@@ -183,8 +183,12 @@ const format = (bot, botHelper, skipCountBool) => {
       const {message} = ctx.update.callback_query;
       // eslint-disable-next-line camelcase
       const {message_id, chat, entities} = message;
-      const rabbitMes = {message_id, chatId: chat.id, link: entities[1].url};
-      rabbitmq.addToQueue(rabbitMes, puppetQue);
+      const actionMessage = {
+        message_id,
+        chatId: chat.id,
+        link: entities[1].url,
+      };
+      rabbitmq.addToQueue(actionMessage, puppetQue);
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
@@ -297,14 +301,14 @@ const format = (bot, botHelper, skipCountBool) => {
       if (!messageId) {
         return;
       }
-      const rabbitMes = {
+      const task = {
         message_id: messageId,
         chatId,
         link,
         isChanMesId,
       };
       if (force) {
-        rabbitMes.force = force;
+        task.force = force;
       }
       let newIvTime = +new Date();
       newIvTime = (newIvTime - global.lastIvTime) / 1000;
@@ -312,7 +316,13 @@ const format = (bot, botHelper, skipCountBool) => {
         global.lastIvTime = +new Date();
         botHelper.sendAdmin(`alert ${newIvTime} sec`);
       }
-      rabbitmq.addToQueue(rabbitMes);
+      if (!process.env.MESSAGE_QUEUE) {
+        botHelper.sendAdmin('cloud massaging is disabled');
+        console.log('cloud massaging is disabled');
+        // eslint-disable-next-line consistent-return
+        return jobMessage(task);
+      }
+      rabbitmq.addToQueue(task);
     }
   };
   bot.on('channel_post', ctx =>
@@ -370,7 +380,9 @@ const format = (bot, botHelper, skipCountBool) => {
         const {isText, url: baseUrl} = await ivMaker
           .isText(link, force)
           .catch(() => ({isText: false}));
-        if (baseUrl !== link) link = baseUrl;
+        if (baseUrl !== link) {
+          link = baseUrl;
+        }
         if (!isText) {
           isFile = true;
           global.emptyTextCount = (global.emptyTextCount || 0) + 1;

@@ -93,7 +93,7 @@ const isText = async (urlParam, q) => {
     'user-agent': USER_AGENT,
   };
   let startsText = false;
-  let url = '';
+  let url = u;
   try {
     const r = await fetch(u, {timeout: 5000, headers: headersCheck});
     const {url: newUrl, headers} = r;
@@ -101,7 +101,7 @@ const isText = async (urlParam, q) => {
     const contentType = headers.get('content-type') || '';
     startsText = contentType.startsWith('text/');
   } catch (e) {
-    //
+    logger(e);
   }
   return {isText: startsText, url};
 };
