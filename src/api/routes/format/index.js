@@ -218,6 +218,9 @@ const format = (bot, botHelper, skipCountBool) => {
   });
 
   const addToQueue = async ctx => {
+    if (botHelper.waitSec) {
+      return;
+    }
     const {update} = ctx;
     let {message} = ctx;
     const isChannelPost = update && update.channel_post;
