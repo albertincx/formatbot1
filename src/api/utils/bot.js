@@ -21,6 +21,7 @@ class BotHelper {
     }
     this.config = c;
     this.tgAdmin = TG_ADMIN;
+    this.waitSec = false;
   }
 
   isAdmin(chatId) {
@@ -52,7 +53,19 @@ class BotHelper {
     }
     if (`${chatId}` === `${this.tgAdmin}`) {
       text = `service: adm ${text}`;
+
+      if (text.match('Too Many')) {
+        const [sec] = text.match(/[0-9]+$/) || [];
+        if (sec) {
+          this.waitSec = sec;
+          clearTimeout(this.timer);
+          this.timer = setTimeout(() => {
+            this.waitSec = false;
+          }, sec * 1000);
+        }
+      }
     }
+
     return this.bot.sendMessage(chatId, text, opts).catch(() => {});
   }
 
