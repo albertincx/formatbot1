@@ -218,9 +218,6 @@ const format = (bot, botHelper, skipCountBool) => {
   });
 
   const addToQueue = async ctx => {
-    if (botHelper.waitSec) {
-      return;
-    }
     const {update} = ctx;
     let {message} = ctx;
     const isChannelPost = update && update.channel_post;
@@ -297,15 +294,19 @@ const format = (bot, botHelper, skipCountBool) => {
       if (!parsed.pathname) {
         return;
       }
-      const res =
-        (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
-      const messageId = res && res.message_id;
-      await timeout(0.1);
-      if (!messageId) {
-        return;
+      let mid;
+      if (!botHelper.waitSec) {
+        const res =
+          (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
+        const messageId = res && res.message_id;
+        await timeout(0.1);
+        if (!messageId) {
+          return;
+        }
+        mid = messageId;
       }
       const task = {
-        message_id: messageId,
+        message_id: mid,
         chatId,
         link,
         isChanMesId,
@@ -499,7 +500,9 @@ const format = (bot, botHelper, skipCountBool) => {
           await botHelper.delMessage(chatId, toDelete);
         } else if (successIv) {
           await botHelper.sendIVNew(chatId, messageText, extra);
-          await botHelper.delMessage(chatId, messageId);
+          if (messageId) {
+            await botHelper.delMessage(chatId, messageId);
+          }
         } else {
           await botHelper.sendIV(chatId, messageId, null, messageText, extra);
         }
