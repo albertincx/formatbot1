@@ -1,15 +1,20 @@
+const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached)_force(.*?)$/;
 function check(txt) {
-  const m = txt.match(
-    /(p_cache|content|custom|puppet|wget|cached)_force(.*?)$/,
-  );
+  const m = txt.match(CHECK_REGEX);
   if (m && m[1]) {
     return m[1];
   }
   return false;
 }
 
-function timeout(s) {
-  const tm = r => setTimeout(() => r(true), s * 1000);
+function timeout(s, f) {
+  const tm = r =>
+    setTimeout(() => {
+      if (f) {
+        f();
+      }
+      r(true);
+    }, s * 1000);
   return new Promise(r => tm(r));
 }
 

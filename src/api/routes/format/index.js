@@ -116,9 +116,7 @@ const format = (bot, botHelper, skipCountBool) => {
     skipCount = 5;
   }
   bot.command(['start', 'help'], ctx => startOrHelp(ctx, botHelper));
-  bot.command(['createBroadcast', 'startBroadcast'], ctx =>
-    broadcast(ctx, botHelper),
-  );
+  bot.command(['createBroadcast', 'startBroadcast'], ctx => broadcast(ctx, botHelper));
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
@@ -171,7 +169,10 @@ const format = (bot, botHelper, skipCountBool) => {
       });
     }
     return msg
-      .answerInlineQuery([res], {cache_time: 60, is_personal: true})
+      .answerInlineQuery([res], {
+        cache_time: 60,
+        is_personal: true,
+      })
       .catch(() => {});
   });
 
@@ -211,9 +212,7 @@ const format = (bot, botHelper, skipCountBool) => {
         from, // eslint-disable-next-line camelcase
       } = callback_query;
       const RESULT = `${text}\nResolved! ${error}`;
-      await bot.telegram
-        .editMessageText(from.id, message_id, null, RESULT)
-        .catch(() => {});
+      await bot.telegram.editMessageText(from.id, message_id, null, RESULT).catch(() => {});
     }
   });
 
@@ -221,11 +220,7 @@ const format = (bot, botHelper, skipCountBool) => {
     const {update} = ctx;
     let {message} = ctx;
     const isChannelPost = update && update.channel_post;
-    if (
-      message &&
-      message.text &&
-      message.text.match(/(createBroadcast|startBroadcast)/)
-    ) {
+    if (message && message.text && message.text.match(/(createBroadcast|startBroadcast)/)) {
       broadcast(ctx, botHelper);
       return;
     }
@@ -234,8 +229,7 @@ const format = (bot, botHelper, skipCountBool) => {
       message = update.channel_post;
     }
 
-    const {reply_to_message: rplToMsg, caption_entities: cEntities} =
-      message || {};
+    const {reply_to_message: rplToMsg, caption_entities: cEntities} = message || {};
     if (rplToMsg || message.audio) {
       return;
     }
@@ -296,8 +290,7 @@ const format = (bot, botHelper, skipCountBool) => {
       }
       let mid;
       if (!botHelper.waitSec) {
-        const res =
-          (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
+        const res = (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
         const messageId = res && res.message_id;
         await timeout(0.1);
         if (!messageId) {
@@ -329,21 +322,9 @@ const format = (bot, botHelper, skipCountBool) => {
       rabbitmq.addToQueue(task);
     }
   };
-  bot.on('channel_post', ctx =>
-    addToQueue(ctx).catch(e =>
-      botHelper.sendError(`tg err1: ${JSON.stringify(e)}`),
-    ),
-  );
-  bot.hears(/.*/, ctx =>
-    addToQueue(ctx).catch(e =>
-      botHelper.sendError(`tg err2: ${JSON.stringify(e)}`),
-    ),
-  );
-  bot.on('message', ctx =>
-    addToQueue(ctx).catch(e =>
-      botHelper.sendError(`tg err3: ${JSON.stringify(e)}`),
-    ),
-  );
+  bot.on('channel_post', ctx => addToQueue(ctx).catch(e => botHelper.sendError(`tg err1: ${JSON.stringify(e)}`)));
+  bot.hears(/.*/, ctx => addToQueue(ctx).catch(e => botHelper.sendError(`tg err2: ${JSON.stringify(e)}`)));
+  bot.on('message', ctx => addToQueue(ctx).catch(e => botHelper.sendError(`tg err3: ${JSON.stringify(e)}`)));
 
   let browserWs = null;
   if (!botHelper.config.no_puppet && !process.env.NOPUPPET) {
@@ -363,7 +344,11 @@ const format = (bot, botHelper, skipCountBool) => {
     let ivLink = '';
     let skipTimer = 0;
     let timeoutRes;
-
+    if (botHelper.waitSec) {
+      await timeout(botHelper.waitSec, () => {
+        botHelper.sendAdmin(`bot wait completed ${botHelper.waitSec}`);
+      });
+    }
     try {
       let RESULT;
       let TITLE = '';
@@ -381,9 +366,10 @@ const format = (bot, botHelper, skipCountBool) => {
         }
         rabbitmq.timeStart(q);
         link = ivMaker.parse(link);
-        const {isText, url: baseUrl} = await ivMaker
-          .isText(link, force)
-          .catch(() => ({isText: false}));
+        const {isText, url: baseUrl} = await ivMaker.isText(link, force).catch(e => {
+          logger(e);
+          return {isText: false};
+        });
         if (baseUrl !== link) {
           link = baseUrl;
         }
@@ -439,13 +425,7 @@ const format = (bot, botHelper, skipCountBool) => {
         } else if (linkData.error) {
           RESULT = messages.brokenFile(linkData.error);
         } else {
-          const {
-            iv,
-            isLong,
-            pages = '',
-            ti: title = '',
-            isFromDb = false,
-          } = linkData;
+          const {iv, isLong, pages = '', ti: title = '', isFromDb = false} = linkData;
           if (isFromDb) {
             ivFromDb = true;
           }
@@ -518,27 +498,20 @@ const format = (bot, botHelper, skipCountBool) => {
         if (ivFromDb) {
           mark += ' db';
         }
-        const text = `${mark}${RESULT}${
-          q ? ` from ${q}` : ''
-        }\n${durationTime}`;
+        const text = `${mark}${RESULT}${q ? ` from ${q}` : ''}\n${durationTime}`;
         if (group) {
           botHelper.sendAdminMark(text, group);
         }
       }
     } catch (e) {
       logger(e);
-      error = `${link} error: ${JSON.stringify(
-        e,
-      )} ${e.toString()} ${chatId} ${messageId}`;
+      error = `${link} error: ${JSON.stringify(e)} ${e.toString()} ${chatId} ${messageId}`;
     }
     clearTimeout(timeoutRes);
     if (error) {
       logger(`error = ${error}`);
       if (isBroken && resolveMsgId) {
-        botHelper.sendAdminOpts(
-          error,
-          keyboards.resolvedBtn(resolveMsgId, chatId),
-        );
+        botHelper.sendAdminOpts(error, keyboards.resolvedBtn(resolveMsgId, chatId));
       } else if (groupBugs) {
         botHelper.sendAdmin(error, groupBugs);
       }
