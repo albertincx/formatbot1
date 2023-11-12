@@ -4,7 +4,6 @@ const {Readability} = require('@mozilla/readability');
 const sanitizeHtml = require('sanitize-html');
 const path = require('path');
 const url = require('url');
-const fetch = require('isomorphic-fetch');
 
 const mercury = require('./mercury');
 const fixImages = require('./fixImages');

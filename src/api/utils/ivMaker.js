@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 const makeTelegraph = require('./makeTelegraph');
 const logger = require('./logger');
 const ParseHelper = require('./parseHelper');
@@ -84,14 +82,11 @@ const isText = async (urlParam, q) => {
     logger('cached is text = true');
     return {isText: true, url: urlParam};
   }
+
   let u = toUrl(urlParam);
-  if (!u.match('%')) {
-    u = encodeURI(u);
-  }
-  const headersCheck = {
-    Accept: 'text/html',
-    'user-agent': USER_AGENT,
-  };
+  if (!u.match('%')) u = encodeURI(u);
+
+  const headersCheck = {Accept: 'text/html', 'user-agent': USER_AGENT};
   let startsText = false;
   let url = u;
   try {
@@ -103,6 +98,7 @@ const isText = async (urlParam, q) => {
   } catch (e) {
     logger(e);
   }
+
   return {isText: startsText, url};
 };
 

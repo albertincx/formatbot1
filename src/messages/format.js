@@ -23,4 +23,8 @@ module.exports = {
   },
   cleanCommands: links =>
     `${links.length ? `\n/cleardb3_${links.join('\n/cleardb3_')}` : ''}`,
+  errorEnv: () =>
+    'PLEASE CREATE .env file with params, for more info see .env.example',
+  warningMQ: () => 'warn: process.env.MESSAGE_QUEUE is NOT set',
+  errorTasks: () => 'PLEASE ADD TASKS_DEV, TASKS2_DEV params in .env file',
 };

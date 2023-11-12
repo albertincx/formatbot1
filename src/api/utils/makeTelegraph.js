@@ -1,12 +1,11 @@
 const {chunk} = require('lodash');
-const fetch = require('isomorphic-fetch');
 
 const {toDomNode} = require('./dom');
 const {timeout} = require('./index');
 const logger = require('./logger');
 const {BOT_USERNAME} = require('../../config/vars');
 
-const MAX_LENGHT_CONTENT = 65000;
+const MAX_LENGTH_CONTENT = 65000;
 let pages = 0;
 
 function lengthInUtf8Bytes(str) {
@@ -48,8 +47,8 @@ const makeLink = (obj, dom, link, index) => {
   try {
     let content = JSON.stringify(dom);
     const bytes = lengthInUtf8Bytes(content);
-    if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
-      const chunksLen = Math.ceil(content.length / MAX_LENGHT_CONTENT);
+    if (content.length > MAX_LENGTH_CONTENT || bytes > MAX_LENGTH_CONTENT) {
+      const chunksLen = Math.ceil(content.length / MAX_LENGTH_CONTENT);
       return makeTelegaphMany(obj, dom, chunksLen + 1);
     }
     if (link) {
@@ -132,10 +131,10 @@ const makeTelegraph = async (objParam, parsedHtml) => {
   pages = 0;
   if (content && content.length) {
     logger(`domed ${content.length}`);
-    if (content.length > MAX_LENGHT_CONTENT || bytes > MAX_LENGHT_CONTENT) {
+    if (content.length > MAX_LENGTH_CONTENT || bytes > MAX_LENGTH_CONTENT) {
       isLong = true;
       logger(`is too big ${bytes}`);
-      const chunksLen = Math.ceil(bytes / MAX_LENGHT_CONTENT);
+      const chunksLen = Math.ceil(bytes / MAX_LENGTH_CONTENT);
       telegraphLink = await makeTelegaphMany(obj, domEd, chunksLen + 1);
     } else {
       telegraphLink = await makeTelegraphLink(obj, content);
