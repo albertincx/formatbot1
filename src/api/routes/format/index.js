@@ -317,6 +317,7 @@ const format = (bot, botHelper, skipCountBool) => {
         logger('exit wrong url');
         return;
       }
+      logger(parsed)
       if (link.match(/^(https?:\/\/)?(www.)?google/)) {
         const l = link.match(/url=(.*?)($|&)/);
         if (l && l[1]) link = decodeURIComponent(l[1]);
