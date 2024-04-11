@@ -19,11 +19,21 @@ const {
 } = require('../../../config/vars');
 
 const db = require('../../utils/db');
-const {check, timeout, checkData, parseEnvArray} = require('../../utils');
+const {
+  check,
+  timeout,
+  checkData,
+  parseEnvArray,
+  toUrl
+} = require('../../utils');
 const logger = require('../../utils/logger');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
-const {getAllLinks, getLinkFromEntity, getLink} = require('../../utils/links');
+const {
+  getAllLinks,
+  getLinkFromEntity,
+  getLink
+} = require('../../utils/links');
 
 const group = TG_GROUP;
 const groupBugs = TG_BUGS_GROUP;
@@ -60,7 +70,8 @@ const support = async (ctx, botHelper) => {
     if (!Number.isNaN(IV_CHAN_MID)) {
       botHelper
         .forwardMes(IV_CHAN_MID, IV_CHAN_ID * -1, chatId)
-        .catch(() => {});
+        .catch(() => {
+        });
     }
   } catch (e) {
     system = `${e}${system}`;
@@ -150,9 +161,12 @@ const format = (bot, botHelper, skipCountBool) => {
         is_personal: true,
         input_message_content: {message_text: 'Links not found'},
       };
-      return msg.answerInlineQuery([res]).catch(() => {});
+      return msg.answerInlineQuery([res])
+        .catch(() => {
+        });
     }
-    const ivObj = await db.getIV(links[0]).catch(() => false);
+    const ivObj = await db.getIV(links[0])
+      .catch(() => false);
     if (ivObj && ivObj.iv) {
       return botHelper
         .sendInline({
@@ -161,11 +175,12 @@ const format = (bot, botHelper, skipCountBool) => {
         })
         .catch(e => logger(e));
     }
-    const exist = await db.getInine(links[0]).catch(() => false);
+    const exist = await db.getInine(links[0])
+      .catch(() => false);
     const res = {
       type: 'article',
       id,
-      title: "Waiting for InstantView... Type 'Any symbol' to check",
+      title: 'Waiting for InstantView... Type \'Any symbol\' to check',
       input_message_content: {message_text: links[0]},
     };
     if (!exist) {
@@ -181,7 +196,8 @@ const format = (bot, botHelper, skipCountBool) => {
         cache_time: 60,
         is_personal: true,
       })
-      .catch(() => {});
+      .catch(() => {
+      });
   });
 
   bot.action(/.*/, async ctx => {
@@ -191,7 +207,11 @@ const format = (bot, botHelper, skipCountBool) => {
     if (s) {
       const {message} = ctx.update.callback_query;
       // eslint-disable-next-line camelcase
-      const {message_id, chat, entities} = message;
+      const {
+        message_id,
+        chat,
+        entities
+      } = message;
       const actionMessage = {
         message_id,
         chatId: chat.id,
@@ -216,13 +236,17 @@ const format = (bot, botHelper, skipCountBool) => {
       } = ctx;
       const {
         // eslint-disable-next-line camelcase
-        message: {text, message_id},
+        message: {
+          text,
+          message_id
+        },
         from, // eslint-disable-next-line camelcase
       } = callback_query;
       const RESULT = `${text}\nResolved! ${error}`;
       await bot.telegram
         .editMessageText(from.id, message_id, null, RESULT)
-        .catch(() => {});
+        .catch(() => {
+        });
     }
   });
 
@@ -243,8 +267,11 @@ const format = (bot, botHelper, skipCountBool) => {
       message = update.channel_post;
     }
 
-    const {reply_to_message: rplToMsg, caption_entities: cEntities} =
-      message || {};
+    const {
+      reply_to_message: rplToMsg,
+      caption_entities: cEntities
+    } =
+    message || {};
     if (rplToMsg || message.audio) {
       return;
     }
@@ -280,9 +307,16 @@ const format = (bot, botHelper, skipCountBool) => {
       }
       link = getLink(links);
       if (!link) return;
-
-      const parsed = new url.URL(link);
-
+      let parsed;
+      if (link) {
+        link = toUrl(link);
+      }
+      try {
+        parsed = new url.URL(link);
+      } catch (e) {
+        logger('exit wrong url');
+        return;
+      }
       if (link.match(/^(https?:\/\/)?(www.)?google/)) {
         const l = link.match(/url=(.*?)($|&)/);
         if (l && l[1]) link = decodeURIComponent(l[1]);
@@ -312,7 +346,9 @@ const format = (bot, botHelper, skipCountBool) => {
       let mid;
       if (!botHelper.waitSec) {
         const res =
-          (await ctx.reply('Waiting for instantView...').catch(() => {})) || {};
+          (await ctx.reply('Waiting for instantView...')
+            .catch(() => {
+            })) || {};
         const messageId = res && res.message_id;
         await timeout(0.1);
         if (!messageId) {
@@ -345,28 +381,32 @@ const format = (bot, botHelper, skipCountBool) => {
   };
 
   bot.on('channel_post', ctx =>
-    addToQueue(ctx).catch(e =>
-      botHelper.sendError(`tg err1: ${JSON.stringify(e)}`),
-    ),
+    addToQueue(ctx)
+      .catch(e =>
+        botHelper.sendError(`tg err1: ${JSON.stringify(e)}`),
+      ),
   );
 
   bot.hears(/.*/, ctx =>
-    addToQueue(ctx).catch(e =>
-      botHelper.sendError(`tg err2: ${JSON.stringify(e)}`),
-    ),
+    addToQueue(ctx)
+      .catch(e =>
+        botHelper.sendError(`tg err2: ${JSON.stringify(e)}`),
+      ),
   );
 
   bot.on('message', ctx =>
-    addToQueue(ctx).catch(e =>
-      botHelper.sendError(`tg err3: ${JSON.stringify(e)}`),
-    ),
+    addToQueue(ctx)
+      .catch(e =>
+        botHelper.sendError(`tg err3: ${JSON.stringify(e)}`),
+      ),
   );
 
   let browserWs = null;
   if (!botHelper.config.no_puppet && !IS_PUPPET_DISABLED) {
-    puppet.getBrowser().then(ws => {
-      browserWs = ws;
-    });
+    puppet.getBrowser()
+      .then(ws => {
+        browserWs = ws;
+      });
   }
   const jobMessage = async task => {
     const {
@@ -419,7 +459,10 @@ const format = (bot, botHelper, skipCountBool) => {
         }
         rabbitMq.timeStart(q);
         link = ivMaker.parse(link);
-        const {isText, url: baseUrl} = await ivMaker
+        const {
+          isText,
+          url: baseUrl
+        } = await ivMaker
           .isText(link, force)
           .catch(e => {
             logger(e);
@@ -463,16 +506,17 @@ const format = (bot, botHelper, skipCountBool) => {
             }, 1000);
             timeoutRes = setTimeout(resolve, IV_LIMIT * 1000, TIMEOUT_EXCEEDED);
           });
-          await Promise.race([ivTimer, ivTask]).then(value => {
-            if (value === TIMEOUT_EXCEEDED) {
-              if (groupBugs) {
-                botHelper.sendAdmin(`timedOut ${link}`, groupBugs);
+          await Promise.race([ivTimer, ivTask])
+            .then(value => {
+              if (value === TIMEOUT_EXCEEDED) {
+                if (groupBugs) {
+                  botHelper.sendAdmin(`timedOut ${link}`, groupBugs);
+                }
+                timeOutLink = true;
+              } else {
+                linkData = value;
               }
-              timeOutLink = true;
-            } else {
-              linkData = value;
-            }
-          });
+            });
           clearInterval(skipTimer);
           clearTimeout(timeoutRes);
         }

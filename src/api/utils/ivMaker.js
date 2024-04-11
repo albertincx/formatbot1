@@ -2,6 +2,7 @@ const makeTelegraph = require('./makeTelegraph');
 const logger = require('./logger');
 const ParseHelper = require('./parseHelper');
 const db = require('./db');
+const {toUrl} = require('./index');
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:21.0) Gecko/20100101 Firefox/21.0';
@@ -57,11 +58,6 @@ const makeIvLink = async (urlParam, paramsObj) => {
 
   res.isLong = res.p;
   return res;
-};
-
-const toUrl = url => {
-  if (!url.match(/^(https?|ftp|file)/)) return `http://${url}`;
-  return url;
 };
 
 const parse = u => {

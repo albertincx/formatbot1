@@ -37,8 +37,14 @@ function parseEnvArray(name = '') {
   return arr;
 }
 
+const toUrl = url => {
+  if (!url.match(/^(https?|ftp|file)/)) return `http://${url}`;
+  return url;
+};
+
 module.exports.check = check;
 module.exports.timeout = timeout;
 module.exports.checkData = checkData;
+module.exports.toUrl = toUrl;
 
 module.exports.parseEnvArray = parseEnvArray;
