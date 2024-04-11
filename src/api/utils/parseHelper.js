@@ -5,6 +5,8 @@ const sanitizeHtml = require('sanitize-html');
 const path = require('path');
 const url = require('url');
 
+const {REST_API} = require('../../config/vars');
+
 const mercury = require('./mercury');
 const fixImages = require('./fixImages');
 const puppet = require('./puppet');
@@ -12,7 +14,6 @@ const {getDom} = require('./dom');
 const logger = require('./logger');
 
 const ASYNC_FILE = 'asyncContent.html';
-const API = process.env.REST_API;
 
 function parseServices(link) {
   if (link.match(/^(https?:\/\/)?(www.)?google/)) {
@@ -102,7 +103,7 @@ class ParseHelper {
   async puppet() {
     let l = this.link;
     if (this.params.isCached) {
-      l = `${API}file?file=${ASYNC_FILE}`;
+      l = `${REST_API}file?file=${ASYNC_FILE}`;
     }
     let html = '';
     if (!this.params.isPuppet) {

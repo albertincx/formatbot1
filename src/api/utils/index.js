@@ -24,6 +24,21 @@ function checkData(data, msg = 'missing data') {
   }
 }
 
+function parseEnvArray(name = '') {
+  const arr = [];
+  if (process.env[`${name}_0`]) {
+    arr.push(process.env[`${name}_0`]);
+  }
+  for (let i = 1; i < 10; i += 1) {
+    if (process.env[`${name}_${i}`]) {
+      arr.push(process.env[`${name}_${i}`]);
+    }
+  }
+  return arr;
+}
+
 module.exports.check = check;
 module.exports.timeout = timeout;
 module.exports.checkData = checkData;
+
+module.exports.parseEnvArray = parseEnvArray;

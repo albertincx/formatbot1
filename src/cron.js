@@ -1,5 +1,6 @@
 const fs = require('fs');
 const {CronJob} = require('cron');
+const {IS_DEV, NODE_CRON, CRON_TASKS} = require('./config/vars');
 
 const CRON_SEP = ':';
 const JOB_SEP = ',';
@@ -8,7 +9,7 @@ function cron(crontime, tasks, botHelper) {
   // eslint-disable-next-line no-console
   console.log(`init cron ${crontime} ${tasks}`);
   const job = new CronJob(`${crontime}`, async () => {
-    if (process.env.DEV) {
+    if (IS_DEV) {
       const d = new Date();
       // eslint-disable-next-line no-console
       console.log(`created task ${crontime} `, d);
@@ -18,9 +19,10 @@ function cron(crontime, tasks, botHelper) {
       try {
         // eslint-disable-next-line global-require,import/no-dynamic-require
         const microtasks = require(`./service/commands/${taskName}`);
+        // eslint-disable-next-line no-await-in-loop
         await microtasks.run({cronJob: crontime}, botHelper);
       } catch (e) {
-        if (process.env.DEV) {
+        if (IS_DEV) {
           // eslint-disable-next-line no-console
           console.log(`task error ${taskName}`);
           // eslint-disable-next-line no-console
@@ -33,20 +35,21 @@ function cron(crontime, tasks, botHelper) {
 }
 
 function init(botHelper) {
-  const crontimes = process.env.NODE_CRON || '';
-  const crontasks = process.env.CRON_TASKS || '';
+  const cronTimes = NODE_CRON || '';
+  const cronTasks = CRON_TASKS || '';
 
-  const crons = crontimes.split(CRON_SEP);
-  const tasksMain = crontasks.split(CRON_SEP);
+  const cronArray = cronTimes.split(CRON_SEP);
+  const tasksMain = cronTasks.split(CRON_SEP);
 
   try {
-    if (crons && crons.length) {
-      for (let i = 0; i < crons.length; i += 1) {
-        const crontime = `${crons[i]}`
+    if (cronArray && cronArray.length) {
+      for (let i = 0; i < cronArray.length; i += 1) {
+        const cronTime = `${cronArray[i]}`
           .trim()
           .replace(/G/g, '*')
           .replace(/d/g, '/');
-        if (crontime && tasksMain[i]) {
+
+        if (cronTime && tasksMain[i]) {
           const jobs = tasksMain[i].split(JOB_SEP);
           if (jobs && jobs.length) {
             const tasks = [];
@@ -58,20 +61,20 @@ function init(botHelper) {
               }
             }
             if (tasks.length) {
-              cron(crontime, tasks, botHelper);
+              cron(cronTime, tasks, botHelper);
             }
           } else {
             // eslint-disable-next-line no-console
-            console.log(`no jobs ${crontime}`);
+            console.log(`no jobs ${cronTime}`);
           }
         } else {
           // eslint-disable-next-line no-console
-          console.log(`empty ${crontime}`);
+          console.log(`empty ${cronTime}`);
         }
       }
     } else {
       // eslint-disable-next-line no-console
-      console.log('no crons');
+      console.log('no cron arr');
     }
   } catch (e) {
     // eslint-disable-next-line no-console

@@ -9,10 +9,8 @@ const envPath = path.join(__dirname, '../../.env');
 const unableToStart = [];
 
 const confFile = path.join(__dirname, '../../.conf');
-const cacheFile = path.join(__dirname, '../../.cache');
 
 if (!fs.existsSync(confFile)) fs.mkdirSync(confFile);
-if (!fs.existsSync(cacheFile)) fs.mkdirSync(cacheFile);
 
 const blacklistFile = path.join(__dirname, '../../.conf/blacklist.txt');
 
@@ -29,11 +27,10 @@ dotenv.config({
 if (!fs.existsSync(envPath)) {
   unableToStart.push(messages.errorEnv());
 }
+const MQ_IS_OFF = process.env.NO_MQ === '1';
+const RABBIT_MQ_QUEUE = !MQ_IS_OFF && process.env.MESSAGE_QUEUE;
 
-if (
-  process.env.MESSAGE_QUEUE &&
-  (!process.env.TASKS_DEV || !process.env.TASKS2_DEV)
-) {
+if (RABBIT_MQ_QUEUE && (!process.env.TASKS_DEV || !process.env.TASKS2_DEV)) {
   unableToStart.push(messages.errorTasks());
 }
 
@@ -41,18 +38,52 @@ if (unableToStart.length) {
   console.log(unableToStart.join('\n'));
   process.exit(0);
 }
+const BOT_IS_OFF = process.env.NO_BOT === '1';
+const DB_IS_OFF = process.env.DB_DISABLED === '1';
 
-module.exports = {
-  root: path.join(__dirname, '/../../'),
-  uploadDir: cacheFile,
-  mongo: {
-    uri: process.env.MONGO_URI,
-    disabled: process.env.DB_DISABLED === '1',
-  },
-  blacklistFile,
-  puppetQue: process.env.TASKSPUPPET_DEV || 'puppet',
-  rabbitMQ: process.env.MESSAGE_QUEUE,
-  rqTasks: process.env.TASKS_DEV,
-  rqTasks2: process.env.TASKS2_DEV,
+if (BOT_IS_OFF) {
+  console.log('bot is off');
+}
+if (MQ_IS_OFF) {
+  console.log('rabbit mq is off');
+}
+if (DB_IS_OFF) {
+  console.log('DB_IS_OFF');
+}
+const exportVars = {
+  MONGO_URI: process.env.MONGO_URI,
+  BLACK_LIST_FILE: blacklistFile,
+  PUPPET_QUE: process.env.TASKSPUPPET_DEV || 'puppet',
+  RABBIT_MQ_QUE: RABBIT_MQ_QUEUE,
+  R_MQ_MAIN_CHANNEL: process.env.TASKS_DEV,
+  R_MQ_SECOND_CHANNEL: process.env.TASKS2_DEV,
   BOT_USERNAME: process.env.BOT_USERNAME || '_no_username',
+  WORKER: process.env.WORKER,
+  NO_BOT: BOT_IS_OFF,
+  IS_PUPPET_DISABLED: process.env.NO_PUPPET === '1',
+  T_B_TKN: !BOT_IS_OFF && process.env.TBTKN,
+  NO_MQ: MQ_IS_OFF,
+  NO_DB: DB_IS_OFF,
+  IS_DEV: process.env.DEV,
+  MONGO_URI_SECOND: process.env.MONGO_URI_SECOND,
+  MONGO_URI_OLD: process.env.MONGO_URI_OLD,
+  MONGO_COLL_LINKS: process.env.MONGO_COLL_LINKS,
+  MONGO_COLL_I_LINKS: process.env.MONGO_COLL_ILINKS,
+  REST_API: process.env.REST_API,
+  HEADLESS: process.env.HDLSS,
+  NODE_CRON: process.env.NODE_CRON,
+  CRON_TASKS: process.env.CRON_TASKS,
+  TG_ADMIN_ID: process.env.TGADMIN,
+  TG_GROUP: process.env.TGGROUP,
+  TG_BUGS_GROUP: process.env.TGGROUPBUGS,
+  IV_MAKING_TIMEOUT: process.env.IV_MAKING_TIMEOUT,
+  IV_CHAN_ID: Number(process.env.IV_CHAN_ID),
+  IV_CHAN_MID: Number(process.env.IV_CHAN_MID),
+  USER_IDS: process.env.USERIDS,
+  HELP_MESSAGE: process.env.HELP_MESSAGE,
+  TG_PH_TOKEN2: process.env.TGPHTOKEN2,
 };
+
+// logger(exportVars);
+
+module.exports = exportVars;

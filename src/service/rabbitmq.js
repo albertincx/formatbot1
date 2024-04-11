@@ -2,11 +2,19 @@ const amqp = require('amqplib');
 const logger = require('../api/utils/logger');
 const messages = require('../messages/format');
 
-const {puppetQue, rabbitMQ, rqTasks, rqTasks2} = require('../config/vars');
+const {
+  PUPPET_QUE,
+  RABBIT_MQ_QUE,
+  R_MQ_MAIN_CHANNEL,
+  R_MQ_SECOND_CHANNEL,
+  WORKER,
+  TG_PH_TOKEN2,
+} = require('../config/vars');
+const {parseEnvArray} = require('../api/utils');
 
-const TASKS_CHANNEL = rqTasks;
+const TASKS_CHANNEL = R_MQ_MAIN_CHANNEL;
 
-let rchannel = null;
+let rChannel = null;
 
 const starts = {
   start: process.hrtime(),
@@ -18,10 +26,10 @@ let availableOne = true;
 const getStartName = q => {
   let startName = 'start';
   switch (q) {
-    case rqTasks2:
+    case R_MQ_SECOND_CHANNEL:
       startName = 'start2';
       break;
-    case puppetQue:
+    case PUPPET_QUE:
       startName = 'start3';
       break;
     default:
@@ -51,17 +59,17 @@ const resetTime = (q = TASKS_CHANNEL) => {
 let connection = null;
 
 const startFirst = async () => {
-  if (!rabbitMQ) {
+  if (!RABBIT_MQ_QUE) {
     console.log(messages.warningMQ());
     return;
   }
 
   try {
     if (!connection) {
-      connection = await amqp.connect(rabbitMQ);
+      connection = await amqp.connect(RABBIT_MQ_QUE);
     }
-    if (!rchannel) {
-      rchannel = await connection.createChannel();
+    if (!rChannel) {
+      rChannel = await connection.createChannel();
     }
   } catch (e) {
     console.log('err rabbit');
@@ -72,13 +80,13 @@ const startFirst = async () => {
 const createChan = async (queueName = TASKS_CHANNEL) => {
   let channel;
 
-  if (!rabbitMQ) {
+  if (!RABBIT_MQ_QUE) {
     console.log(messages.warningMQ());
     return undefined;
   }
   try {
     if (!connection) {
-      connection = await amqp.connect(rabbitMQ);
+      connection = await amqp.connect(RABBIT_MQ_QUE);
     }
     channel = await connection.createChannel();
     await channel.prefetch(1);
@@ -95,7 +103,7 @@ const runMqChannel = async (job, qName) => {
   try {
     const queueName = qName;
     if (!queueName) {
-      console.log('rabbitMq channelName is not defined');
+      console.log('rabbit MQ channelName is not defined');
       return;
     }
     const channel = await createChan(queueName);
@@ -127,29 +135,23 @@ const runMqChannel = async (job, qName) => {
 };
 
 const runMqChannels = job => {
-  if (!rabbitMQ) {
+  if (!RABBIT_MQ_QUE) {
     console.log(messages.warningMQ());
     return;
   }
   setTimeout(() => {
-    runMqChannel(job, rqTasks);
-    if (rqTasks2) {
-      runMqChannel(job, rqTasks2);
+    runMqChannel(job, R_MQ_MAIN_CHANNEL);
+    if (R_MQ_SECOND_CHANNEL) {
+      runMqChannel(job, R_MQ_SECOND_CHANNEL);
     }
 
-    if (puppetQue) {
-      runMqChannel(job, puppetQue);
+    if (PUPPET_QUE) {
+      runMqChannel(job, PUPPET_QUE);
     }
   }, 5000);
 };
 
-const keys = [process.env.TGPHTOKEN_0];
-
-for (let i = 1; i < 10; i += 1) {
-  if (process.env[`TGPHTOKEN_${i}`]) {
-    keys.push(process.env[`TGPHTOKEN_${i}`]);
-  }
-}
+const keys = parseEnvArray('TGPHTOKEN');
 
 function shuffle(arr) {
   let currentIndex = arr.length;
@@ -180,10 +182,10 @@ function getKey() {
 }
 
 const getParams = (queueName = TASKS_CHANNEL) => {
-  const isPuppet = queueName === puppetQue;
+  const isPuppet = queueName === PUPPET_QUE;
   let accessToken = getKey();
-  if (queueName === rqTasks2) {
-    accessToken = process.env.TGPHTOKEN2;
+  if (queueName === R_MQ_SECOND_CHANNEL) {
+    accessToken = TG_PH_TOKEN2;
   }
   return {
     isPuppet,
@@ -191,8 +193,8 @@ const getParams = (queueName = TASKS_CHANNEL) => {
   };
 };
 
-const addToQueue = (task, qName = TASKS_CHANNEL) => {
-  if (rchannel) {
+const addToQueue = (taskParams, qName = TASKS_CHANNEL) => {
+  if (rChannel) {
     try {
       let queueName = qName;
       const el = elapsedTime(queueName);
@@ -201,10 +203,12 @@ const addToQueue = (task, qName = TASKS_CHANNEL) => {
       logger(`availableOne ${availableOne}`);
       logger(`elTime ${elTime}`);
       if (queueName === TASKS_CHANNEL && !availableOne && elTime > 15) {
-        queueName = rqTasks2;
+        queueName = R_MQ_SECOND_CHANNEL;
       }
       logger(el);
-      rchannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
+      const task = {...taskParams, ...(WORKER ? {w: 1} : {})};
+
+      rChannel.sendToQueue(queueName, Buffer.from(JSON.stringify(task)), {
         contentType: 'application/json',
         persistent: true,
       });

@@ -1,13 +1,12 @@
-// const express = require('express');
 require('trace-unhandled/register');
 
-const {blacklistFile} = require('./config/vars');
 const botRoute = require('./api/routes/botroute');
 const botInstance = require('./config/bot');
+// const botInstance = require('./config/botTest');
 const conn = require('./config/mongoose').connect();
 
-if (process.env.TBTKN && botInstance) {
-  const {bot} = botRoute(botInstance, conn);
-  bot.setBlacklist(blacklistFile);
+if (botInstance) {
+  botRoute(botInstance, conn);
 }
-console.info('started');
+
+console.info('Format bot is started');

@@ -1,6 +1,11 @@
 const fs = require('fs');
+const {
+  TG_ADMIN_ID,
+  TG_BUGS_GROUP,
+  BLACK_LIST_FILE,
+} = require('../../config/vars');
 
-const TG_ADMIN = parseInt(process.env.TGADMIN, 10);
+const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
 const OFF = 'Off';
 const ON = 'On';
 
@@ -11,7 +16,7 @@ const BANNED_ERROR = 'USER_BANNED_IN_CHANNEL';
 const RIGHTS_ERROR = 'need administrator rights in the channel chat';
 
 class BotHelper {
-  constructor(bot) {
+  constructor(bot, worker) {
     this.bot = bot;
     let c = {no_puppet: false};
     try {
@@ -22,6 +27,7 @@ class BotHelper {
     this.config = c;
     this.tgAdmin = TG_ADMIN;
     this.waitSec = false;
+    this.worker = worker;
   }
 
   isAdmin(chatId) {
@@ -29,9 +35,12 @@ class BotHelper {
   }
 
   botMes(chatId, text, mark = true) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     let opts = {};
     if (mark) {
-      opts = {parse_mode: PARSE_MODE_MARK};
+      opts = {parse_mode: this.markdown()};
     }
     return this.bot
       .sendMessage(chatId, text, opts)
@@ -39,12 +48,15 @@ class BotHelper {
   }
 
   sendAdmin(textParam, chatIdParam = '', mark = false) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     let chatId = chatIdParam;
     let text = textParam;
     let opts = {};
     if (mark === true) {
       opts = {
-        parse_mode: PARSE_MODE_MARK,
+        parse_mode: this.markdown(),
         disable_web_page_preview: true,
       };
     }
@@ -70,11 +82,17 @@ class BotHelper {
   }
 
   sendAdminOpts(text, opts) {
-    const chatId = process.env.TGGROUPBUGS || TG_ADMIN;
+    if (this.worker) {
+      return Promise.resolve();
+    }
+    const chatId = TG_BUGS_GROUP || TG_ADMIN;
     return this.bot.sendMessage(chatId, text, opts).catch(() => {});
   }
 
   sendInline({title, messageId, ivLink}) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     let inlineTitle = title;
     if (!title) {
       inlineTitle = INLINE_TITLE;
@@ -90,6 +108,9 @@ class BotHelper {
   }
 
   sendAdminMark(text, chatId) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     return this.sendAdmin(text, chatId, true);
   }
 
@@ -215,21 +236,27 @@ class BotHelper {
     this.db = false;
   }
 
-  setBlacklist(f) {
-    this.bllist = fs.readFileSync(f).toString() || '';
+  setBlacklist() {
+    this.bllist = fs.readFileSync(BLACK_LIST_FILE).toString() || '';
   }
 
   isBlackListed(h) {
     return this.bllist && this.bllist.match(h);
   }
 
-  forward(mid, from, to) {
+  forwardMes(mid, from, to) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     return this.bot.forwardMessage(to, from, mid);
   }
 
   sendIV(chatId, messageId, inlineMessageId, messageText, extra) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     let text = messageText;
-    if (extra && extra.parse_mode === PARSE_MODE_MARK) {
+    if (extra && extra.parse_mode === this.markdown()) {
       text = text.replace(/[*`]/gi, '');
     }
     return this.bot
@@ -238,14 +265,20 @@ class BotHelper {
   }
 
   sendIVNew(chatId, messageText, extra) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     let text = messageText;
-    if (extra && extra.parse_mode === PARSE_MODE_MARK) {
+    if (extra && extra.parse_mode === this.markdown()) {
       text = text.replace(/[*`]/gi, '');
     }
     return this.bot.sendMessage(chatId, text, extra).catch(() => {});
   }
 
   delMessage(chatId, messageId) {
+    if (this.worker) {
+      return Promise.resolve();
+    }
     return this.bot.deleteMessage(chatId, messageId).catch(() => {});
   }
 

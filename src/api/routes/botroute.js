@@ -4,6 +4,7 @@ const BotHelper = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
 const messages = require('../../messages/format');
+const {WORKER, NO_BOT, IS_DEV} = require('../../config/vars');
 
 global.skipCount = 0;
 
@@ -25,7 +26,7 @@ let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
 let limit90Sec = 0;
 
 const botRoute = (bot, conn) => {
-  const botHelper = new BotHelper(bot.telegram);
+  const botHelper = new BotHelper(bot.telegram, WORKER);
   if (conn) {
     conn.on('error', () => {
       botHelper.disDb();
@@ -136,6 +137,7 @@ const botRoute = (bot, conn) => {
       });
     }
   });
+
   bot.command('getCleanData', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       db.getCleanData().then(r => {
@@ -156,16 +158,21 @@ const botRoute = (bot, conn) => {
 
   format(bot, botHelper, skipCount);
 
-  bot.launch();
+  if (!NO_BOT) {
+    bot.launch();
+  }
 
-  if (startCnt % 10 === 0 || process.env.DEV) {
+  if (startCnt % 10 === 0 || IS_DEV) {
     botHelper.sendAdmin(`started ${startCnt} times`);
   }
+
   startCnt += 1;
+
   if (startCnt >= 500) startCnt = 0;
 
   fs.writeFileSync(filepath, parseInt(startCnt, 10).toString());
-  return {bot: botHelper};
+
+  botHelper.setBlacklist();
 };
 
 module.exports = botRoute;

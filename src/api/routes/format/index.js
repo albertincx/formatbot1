@@ -2,47 +2,51 @@ const url = require('url');
 
 const keyboards = require('../../../keyboards/keyboards');
 const messages = require('../../../messages/format');
+const {validRegex} = require('../../../config/config.json');
+const rabbitMq = require('../../../service/rabbitmq');
+
+const {
+  PUPPET_QUE,
+  IS_PUPPET_DISABLED,
+  NO_MQ,
+  TG_BUGS_GROUP,
+  TG_GROUP,
+  IV_MAKING_TIMEOUT,
+  IV_CHAN_ID,
+  IV_CHAN_MID,
+  USER_IDS,
+  HELP_MESSAGE,
+} = require('../../../config/vars');
+
 const db = require('../../utils/db');
+const {check, timeout, checkData, parseEnvArray} = require('../../utils');
 const logger = require('../../utils/logger');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
-
-const {check, timeout, checkData} = require('../../utils');
 const {getAllLinks, getLinkFromEntity, getLink} = require('../../utils/links');
 
-const {validRegex} = require('../../../config/config.json');
+const group = TG_GROUP;
+const groupBugs = TG_BUGS_GROUP;
 
-const rabbitmq = require('../../../service/rabbitmq');
-const {puppetQue} = require('../../../config/vars');
-
-const group = process.env.TGGROUP;
-const groupBugs = process.env.TGGROUPBUGS;
-
-const IV_MAKING_TIMEOUT = +(process.env.IV_MAKING_TIMEOUT || 60);
-const IV_CHAN_ID = +process.env.IV_CHAN_ID;
-const IV_CHAN_MID = +process.env.IV_CHAN_MID;
-const USER_IDS = (process.env.USERIDS || '').split(',');
+const IV_TIMEOUT = +(IV_MAKING_TIMEOUT || 60);
+const userIds = (USER_IDS || '').split(',');
 const TIMEOUT_EXCEEDED = 'timedOut';
-
-const HELP_MESSAGE = process.env.HELP_MESSAGE || '';
 
 global.lastIvTime = +new Date();
 
-const supportLinks = [process.env.SUP_LINK];
+const supportLinks = parseEnvArray('SUP_LINK');
 
-for (let i = 1; i < 10; i += 1) {
-  if (process.env[`SUP_LINK${i}`]) {
-    supportLinks.push(process.env[`SUP_LINK${i}`]);
-  }
+if (!NO_MQ) {
+  rabbitMq.startFirst();
 }
-rabbitmq.startFirst();
+
 const support = async (ctx, botHelper) => {
   let system = JSON.stringify(ctx.message.from);
   const {
     chat: {id: chatId},
   } = ctx.message;
 
-  if (USER_IDS.length && USER_IDS.includes(`${chatId}`)) {
+  if (userIds.length && userIds.includes(`${chatId}`)) {
     return;
   }
   try {
@@ -53,8 +57,10 @@ const support = async (ctx, botHelper) => {
       parse_mode: botHelper.markdown(),
     });
 
-    if (IV_CHAN_MID) {
-      botHelper.forward(IV_CHAN_MID, IV_CHAN_ID * -1, chatId).catch(() => {});
+    if (!Number.isNaN(IV_CHAN_MID)) {
+      botHelper
+        .forwardMes(IV_CHAN_MID, IV_CHAN_ID * -1, chatId)
+        .catch(() => {});
     }
   } catch (e) {
     system = `${e}${system}`;
@@ -67,14 +73,14 @@ const startOrHelp = (ctx, botHelper) => {
     const {
       chat: {id: chatId},
     } = ctx.message;
-    if (USER_IDS.length && USER_IDS.includes(`${chatId}`)) {
+    if (userIds.length && userIds.includes(`${chatId}`)) {
       return;
     }
   } else {
     const {
       chat: {id: chatId},
     } = ctx.message;
-    if (USER_IDS.length && USER_IDS.includes(`${chatId}`)) {
+    if (userIds.length && userIds.includes(`${chatId}`)) {
       return;
     }
   }
@@ -163,7 +169,7 @@ const format = (bot, botHelper, skipCountBool) => {
       input_message_content: {message_text: links[0]},
     };
     if (!exist) {
-      rabbitmq.addToQueue({
+      rabbitMq.addToQueue({
         message_id: id,
         chatId: msg.from.id,
         link: links[0],
@@ -191,7 +197,7 @@ const format = (bot, botHelper, skipCountBool) => {
         chatId: chat.id,
         link: entities[1].url,
       };
-      rabbitmq.addToQueue(actionMessage, puppetQue);
+      rabbitMq.addToQueue(actionMessage, PUPPET_QUE);
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
@@ -323,12 +329,12 @@ const format = (bot, botHelper, skipCountBool) => {
         global.lastIvTime = +new Date();
         botHelper.sendAdmin(`alert ${newIvTime} sec`);
       }
-      if (!process.env.MESSAGE_QUEUE) {
+      if (NO_MQ) {
         console.log('cloud massaging is disabled');
         // eslint-disable-next-line consistent-return
         return jobMessage(task);
       }
-      rabbitmq.addToQueue(task);
+      rabbitMq.addToQueue(task);
     }
   };
 
@@ -351,16 +357,27 @@ const format = (bot, botHelper, skipCountBool) => {
   );
 
   let browserWs = null;
-  if (!botHelper.config.no_puppet && !process.env.NOPUPPET) {
+  if (!botHelper.config.no_puppet && !IS_PUPPET_DISABLED) {
     puppet.getBrowser().then(ws => {
       browserWs = ws;
     });
   }
   const jobMessage = async task => {
-    const {chatId, message_id: messageId, q, force, isChanMesId, inline} = task;
+    const {
+      chatId,
+      message_id: messageId,
+      q,
+      force,
+      isChanMesId,
+      inline,
+      w: isWorker,
+    } = task;
     let {link} = task;
     if (link.match(/^https?:\/\/t\.me\//)) {
       return;
+    }
+    if (isWorker) {
+      // TODO
     }
     let error = '';
     let isBroken = false;
@@ -383,12 +400,12 @@ const format = (bot, botHelper, skipCountBool) => {
       let successIv = false;
       try {
         logger(`queue job ${q}`);
-        let params = rabbitmq.getParams(q);
+        let params = rabbitMq.getParams(q);
         const isAdm = botHelper.isAdmin(chatId);
         if (isAdm) {
           params.isadmin = true;
         }
-        rabbitmq.timeStart(q);
+        rabbitMq.timeStart(q);
         link = ivMaker.parse(link);
         const {isText, url: baseUrl} = await ivMaker
           .isText(link, force)
@@ -405,7 +422,7 @@ const format = (bot, botHelper, skipCountBool) => {
           global.emptyTextCount = (global.emptyTextCount || 0) + 1;
         } else {
           global.emptyTextCount = 0;
-          const IV_LIMIT = isAdm ? 120 : IV_MAKING_TIMEOUT;
+          const IV_LIMIT = isAdm ? 120 : IV_TIMEOUT;
           const {hostname} = url.parse(link);
           checkData(hostname.match('djvu'));
           clearInterval(skipTimer);
@@ -476,12 +493,12 @@ const format = (bot, botHelper, skipCountBool) => {
           TITLE = '';
           RESULT = messages.timeOut();
         } else {
-          RESULT = messages.broken(link, HELP_MESSAGE);
+          RESULT = messages.broken(link, HELP_MESSAGE || '');
         }
         successIv = false;
         error = `broken ${link} ${e}`;
       }
-      const durationTime = rabbitmq.time(q);
+      const durationTime = rabbitMq.time(q);
       if (global.emptyTextCount > 10) {
         botHelper.sendAdmin('@admin need to /restartApp');
       }
@@ -559,7 +576,7 @@ const format = (bot, botHelper, skipCountBool) => {
   };
 
   try {
-    rabbitmq.runMqChannels(jobMessage);
+    rabbitMq.runMqChannels(jobMessage);
   } catch (e) {
     botHelper.sendError(e);
   }

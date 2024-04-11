@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const {timeout} = require('./index');
 const logger = require('./logger');
+const {HEADLESS} = require('../../config/vars');
 
 const getBrowser = async () => {
   const args = [
@@ -14,7 +15,7 @@ const getBrowser = async () => {
     '--incognito',
   ];
   const opts = {args};
-  if (process.env.HDLSS !== '1') {
+  if (HEADLESS !== '1') {
     opts.headless = 'new';
   }
   return puppeteer.launch(opts).then(browser => {

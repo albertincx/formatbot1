@@ -2,11 +2,22 @@ const co = require('co');
 const mongoose = require('mongoose');
 const Any = require('../models/any.model');
 
-const LINKS_COLL = process.env.MONGO_COLL_LINKS || 'links';
-const ILINKS_COLL = process.env.MONGO_COLL_ILINKS || 'ilinks';
+const {
+  IS_DEV,
+  MONGO_URI_SECOND,
+  MONGO_URI_OLD,
+  MONGO_COLL_LINKS,
+  MONGO_COLL_I_LINKS,
+  NO_DB,
+} = require('../../config/vars');
+
+const LINKS_COLL = MONGO_COLL_LINKS || 'links';
+const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
 
 const connectDb = () =>
-  mongoose.createConnection(process.env.MONGO_URI_SECOND, {
+  !NO_DB &&
+  MONGO_URI_SECOND &&
+  mongoose.createConnection(MONGO_URI_SECOND, {
     keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
@@ -14,11 +25,12 @@ const connectDb = () =>
   });
 
 const links = Any.collection.conn.model(LINKS_COLL, Any.schema);
-const inlineLinks = Any.collection.conn.model(ILINKS_COLL, Any.schema);
+const inlineLinks = Any.collection.conn.model(I_LINKS_COLL, Any.schema);
 
 const conn2 =
-  process.env.MONGO_URI_OLD1 &&
-  mongoose.createConnection(process.env.MONGO_URI_OLD1, {
+  !NO_DB &&
+  MONGO_URI_OLD &&
+  mongoose.createConnection(MONGO_URI_OLD, {
     keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
@@ -26,7 +38,7 @@ const conn2 =
   });
 
 const linksOld1 = conn2 && conn2.model(LINKS_COLL, Any.schema);
-const inlineLinksOld1 = conn2 && conn2.model(ILINKS_COLL, Any.schema);
+const inlineLinksOld1 = conn2 && conn2.model(I_LINKS_COLL, Any.schema);
 
 const stat = () => links.countDocuments();
 
@@ -83,7 +95,9 @@ const processBroadcast = async (txtParam, ctx, botHelper) => {
 
 const getCids = txt => {
   let l = txt.match(/r_c_id_([0-9_-]+)/);
-  if (l && l[1]) l = l[1].split('_').map(Number);
+  if (l && l[1]) {
+    l = l[1].split('_').map(Number);
+  }
   return l || [];
 };
 
@@ -96,7 +110,7 @@ const createBroadcast = async (ctx, txt) => {
   const model = Any.collection.conn.model('broadcasts', Any.schema);
   const messages = connSecond.model('messages', Any.schema);
   const filter = {};
-  if (process.env.DEV) {
+  if (IS_DEV) {
     filter.username = {$in: ['safiullin']};
   }
   // filter.username = {$in: ['safiullin']};
@@ -109,10 +123,13 @@ const createBroadcast = async (ctx, txt) => {
   const cursor = messages.find(filter).cursor();
   await processRows(cursor, 500, 10, items => {
     const updates = [];
+
+    const updFilter = {cId, sent: {$exists: false}};
+
     items.forEach(({id}) => {
       updates.push({
         updateOne: {
-          filter: {id, cId, sent: {$exists: false}},
+          filter: {...updFilter, id},
           update: {id, cId},
           upsert: true,
         },
@@ -129,19 +146,25 @@ const startBroadcast = async (ctx, txtParam, bot) => {
   if (!cId) {
     return ctx.reply('broad completed no id');
   }
-  const result = {err: 0, success: 0};
-  let model;
+  const result = {
+    err: 0,
+    success: 0,
+  };
   let connSecond;
 
-  //   if (process.env.DEV) {
-  //     connSecond = connectDb();
-  //     model = connSecond.model('broadcasts', Any.schema);
-  //   } else {
+  if (IS_DEV) {
+    // connSecond = connectDb();
+  }
 
-  //   }
-  model = Any.collection.conn.model('broadcasts', Any.schema);
+  const model = Any.collection.conn.model('broadcasts', Any.schema);
 
-  const filter = {sent: {$exists: false}, cId};
+  // DEV
+  // const model = isDEV && connSecond.model('broadcasts', Any.schema);
+
+  const filter = {
+    sent: {$exists: false},
+    cId,
+  };
   const sendCmd = Mid ? 'forward' : 'sendAdmin';
   const cursor = model.find(filter).limit(800).cursor();
   let breakProcess = false;
@@ -169,6 +192,7 @@ const startBroadcast = async (ctx, txtParam, bot) => {
           if (SecondMid) {
             const runCmd2 = () =>
               bot[sendCmd](SecondMid, FromId * (isChannel ? -1 : 1), id);
+            // eslint-disable-next-line no-await-in-loop
             await runCmd2();
           }
           success.push({
@@ -215,6 +239,7 @@ const startBroadcast = async (ctx, txtParam, bot) => {
   if (connSecond) {
     await connSecond.close();
   }
+
   return ctx.reply(`broad completed: ${r} with ${breakProcess || ''}`);
 };
 
@@ -224,7 +249,7 @@ const clear = async msg => {
   if (text.match(/^\/cleardb2/)) {
     return clear2(msg);
   }
-  let search = '';
+  let search;
 
   if (text.match(/^\/cleardb3_/)) {
     search = text.replace('/cleardb3_', '').replace(/_/g, '.');
