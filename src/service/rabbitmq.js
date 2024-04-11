@@ -181,7 +181,7 @@ function getKey() {
   return keys1.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
 }
 
-const getParams = (queueName = TASKS_CHANNEL) => {
+const getMqParams = (queueName = TASKS_CHANNEL) => {
   const isPuppet = queueName === PUPPET_QUE;
   let accessToken = getKey();
   if (queueName === R_MQ_SECOND_CHANNEL) {
@@ -193,7 +193,7 @@ const getParams = (queueName = TASKS_CHANNEL) => {
   };
 };
 
-const addToQueue = (taskParams, qName = TASKS_CHANNEL) => {
+const addToChannel = (taskParams, qName = TASKS_CHANNEL) => {
   if (rChannel) {
     try {
       let queueName = qName;
@@ -230,8 +230,8 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
 const timeStart = q => time(q, true);
 
 module.exports.startFirst = startFirst;
-module.exports.addToQueue = addToQueue;
-module.exports.getParams = getParams;
+module.exports.addToChannel = addToChannel;
+module.exports.getMqParams = getMqParams;
 module.exports.time = time;
 module.exports.runMqChannels = runMqChannels;
 module.exports.timeStart = timeStart;

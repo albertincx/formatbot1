@@ -22,11 +22,4 @@ You can find this bot by keywords such as “InstantViewBot”
 - MESSAGE_QUEUE = rabbitmq message queue connection, thanks [cloudamqp.com](https://cloudamqp.com)
 - MONGO_URI     = mongodb connetcion uri, thanks [cloud.mongodb.com](https://cloud.mongodb.com) 
 
-**dev:**
-
-```
-bash dev-install.txt
-npm install
-npm run dev
-```
 ### Wiki [Instruction to run](https://github.com/albertincx/formatbot1/wiki/How-to-RUN)

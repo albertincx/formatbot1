@@ -169,7 +169,7 @@ const format = (bot, botHelper, skipCountBool) => {
       input_message_content: {message_text: links[0]},
     };
     if (!exist) {
-      rabbitMq.addToQueue({
+      rabbitMq.addToChannel({
         message_id: id,
         chatId: msg.from.id,
         link: links[0],
@@ -197,7 +197,7 @@ const format = (bot, botHelper, skipCountBool) => {
         chatId: chat.id,
         link: entities[1].url,
       };
-      rabbitMq.addToQueue(actionMessage, PUPPET_QUE);
+      rabbitMq.addToChannel(actionMessage, PUPPET_QUE);
       return;
     }
     const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
@@ -281,11 +281,13 @@ const format = (bot, botHelper, skipCountBool) => {
       link = getLink(links);
       if (!link) return;
 
-      const parsed = url.parse(link);
+      const parsed = new url.URL(link);
+
       if (link.match(/^(https?:\/\/)?(www.)?google/)) {
         const l = link.match(/url=(.*?)($|&)/);
         if (l && l[1]) link = decodeURIComponent(l[1]);
       }
+
       if (link.match(new RegExp(validRegex))) {
         ctx
           .reply(messages.showIvMessage('', link, link), {
@@ -297,12 +299,16 @@ const format = (bot, botHelper, skipCountBool) => {
       if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
         return;
       }
+
       if (link.match(/yandex\.ru\/showcap/)) {
         return;
       }
-      if (!parsed.pathname) {
+
+      // allow https only main page
+      if (!parsed.pathname && !parsed.protocol.match('https')) {
         return;
       }
+
       let mid;
       if (!botHelper.waitSec) {
         const res =
@@ -334,7 +340,7 @@ const format = (bot, botHelper, skipCountBool) => {
         // eslint-disable-next-line consistent-return
         return jobMessage(task);
       }
-      rabbitMq.addToQueue(task);
+      rabbitMq.addToChannel(task);
     }
   };
 
@@ -372,13 +378,17 @@ const format = (bot, botHelper, skipCountBool) => {
       inline,
       w: isWorker,
     } = task;
+
     let {link} = task;
+
     if (link.match(/^https?:\/\/t\.me\//)) {
       return;
     }
+
     if (isWorker) {
       // TODO
     }
+
     let error = '';
     let isBroken = false;
     const resolveMsgId = false;
@@ -400,8 +410,10 @@ const format = (bot, botHelper, skipCountBool) => {
       let successIv = false;
       try {
         logger(`queue job ${q}`);
-        let params = rabbitMq.getParams(q);
+        let params = rabbitMq.getMqParams(q);
         const isAdm = botHelper.isAdmin(chatId);
+        logger(`isAdm = ${isAdm}`);
+        logger(`force = ${force}`);
         if (isAdm) {
           params.isadmin = true;
         }
@@ -437,6 +449,9 @@ const format = (bot, botHelper, skipCountBool) => {
           params = {...params, ...botParams};
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
+          if (force === 'nodb' && isAdm) {
+            params.db = false;
+          }
           await timeout(0.2);
           const ivTask = ivMaker.makeIvLink(link, params);
           const ivTimer = new Promise(resolve => {

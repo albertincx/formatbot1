@@ -1,4 +1,4 @@
-const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached)_force(.*?)$/;
+const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached|nodb)_force(.*?)$/;
 function check(txt) {
   const m = txt.match(CHECK_REGEX);
   if (m && m[1]) {
