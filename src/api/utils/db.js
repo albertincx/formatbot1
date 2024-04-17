@@ -319,6 +319,8 @@ const getIV = async url => {
   return false;
 };
 
+// const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: -1}});
+
 const getCleanData = async () => {
   const agg = [
     {
@@ -345,7 +347,7 @@ const getCleanData = async () => {
     },
   ];
   const result = await links.aggregate(agg);
-
+  // const result2 = await checkTimeFromLast();
   return result.map(i => `${i._id.replace(/\./g, '_')} ${i.cnt}`);
 };
 
@@ -359,4 +361,5 @@ module.exports.getIV = getIV;
 module.exports.createBroadcast = createBroadcast;
 module.exports.startBroadcast = startBroadcast;
 module.exports.processBroadcast = processBroadcast;
+// module.exports.checkTimeFromLast = checkTimeFromLast;
 module.exports.getCleanData = getCleanData;

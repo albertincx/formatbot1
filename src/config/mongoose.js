@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const {
   NO_DB,
+  MONGO_URI
 } = require('./vars');
 
 const createConnection = (uri) => {
@@ -12,7 +13,7 @@ const createConnection = (uri) => {
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    keepAlive: true,
+    keepAlive: uri === MONGO_URI,
   });
 };
 
