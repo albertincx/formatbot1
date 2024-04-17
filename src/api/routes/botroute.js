@@ -5,7 +5,6 @@ const format = require('./format');
 const db = require('../utils/db');
 const messages = require('../../messages/format');
 const {WORKER, NO_BOT, IS_DEV} = require('../../config/vars');
-const {logger} = require('../utils/logger');
 
 global.skipCount = 0;
 
@@ -134,7 +133,7 @@ const botRoute = (bot, conn) => {
   bot.command('getInfo', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.getInfo().then(info => {
-        botHelper.sendAdmin(`Info:\n${JSON.stringify(info)}`);
+        botHelper.sendAdmin(`${JSON.stringify(info)}`);
       });
     }
   });
@@ -164,9 +163,7 @@ const botRoute = (bot, conn) => {
   }
 
   if (startCnt % 10 === 0 || IS_DEV) {
-    const lg = `started ${startCnt} times`;
-    logger(lg);
-    botHelper.sendAdmin(lg);
+    botHelper.sendAdmin(`started ${startCnt} times`);
   }
 
   startCnt += 1;

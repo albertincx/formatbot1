@@ -1,7 +1,7 @@
 const sanitizeHtml = require('sanitize-html');
 const isImageUrl = require('./is-image-url');
 const sanitizeHtmlForce = require('./sanitize');
-const {logger} = require('./logger');
+const logger = require('./logger');
 
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';

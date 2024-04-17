@@ -64,7 +64,6 @@ const exportVars = {
   T_B_TKN: !BOT_IS_OFF && process.env.TBTKN,
   NO_MQ: MQ_IS_OFF,
   NO_DB: DB_IS_OFF,
-  NO_PARSE: process.env.NO_PARSE === '1',
   IS_DEV: process.env.DEV,
   MONGO_URI_SECOND: process.env.MONGO_URI_SECOND,
   MONGO_URI_OLD: process.env.MONGO_URI_OLD,

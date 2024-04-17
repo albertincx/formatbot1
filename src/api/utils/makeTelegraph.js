@@ -2,7 +2,7 @@ const {chunk} = require('lodash');
 
 const {toDomNode} = require('./dom');
 const {timeout} = require('./index');
-const {logger} = require('./logger');
+const logger = require('./logger');
 const {BOT_USERNAME} = require('../../config/vars');
 
 const MAX_LENGTH_CONTENT = 65000;
