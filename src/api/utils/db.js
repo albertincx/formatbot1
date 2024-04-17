@@ -319,7 +319,7 @@ const getIV = async url => {
   return false;
 };
 
-const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: -1}});
+// const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: -1}});
 
 const getCleanData = async () => {
   const agg = [
@@ -361,5 +361,5 @@ module.exports.getIV = getIV;
 module.exports.createBroadcast = createBroadcast;
 module.exports.startBroadcast = startBroadcast;
 module.exports.processBroadcast = processBroadcast;
-module.exports.checkTimeFromLast = checkTimeFromLast;
+// module.exports.checkTimeFromLast = checkTimeFromLast;
 module.exports.getCleanData = getCleanData;
