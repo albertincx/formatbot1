@@ -285,12 +285,7 @@ const updateOne = (item, collection = links) => {
 };
 
 const getFromCollection = async (url, coll, insert = true) => {
-  let me;
-  try {
-    me = await coll.findOne({url});
-  } catch (e) {
-    //
-  }
+  const me = await coll.findOne({url});
   if (insert || me) {
     await updateOne({url}, coll);
   }
