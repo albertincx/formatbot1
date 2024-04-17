@@ -1,5 +1,4 @@
 const co = require('co');
-const mongoose = require('mongoose');
 const Any = require('../models/any.model');
 
 const {
@@ -8,34 +7,16 @@ const {
   MONGO_URI_OLD,
   MONGO_COLL_LINKS,
   MONGO_COLL_I_LINKS,
-  NO_DB,
 } = require('../../config/vars');
+const {createConnection} = require('../../config/mongoose');
 
 const LINKS_COLL = MONGO_COLL_LINKS || 'links';
 const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
 
-const connectDb = () =>
-  !NO_DB &&
-  MONGO_URI_SECOND &&
-  mongoose.createConnection(MONGO_URI_SECOND, {
-    keepAlive: true,
-    connectTimeoutMS: 30000,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
 const links = Any.collection.conn.model(LINKS_COLL, Any.schema);
 const inlineLinks = Any.collection.conn.model(I_LINKS_COLL, Any.schema);
 
-const conn2 =
-  !NO_DB &&
-  MONGO_URI_OLD &&
-  mongoose.createConnection(MONGO_URI_OLD, {
-    keepAlive: true,
-    connectTimeoutMS: 30000,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+const conn2 = createConnection(MONGO_URI_OLD);
 
 const linksOld1 = conn2 && conn2.model(LINKS_COLL, Any.schema);
 const inlineLinksOld1 = conn2 && conn2.model(I_LINKS_COLL, Any.schema);
@@ -96,7 +77,8 @@ const processBroadcast = async (txtParam, ctx, botHelper) => {
 const getCids = txt => {
   let l = txt.match(/r_c_id_([0-9_-]+)/);
   if (l && l[1]) {
-    l = l[1].split('_').map(Number);
+    l = l[1].split('_')
+      .map(Number);
   }
   return l || [];
 };
@@ -106,7 +88,7 @@ const createBroadcast = async (ctx, txt) => {
   if (!cId) {
     return ctx.reply('broad completed no id');
   }
-  const connSecond = connectDb();
+  const connSecond = createConnection(MONGO_URI_SECOND);
   const model = Any.collection.conn.model('broadcasts', Any.schema);
   const messages = connSecond.model('messages', Any.schema);
   const filter = {};
@@ -120,17 +102,27 @@ const createBroadcast = async (ctx, txt) => {
   // );
   /* await model.updateMany({ cId: 10, code: 403 },
     { $unset: { sent: '', error: '', code:'' } }); */
-  const cursor = messages.find(filter).cursor();
+  const cursor = messages.find(filter)
+    .cursor();
   await processRows(cursor, 500, 10, items => {
     const updates = [];
 
-    const updFilter = {cId, sent: {$exists: false}};
+    const updFilter = {
+      cId,
+      sent: {$exists: false}
+    };
 
     items.forEach(({id}) => {
       updates.push({
         updateOne: {
-          filter: {...updFilter, id},
-          update: {id, cId},
+          filter: {
+            ...updFilter,
+            id
+          },
+          update: {
+            id,
+            cId
+          },
           upsert: true,
         },
       });
@@ -166,7 +158,9 @@ const startBroadcast = async (ctx, txtParam, bot) => {
     cId,
   };
   const sendCmd = Mid ? 'forward' : 'sendAdmin';
-  const cursor = model.find(filter).limit(800).cursor();
+  const cursor = model.find(filter)
+    .limit(800)
+    .cursor();
   let breakProcess = false;
   await processRows(cursor, 5, 500, async items => {
     if (breakProcess) {
@@ -178,7 +172,10 @@ const startBroadcast = async (ctx, txtParam, bot) => {
         if (breakProcess) {
           break;
         }
-        const {_id, id} = items[i];
+        const {
+          _id,
+          id
+        } = items[i];
         let runCmd;
         if (Mid) {
           runCmd = () => bot[sendCmd](Mid, FromId * (isChannel ? -1 : 1), id);
@@ -252,9 +249,11 @@ const clear = async msg => {
   let search;
 
   if (text.match(/^\/cleardb3_/)) {
-    search = text.replace('/cleardb3_', '').replace(/_/g, '.');
+    search = text.replace('/cleardb3_', '')
+      .replace(/_/g, '.');
   } else {
-    search = text.replace('/cleardb', '').trim();
+    search = text.replace('/cleardb', '')
+      .trim();
   }
   if (!search) {
     return Promise.resolve('empty');
@@ -265,7 +264,8 @@ const clear = async msg => {
 };
 
 const clear2 = async msg => {
-  let search = msg.text.replace('/cleardb2', '').trim();
+  let search = msg.text.replace('/cleardb2', '')
+    .trim();
   search = `${search}`.trim();
   if (!search) {
     return Promise.resolve('empty');

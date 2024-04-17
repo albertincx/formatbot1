@@ -1,5 +1,5 @@
 const makeTelegraph = require('./makeTelegraph');
-const logger = require('./logger');
+const {logger} = require('./logger');
 const ParseHelper = require('./parseHelper');
 const db = require('./db');
 const {toUrl} = require('./index');
