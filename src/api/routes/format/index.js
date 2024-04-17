@@ -16,7 +16,6 @@ const {
   IV_CHAN_MID,
   USER_IDS,
   HELP_MESSAGE,
-  NO_PARSE,
 } = require('../../../config/vars');
 
 const db = require('../../utils/db');
@@ -27,7 +26,7 @@ const {
   parseEnvArray,
   toUrl
 } = require('../../utils');
-const {logger} = require('../../utils/logger');
+const logger = require('../../utils/logger');
 const ivMaker = require('../../utils/ivMaker');
 const puppet = require('../../utils/puppet');
 const {
@@ -414,6 +413,7 @@ const format = (bot, botHelper, skipCountBool) => {
     const {
       chatId,
       message_id: messageId,
+      q,
       force,
       isChanMesId,
       inline,
@@ -450,14 +450,15 @@ const format = (bot, botHelper, skipCountBool) => {
       let ivFromDb = false;
       let successIv = false;
       try {
-        let params = rabbitMq.getMqParams();
+        logger(`queue job ${q}`);
+        let params = rabbitMq.getMqParams(q);
         const isAdm = botHelper.isAdmin(chatId);
         logger(`isAdm = ${isAdm}`);
         logger(`force = ${force}`);
         if (isAdm) {
           params.isadmin = true;
         }
-        rabbitMq.timeStart();
+        rabbitMq.timeStart(q);
         link = ivMaker.parse(link);
         const {
           isText,
@@ -496,10 +497,7 @@ const format = (bot, botHelper, skipCountBool) => {
             params.db = false;
           }
           await timeout(0.2);
-          let ivTask = Promise.resolve('skipped link');
-          if (!NO_PARSE) {
-            ivTask = ivMaker.makeIvLink(link, params);
-          }
+          const ivTask = ivMaker.makeIvLink(link, params);
           const ivTimer = new Promise(resolve => {
             skipTimer = setInterval(() => {
               if (skipCount) {
@@ -560,7 +558,7 @@ const format = (bot, botHelper, skipCountBool) => {
         successIv = false;
         error = `broken ${link} ${e}`;
       }
-      const durationTime = rabbitMq.time();
+      const durationTime = rabbitMq.time(q);
       if (global.emptyTextCount > 10) {
         botHelper.sendAdmin('@admin need to /restartApp');
       }
@@ -610,7 +608,9 @@ const format = (bot, botHelper, skipCountBool) => {
         if (ivFromDb) {
           mark += ' db';
         }
-        const text = `${mark}${RESULT}\n${durationTime}`;
+        const text = `${mark}${RESULT}${
+          q ? ` from ${q}` : ''
+        }\n${durationTime}`;
         if (group) {
           botHelper.sendAdminMark(text, group);
         }
