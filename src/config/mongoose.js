@@ -18,16 +18,3 @@ exports.connect = uri => {
   return mongoose.connection;
 };
 
-const createConnection = (uri) => {
-  if (!uri || NO_DB) {
-    return false;
-  }
-
-  return mongoose.createConnection(uri, {
-      connectTimeoutMS: 30000,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-};
-
-exports.createConnection = createConnection;

@@ -8,8 +8,21 @@ const {
   MONGO_URI_OLD,
   MONGO_COLL_LINKS,
   MONGO_COLL_I_LINKS,
+  NO_DB,
 } = require('../../config/vars');
-const {createConnection} = require('../../config/mongoose');
+
+const createConnection = (uri) => {
+  if (!uri || NO_DB) {
+    return false;
+  }
+
+  return mongoose.createConnection(uri, {
+    connectTimeoutMS: 30000,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+};
+
 
 const LINKS_COLL = MONGO_COLL_LINKS || 'links';
 const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
