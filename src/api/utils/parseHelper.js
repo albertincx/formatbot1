@@ -11,7 +11,7 @@ const mercury = require('./mercury');
 const fixImages = require('./fixImages');
 const puppet = require('./puppet');
 const {getDom} = require('./dom');
-const logger = require('./logger');
+const {logger} = require('./logger');
 
 const ASYNC_FILE = 'asyncContent.html';
 

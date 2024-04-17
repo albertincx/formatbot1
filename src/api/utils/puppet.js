@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 const {timeout} = require('./index');
-const logger = require('./logger');
+const {logger} = require('./logger');
 const {HEADLESS} = require('../../config/vars');
 
 const getBrowser = async () => {

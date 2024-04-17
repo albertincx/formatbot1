@@ -1,5 +1,5 @@
 const amqp = require('amqplib');
-const logger = require('../api/utils/logger');
+const {logger} = require('../api/utils/logger');
 const messages = require('../messages/format');
 
 const {
