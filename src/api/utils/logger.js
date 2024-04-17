@@ -10,4 +10,5 @@ const logger = (content, file) => {
     }
   }
 };
-module.exports = logger;
+
+module.exports.logger = logger;
