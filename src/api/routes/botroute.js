@@ -133,7 +133,7 @@ const botRoute = (bot, conn) => {
   bot.command('getInfo', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.getInfo().then(info => {
-        botHelper.sendAdmin(`\nInfo:\n${JSON.stringify(info)}`);
+        botHelper.sendAdmin(`Info:\n${JSON.stringify(info)}`);
       });
     }
   });
