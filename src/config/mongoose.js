@@ -16,6 +16,7 @@ exports.connect = uri => {
     keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
+    useUnifiedTopology: true,
   });
 
   return mongoose.connection;
@@ -29,6 +30,7 @@ const createConnection = (uri) => {
   return mongoose.createConnection(uri, {
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
+    useUnifiedTopology: true,
   });
 };
 
