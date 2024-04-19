@@ -47,7 +47,6 @@ const puppet = async (url, params) => {
       logger(scroll);
       await timeout(5);
       for (let i = 0; i < scCnt; i += 1) {
-        // eslint-disable-next-line no-await-in-loop,no-loop-func
         await page.evaluate(sc => {
           window.scrollBy(0, 200);
           const s = document.getElementById(sc);

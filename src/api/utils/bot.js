@@ -4,6 +4,7 @@ const {
   TG_BUGS_GROUP,
   BLACK_LIST_FILE,
 } = require('../../config/vars');
+const {logger} = require('./logger');
 
 const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
 const OFF = 'Off';
@@ -22,7 +23,7 @@ class BotHelper {
     try {
       c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {
-      //
+      logger(e)
     }
     this.config = c;
     this.tgAdmin = TG_ADMIN;
@@ -282,14 +283,11 @@ class BotHelper {
     return this.bot.deleteMessage(chatId, messageId).catch(() => {});
   }
 
-  // eslint-disable-next-line class-methods-use-this
   markdown() {
     return PARSE_MODE_MARK;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   restartApp() {
-    // eslint-disable-next-line global-require
     const {spawn} = require('child_process');
     spawn('pm2', ['restart', 'Format'], {
       stdio: 'ignore',
@@ -299,7 +297,6 @@ class BotHelper {
   }
 
   gitPull() {
-    // eslint-disable-next-line global-require
     const {spawn} = require('child_process');
     const gpull = spawn('git', ['pull']);
     const rest = spawn('pm2', ['restart', 'Format']);

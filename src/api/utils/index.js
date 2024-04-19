@@ -41,7 +41,10 @@ const toUrl = url => {
   if (url.match('www.')) {
     url = url.replace(/www\./,'');
   }
-  if (!url.match(/^(https?|ftp|file)/)) return `http://${url}`;
+  if (!url.match(/^(https?|ftp|file)/)) {
+    return `http://${url}`;
+  }
+
   return url;
 };
 

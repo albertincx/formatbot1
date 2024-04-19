@@ -130,6 +130,7 @@ class ParseHelper {
       try {
         content = await fetch(link, {timeout: 5000}).then(r => r.text());
       } catch (e) {
+        logger(e)
         content = '';
       }
       this.log(content, 'fetchContent.html');
@@ -193,7 +194,6 @@ class ParseHelper {
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
-      // eslint-disable-next-line
       if (mozillaParserEnabled) {
         logger('mozilla');
         if (opts.html) {

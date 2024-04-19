@@ -10,7 +10,7 @@ let pages = 0;
 
 function lengthInUtf8Bytes(str) {
   if (!str) return 0;
-  // Matches only the 10.. bytes that are non-initial characters in a multi-byte sequence.
+  // Matches only the 10 bytes that are non-initial characters in a multi bytes sequence.
   const m = encodeURIComponent(str).match(/%[89ABab]/g);
   return str.length + (m ? m.length : 0);
 }
@@ -79,10 +79,8 @@ const makeTelegaphMany = async (obj, domObj, chunksLen) => {
     const parts = chunk(dom, partsLen);
     for (let i = parts.length - 1; i > 0; i -= 1) {
       const domed = parts[i];
-      // eslint-disable-next-line no-await-in-loop
       await timeout(3);
       pages += 1;
-      // eslint-disable-next-line no-await-in-loop
       const iVlink = await makeLink(obj, domed, link, i);
       if (iVlink) {
         link = iVlink;

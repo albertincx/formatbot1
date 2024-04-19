@@ -65,7 +65,6 @@ const parse = u => {
     let p = u.split(/es\/(.*?)\?/);
     if (p) {
       p = from64(p[1]).toString();
-      // eslint-disable-next-line no-control-regex
       p = p.match(/^\x08\x13".(.*)\//);
       return p[1];
     }

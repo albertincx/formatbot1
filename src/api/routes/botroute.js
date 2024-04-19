@@ -76,7 +76,6 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  // eslint-disable-next-line consistent-return
   bot.command('stat', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       if (!botHelper.conn) {

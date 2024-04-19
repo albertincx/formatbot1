@@ -110,7 +110,6 @@ const startOrHelp = (ctx, botHelper) => {
     system = `${e}${system}`;
   }
 
-  // eslint-disable-next-line consistent-return
   return botHelper.sendAdmin(system);
 };
 
@@ -207,7 +206,7 @@ const format = (bot, botHelper, skipCountBool) => {
     const s = data === 'no_img';
     if (s) {
       const {message} = ctx.update.callback_query;
-      // eslint-disable-next-line camelcase
+
       const {
         message_id,
         chat,
@@ -232,16 +231,14 @@ const format = (bot, botHelper, skipCountBool) => {
         error = JSON.stringify(e);
       }
       const {
-        // eslint-disable-next-line camelcase
         update: {callback_query},
       } = ctx;
       const {
-        // eslint-disable-next-line camelcase
         message: {
           text,
           message_id
         },
-        from, // eslint-disable-next-line camelcase
+        from,
       } = callback_query;
       const RESULT = `${text}\nResolved! ${error}`;
       await bot.telegram
@@ -316,6 +313,7 @@ const format = (bot, botHelper, skipCountBool) => {
         parsed = new url.URL(link);
       } catch (e) {
         logger('exit wrong url');
+        logger(e);
         return;
       }
       logger(parsed)
@@ -375,7 +373,6 @@ const format = (bot, botHelper, skipCountBool) => {
       }
       if (NO_MQ) {
         console.log('cloud massaging is disabled');
-        // eslint-disable-next-line consistent-return
         return jobMessage(task);
       }
       rabbitMq.addToChannel(task);

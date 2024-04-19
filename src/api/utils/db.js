@@ -28,7 +28,6 @@ const processRows = async (cc, limit = 25, timeout, cb) => {
   if (!cb) {
     return;
   }
-  // eslint-disable-next-line func-names
   await co(function* () {
     for (let doc = yield cc.next(); doc != null; doc = yield cc.next()) {
       const item = doc.toObject();
@@ -36,7 +35,6 @@ const processRows = async (cc, limit = 25, timeout, cb) => {
         try {
           yield cb(items);
         } catch (e) {
-          // eslint-disable-next-line no-console
           console.log(e);
         }
         items = [];
@@ -51,7 +49,6 @@ const processRows = async (cc, limit = 25, timeout, cb) => {
     try {
       await cb(items);
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.log(e);
     }
   }
@@ -184,12 +181,10 @@ const startBroadcast = async (ctx, txtParam, bot) => {
             bot[sendCmd](txtParam.replace(/(\s|_)?r_c_id_(.*?)\s/, ''), id);
         }
         try {
-          // eslint-disable-next-line no-await-in-loop
           await runCmd();
           if (SecondMid) {
             const runCmd2 = () =>
               bot[sendCmd](SecondMid, FromId * (isChannel ? -1 : 1), id);
-            // eslint-disable-next-line no-await-in-loop
             await runCmd2();
           }
           success.push({
@@ -279,7 +274,6 @@ const removeInline = url => inlineLinks.deleteMany({url});
 
 const updateOne = (item, collection = links) => {
   const {url} = item;
-  // eslint-disable-next-line no-param-reassign
   item.$inc = {af: 1};
   return collection.updateOne({url}, item, {upsert: true});
 };

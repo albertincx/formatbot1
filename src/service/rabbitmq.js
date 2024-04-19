@@ -72,7 +72,7 @@ const startFirst = async () => {
       rChannel = await connection.createChannel();
     }
   } catch (e) {
-    console.log('err rabbit');
+    console.log('error rabbit');
     logger(e);
   }
 };
@@ -108,7 +108,6 @@ const runMqChannel = async (job, qName) => {
     }
     const channel = await createChan(queueName);
     if (!channel) return;
-    // eslint-disable-next-line no-param-reassign
     job.isClosed = false;
     channel.consume(queueName, message => {
       if (message) {
@@ -166,9 +165,7 @@ function shuffle(arr) {
 
     // And swap it with the current element.
     temporaryValue = arr[currentIndex];
-    // eslint-disable-next-line no-param-reassign
     arr[currentIndex] = arr[randomIndex];
-    // eslint-disable-next-line no-param-reassign
     arr[randomIndex] = temporaryValue;
   }
 
