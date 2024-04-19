@@ -5,9 +5,8 @@ const mercury = async (url, options = {}) => {
   let result = '';
   try {
     result = await Mercury.parse(url, options);
-    logger('Mercury');
+    logger('merc');
   } catch (e) {
-    logger(e)
     throw new Error('Mercury failed');
   }
   return result;

@@ -2,7 +2,6 @@ const request = require('sync-request');
 const urlParse = require('url').parse;
 const isImage = require('is-image');
 const isUrl = require('is-url');
-const {logger} = require('./logger');
 
 module.exports = (urlParam, accurate, timeout = 5000) => {
   let url = urlParam;
@@ -27,7 +26,6 @@ module.exports = (urlParam, accurate, timeout = 5000) => {
       contentType.search(/^image\//) !== -1 && contentType.search(/xml/) === -1
     );
   } catch (e) {
-    logger(e)
     return false;
   }
 };
