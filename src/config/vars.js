@@ -80,6 +80,7 @@ const exportVars = {
   IV_MAKING_TIMEOUT: process.env.IV_MAKING_TIMEOUT,
   IV_CHAN_ID: Number(process.env.IV_CHAN_ID),
   IV_CHAN_MID: Number(process.env.IV_CHAN_MID),
+  IV_CHAN_MID_2: Number(process.env.IV_CHAN_MID_2),
   USER_IDS: process.env.USERIDS,
   HELP_MESSAGE: process.env.HELP_MESSAGE,
   TG_PH_TOKEN2: process.env.TGPHTOKEN2,

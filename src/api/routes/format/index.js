@@ -14,6 +14,7 @@ const {
   IV_MAKING_TIMEOUT,
   IV_CHAN_ID,
   IV_CHAN_MID,
+  IV_CHAN_MID_2,
   USER_IDS,
   HELP_MESSAGE,
   NO_PARSE,
@@ -24,7 +25,6 @@ const {
   check,
   timeout,
   checkData,
-  parseEnvArray,
   toUrl
 } = require('../../utils');
 const {logger} = require('../../utils/logger');
@@ -45,8 +45,6 @@ const TIMEOUT_EXCEEDED = 'timedOut';
 
 global.lastIvTime = +new Date();
 
-const supportLinks = parseEnvArray('SUP_LINK');
-
 if (!NO_MQ) {
   rabbitMq.startFirst();
 }
@@ -61,16 +59,15 @@ const support = async (ctx, botHelper) => {
     return;
   }
   try {
-    const hide = Object.create(keyboards.hide());
-    await ctx.reply(messages.support(supportLinks), {
-      hide,
-      disable_web_page_preview: true,
-      parse_mode: botHelper.markdown(),
-    });
-
     if (!Number.isNaN(IV_CHAN_MID)) {
       botHelper
         .forwardMes(IV_CHAN_MID, IV_CHAN_ID * -1, chatId)
+        .catch(() => {
+        });
+    }
+    if (!Number.isNaN(IV_CHAN_MID_2)) {
+      botHelper
+        .forwardMes(IV_CHAN_MID_2, IV_CHAN_ID * -1, chatId)
         .catch(() => {
         });
     }
