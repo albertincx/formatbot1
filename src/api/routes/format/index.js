@@ -35,6 +35,7 @@ const {
   getLinkFromEntity,
   getLink
 } = require('../../utils/links');
+const {broadcast} = require('../../utils/broadcast');
 
 const group = TG_GROUP;
 const groupBugs = TG_BUGS_GROUP;
@@ -107,20 +108,7 @@ const startOrHelp = (ctx, botHelper) => {
     system = `${e}${system}`;
   }
 
-  // eslint-disable-next-line consistent-return
   return botHelper.sendAdmin(system);
-};
-
-const broadcast = (ctx, botHelper) => {
-  const {
-    chat: {id: chatId},
-    text,
-  } = ctx.message;
-  if (!botHelper.isAdmin(chatId) || !text) {
-    return;
-  }
-
-  db.processBroadcast(text, ctx, botHelper);
 };
 
 let skipCount = 0;
@@ -131,9 +119,11 @@ const format = (bot, botHelper, skipCountBool) => {
     skipCount = 5;
   }
   bot.command(['start', 'help'], ctx => startOrHelp(ctx, botHelper));
+
   bot.command(['createBroadcast', 'startBroadcast'], ctx =>
     broadcast(ctx, botHelper),
   );
+
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
@@ -204,17 +194,18 @@ const format = (bot, botHelper, skipCountBool) => {
     const s = data === 'no_img';
     if (s) {
       const {message} = ctx.update.callback_query;
-      // eslint-disable-next-line camelcase
       const {
         message_id,
         chat,
         entities
       } = message;
+
       const actionMessage = {
         message_id,
         chatId: chat.id,
         link: entities[1].url,
       };
+
       rabbitMq.addToChannel(actionMessage, PUPPET_QUE);
       return;
     }
@@ -229,16 +220,14 @@ const format = (bot, botHelper, skipCountBool) => {
         error = JSON.stringify(e);
       }
       const {
-        // eslint-disable-next-line camelcase
         update: {callback_query},
       } = ctx;
       const {
-        // eslint-disable-next-line camelcase
         message: {
           text,
           message_id
         },
-        from, // eslint-disable-next-line camelcase
+        from,
       } = callback_query;
       const RESULT = `${text}\nResolved! ${error}`;
       await bot.telegram
@@ -312,6 +301,7 @@ const format = (bot, botHelper, skipCountBool) => {
       try {
         parsed = new url.URL(link);
       } catch (e) {
+        logger(e)
         logger('exit wrong url');
         return;
       }
@@ -372,7 +362,6 @@ const format = (bot, botHelper, skipCountBool) => {
       }
       if (NO_MQ) {
         console.log('cloud massaging is disabled');
-        // eslint-disable-next-line consistent-return
         return jobMessage(task);
       }
       rabbitMq.addToChannel(task);
@@ -424,7 +413,7 @@ const format = (bot, botHelper, skipCountBool) => {
     }
 
     if (isWorker) {
-      // TODO
+      logger('Im a worker')
     }
 
     let error = '';

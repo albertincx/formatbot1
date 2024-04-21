@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const BotHelper = require('../utils/bot');
+const {BotHelper} = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
 const messages = require('../../messages/format');
@@ -76,7 +76,6 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  // eslint-disable-next-line consistent-return
   bot.command('stat', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       if (!botHelper.conn) {
@@ -160,7 +159,11 @@ const botRoute = (bot, conn) => {
   format(bot, botHelper, skipCount);
 
   if (!NO_BOT) {
-    bot.launch();
+    bot.launch().catch(e => {
+      console.log('____LAUNCH ERROR');
+      logger(e);
+      console.log('____LAUNCH ERROR');
+    });
   }
 
   if (startCnt % 10 === 0 || IS_DEV) {
