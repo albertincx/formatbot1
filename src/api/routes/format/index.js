@@ -2,7 +2,6 @@ const url = require('url');
 
 const keyboards = require('../../../keyboards/keyboards');
 const messages = require('../../../messages/format');
-const {validRegex} = require('../../../config/config.json');
 const rabbitMq = require('../../../service/rabbitmq');
 
 const {
@@ -45,7 +44,7 @@ const userIds = (USER_IDS || '').split(',');
 const TIMEOUT_EXCEEDED = 'timedOut';
 
 global.lastIvTime = +new Date();
-
+const validRegex = '^(https?:\\/\\/)?(www.)?(graph.org|telegra.ph|www.youtube.com\/watch)';
 if (!NO_MQ) {
   rabbitMq.startFirst();
 }
@@ -429,7 +428,7 @@ const format = (bot, botHelper, skipCountBool) => {
     }
     try {
       let RESULT;
-      let TITLE = '';
+      let IV_TITLE = '';
       let isFile = false;
       let linkData = '';
       let timeOutLink = false;
@@ -512,7 +511,7 @@ const format = (bot, botHelper, skipCountBool) => {
         if (isFile) {
           RESULT = messages.isLooksLikeFile(link);
         } else if (timeOutLink) {
-          TITLE = '';
+          IV_TITLE = '';
           RESULT = messages.timeOut();
         } else if (linkData.error) {
           RESULT = messages.brokenFile(linkData.error);
@@ -529,7 +528,7 @@ const format = (bot, botHelper, skipCountBool) => {
           }
           ivLink = iv;
           const longStr = isLong ? `Long ${pages}` : '';
-          TITLE = `${title}\n`;
+          IV_TITLE = `${title}\n`;
           RESULT = messages.showIvMessage(longStr, iv, `${link}`);
           successIv = true;
         }
@@ -538,7 +537,7 @@ const format = (bot, botHelper, skipCountBool) => {
         clearInterval(skipTimer);
         isBroken = true;
         if (timeOutLink) {
-          TITLE = '';
+          IV_TITLE = '';
           RESULT = messages.timeOut();
         } else {
           RESULT = messages.broken(link, HELP_MESSAGE || '');
@@ -551,7 +550,8 @@ const format = (bot, botHelper, skipCountBool) => {
         botHelper.sendAdmin('@admin need to /restartApp');
       }
       const extra = {parse_mode: botHelper.markdown()};
-      const messageText = `${TITLE}${RESULT}`;
+      const messageText = `[${IV_TITLE}](${ivLink})
+${RESULT}`;
       if (inline) {
         let title = '';
         if (error || !ivLink) {

@@ -169,8 +169,9 @@ class BotHelper {
   }
 
   getConf(param) {
-    let c = this.config[param] || '';
+    let c = this.config[param] || this.config[`_${param}`];
     if (c === OFF) c = '';
+
     return c;
   }
 

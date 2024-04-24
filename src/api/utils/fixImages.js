@@ -1,6 +1,6 @@
 const sanitizeHtml = require('sanitize-html');
 const isImageUrl = require('./is-image-url');
-const sanitizeHtmlForce = require('./sanitize');
+// const sanitizeHtmlForce = require('./sanitize');
 const {logger} = require('./logger');
 
 const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
@@ -153,15 +153,16 @@ const replaceServices = contentParam => {
 const fixHtml = async (contentParam, iframeParam, parsedUrl, params) => {
   let content = contentParam;
   let iframe = iframeParam;
-  const imgs = await findImages(content, parsedUrl, params);
+  const images = await findImages(content, parsedUrl, params);
   if (!iframe) {
     iframe = findIframes(content);
   }
-  content = replaceImages(content, imgs);
+  content = replaceImages(content, images);
   logger(`before san ${content.length}`);
   content = sanitizeHtml(content);
-  content = sanitizeHtmlForce(content, params);
-  content = restoreImages(content, imgs, parsedUrl);
+  // TODO Blocker
+  // content = sanitizeHtmlForce(content, params);
+  content = restoreImages(content, images, parsedUrl);
   content = replaceServices(content);
   if (iframe && Array.isArray(iframe)) {
     content = insertYoutube(content, iframe);

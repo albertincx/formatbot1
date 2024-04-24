@@ -52,7 +52,7 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('config', ({message}) => {
+  bot.command(/^config/, ({message}) => {
     if (botHelper.isAdmin(message.chat.id)) {
       botHelper.toggleConfig(message);
     }
@@ -179,6 +179,8 @@ const botRoute = (bot, conn) => {
   fs.writeFileSync(filepath, parseInt(startCnt, 10).toString());
 
   botHelper.setBlacklist();
+
+  return botHelper;
 };
 
 module.exports = botRoute;
