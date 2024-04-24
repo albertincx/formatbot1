@@ -596,7 +596,7 @@ ${RESULT}`;
         if (ivFromDb) {
           mark += ' db';
         }
-        const text = `${mark}${RESULT}\n${durationTime}`;
+        const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
         if (group) {
           botHelper.sendAdminMark(text, group);
         }
