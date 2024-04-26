@@ -527,7 +527,7 @@ const format = (bot, botHelper, skipCountBool) => {
             ivFromDb = true;
           }
           ivLink = iv;
-          const longStr = isLong ? `Long ${pages}` : '';
+          const longStr = isLong ? `Long${pages ? ` ${pages}`: ''}` : '';
           IV_TITLE = `${title}\n`;
           RESULT = messages.showIvMessage(longStr, iv, `${link}`);
           successIv = true;
