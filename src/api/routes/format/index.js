@@ -550,7 +550,7 @@ const format = (bot, botHelper, skipCountBool) => {
         botHelper.sendAdmin('@admin need to /restartApp');
       }
       const extra = {parse_mode: botHelper.markdown()};
-      const messageText = `[${IV_TITLE}](${ivLink})
+      const messageText = `${IV_TITLE && ivLink ? `[${IV_TITLE}](${ivLink})` : ''}
 ${RESULT}`;
       if (inline) {
         let title = '';

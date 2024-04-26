@@ -40,7 +40,13 @@ const clear = async msg => {
     return Promise.resolve('empty');
   }
   const s = new RegExp(`^https?://${search}`);
-  const d = await links.deleteMany({url: s});
+
+  const fromDate = new Date();
+  fromDate.setMonth(fromDate.getMonth() - 1);
+
+  const dMany = {url: s, createdAt: {$lte: fromDate}};
+
+  const d = await links.deleteMany(dMany);
   return JSON.stringify(d);
 };
 

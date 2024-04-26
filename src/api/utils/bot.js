@@ -79,7 +79,9 @@ class BotHelper {
       }
     }
 
-    return this.bot.sendMessage(chatId, text, opts).catch(() => {});
+    return this.bot.sendMessage(chatId, text, opts).catch((e) => {
+      logger(e)
+    });
   }
 
   sendAdminOpts(text, opts) {
