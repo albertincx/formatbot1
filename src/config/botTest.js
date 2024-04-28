@@ -6,7 +6,7 @@ const bot = {
   hears: () => {},
   on: () => {},
   action: () => {},
-  launch: () => {},
+  launch: () => ({catch: () => {}}),
   sendMessage() {
     return this;
   },

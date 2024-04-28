@@ -56,8 +56,8 @@ const createBroadcast = async (ctx, txt) => {
     return ctx.reply('broad completed no id');
   }
   const connSecond = createConnection(MONGO_URI_SECOND);
-  const model = Any.collection.conn.model('broadcasts', Any.schema);
-  const messages = connSecond.model('messages', Any.schema);
+  const model = connSecond.model('broadcasts', Any.schema);
+  const messages = connSecond.model('users', Any.schema);
   const filter = {};
   if (IS_DEV) {
     filter.username = {$in: ['safiullin']};
@@ -104,39 +104,30 @@ const createBroadcast = async (ctx, txt) => {
 };
 
 /** @type BotHelper */
-const startBroadcast = async (ctx, txtParam, bot) => {
-  const [cId, Mid, FromId, isChannel, SecondMid] = getCmdParams(txtParam);
+const startBroadcast = async (ctx, txtParam, botHelper) => {
+  const [cId, mId, fromId, isChannel] = getCmdParams(txtParam);
   if (!cId) {
-    return ctx.reply('broad completed no id');
+    return ctx.reply('broad err no id');
   }
-  let newMid = txtParam.replace(/(\s|_)?r_c_id_(.*?)\s/, '');
-  // logger(newMid);
+  let preMessage = botHelper.getMidMessage(mId);
   // logger('cId ' + cId)
-  // logger('Mid ' + Mid)
-  // logger('FromId ' + FromId)
+  // logger('Mid ' + mId)
+  // logger('fromId ' + fromId)
   // logger('isChannel ' + isChannel)
-  // logger('SecondMid ' + SecondMid)
+  // logger('preMessage ' + preMessage)
   const result = {
     err: 0,
     success: 0,
   };
-  let connSecond;
 
-  if (IS_DEV) {
-    // connSecond = connectDb();
-  }
-
-  const model = Any.collection.conn.model('broadcasts', Any.schema);
-
-  // DEV
-  // const model = isDEV && connSecond.model('broadcasts', Any.schema);
+  const connSecond = createConnection(MONGO_URI_SECOND);
+  const model = connSecond.model('broadcasts', Any.schema);
 
   const filter = {
     sent: {$exists: false},
     cId,
   };
-  const sendCmd = Mid ? 'forwardMes' : 'sendAdmin';
-  logger(sendCmd);
+
   const cursor = model.find(filter)
     .limit(800)
     .cursor();
@@ -150,27 +141,24 @@ const startBroadcast = async (ctx, txtParam, bot) => {
     const success = [];
     try {
       for (let i = 0; i < items.length; i += 1) {
-        if (breakProcess) {
-          break;
-        }
+        if (breakProcess) break;
+
         const {
           _id,
           id
         } = items[i];
-        let runCmd;
-        if (Mid) {
-          runCmd = () => bot[sendCmd](Mid, FromId * (isChannel ? -1 : 1), id);
-        } else {
-          runCmd = () => bot[sendCmd](newMid, id);
-        }
+
+        const runCmd = () => botHelper.forwardMes(mId, fromId * (isChannel ? -1 : 1), id);
+        const preCmd = !preMessage ? false : (() => botHelper.sendAdmin(preMessage, id));
+
         try {
+          if (preCmd) {
+            logger('run preCmd');
+            await preCmd();
+          }
           logger('runCmd');
           await runCmd();
-          if (SecondMid) {
-            const runCmd2 = () =>
-              bot[sendCmd](SecondMid, FromId * (isChannel ? -1 : 1), id);
-            await runCmd2();
-          }
+
           success.push({
             updateOne: {
               filter: {_id},
@@ -180,7 +168,6 @@ const startBroadcast = async (ctx, txtParam, bot) => {
           result.success += 1;
         } catch (e) {
           logger(e)
-          logger('e.code ' + e.code)
           if (e.code !== 'ETIMEDOUT') {
             if (e.code === 429) {
               breakProcess = JSON.stringify(e);
@@ -201,15 +188,10 @@ const startBroadcast = async (ctx, txtParam, bot) => {
       }
     } catch (e) {
       logger(e)
-      if (
-        e.code === 429 &&
-        e.response.parameters &&
-        e.response.parameters.retry_after
-      ) {
-        logger(e.response.parameters.retry_after);
-        // await timeout(e.response.parameters.retry_after);
-      }
       if (e.code === 429) {
+        if (e.response.parameters) {
+          logger(e.response.parameters.retry_after);
+        }
         breakProcess = JSON.stringify(e);
       }
     }
@@ -218,15 +200,17 @@ const startBroadcast = async (ctx, txtParam, bot) => {
     }
   });
   const r = `${JSON.stringify(result)}`;
-  if (connSecond) {
-    await connSecond.close();
-  }
+  const cntSent = await model.countDocuments({cId, sent: true});
+  const cntTotal = await model.countDocuments({cId});
 
-  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''}`).catch(e => {
+  ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${cntTotal}/${cntSent}`).catch(e => {
     logger(e)
   });
+
+  return connSecond.close();
 };
 
+/** @type BotHelper */
 const processBroadcast = async (txtParam, ctx, botHelper) => {
   let txt = txtParam;
   if (txt.match(cBroad)) {
@@ -241,6 +225,11 @@ const processBroadcast = async (txtParam, ctx, botHelper) => {
   return Promise.resolve();
 };
 
+/**
+ * @param ctx
+ * @param botHelper
+ * @type BotHelper
+ * */
 const broadcast = (ctx, botHelper) => {
   const {
     chat: {id: chatId},

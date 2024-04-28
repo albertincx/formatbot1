@@ -58,17 +58,10 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('cconfig', ({message}) => {
-    if (botHelper.isAdmin(message.chat.id)) {
-      botHelper.togglecConfig(message);
-    }
-  });
-
   bot.command('showconfig', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
-      let c = JSON.stringify(botHelper.config);
-      c = `${c} db ${botHelper.db}`;
       try {
+        const c = botHelper.showConfig()
         ctx.reply(c);
       } catch (e) {
         botHelper.sendError(e);

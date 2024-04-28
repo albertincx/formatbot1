@@ -5,6 +5,7 @@ const {
   BLACK_LIST_FILE,
 } = require('../../config/vars');
 const {logger} = require('./logger');
+const {broadcast} = require('./broadcast');
 
 const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
 const OFF = 'Off';
@@ -177,18 +178,6 @@ class BotHelper {
     return c;
   }
 
-  togglecConfig(msg) {
-    const params = msg.text.replace('/cconfig', '').trim();
-    if (!params || !this.isAdmin(msg.chat.id)) {
-      return Promise.resolve('no param or forbidden');
-    }
-    const {param, content} = this.parseConfig(params);
-    const c = {};
-    c[param] = content;
-    fs.writeFileSync(`.conf/custom/${param}.json`, JSON.stringify(c));
-    return false;
-  }
-
   parseConfig(params) {
     let content;
     let param;
@@ -196,6 +185,7 @@ class BotHelper {
     if (c.length === 2) {
       [param] = c;
       content = c[1].replace(/~/g, ' ');
+      if (this.config[param] === content) content = OFF;
     } else {
       [param] = c;
       if (this.config[param] === ON) {
@@ -217,6 +207,11 @@ class BotHelper {
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
     return this.botMes(TG_ADMIN, content, false);
+  }
+
+  showConfig() {
+    let c = JSON.stringify(this.config);
+    return `${c} db is ${this.db}`
   }
 
   sendError(error, text = '') {
@@ -318,6 +313,16 @@ class BotHelper {
       return this.conn.db.command({atlasSize: 1});
     }
     return Promise.resolve({});
+  }
+
+  getMidMessage(mId){
+    let mMessage = process.env[`MID_MESSAGE${mId}`] || '';
+    mMessage = mMessage.replace('*', '\n');
+    return mMessage;
+  }
+
+  startBroad(ctx){
+    broadcast(ctx, this)
   }
 }
 
