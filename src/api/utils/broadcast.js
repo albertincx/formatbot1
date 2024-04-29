@@ -56,11 +56,11 @@ const createBroadcast = async (ctx, txt) => {
     return ctx.reply('broad completed no id');
   }
   const connSecond = createConnection(MONGO_URI_SECOND);
-  const model = connSecond.model('broadcasts', Any.schema);
+  const model = Any.collection.conn.model('broadcasts', Any.schema);
   const messages = connSecond.model('users', Any.schema);
   const filter = {};
   if (IS_DEV) {
-    filter.username = {$in: ['safiullin']};
+    // filter.username = {$in: ['safiullin']};
   }
   // filter.username = {$in: ['safiullin']};
   // await model.updateMany(
@@ -78,7 +78,7 @@ const createBroadcast = async (ctx, txt) => {
     sent: {$exists: false}
   };
 
-  await processRows(cursor, 500, 10, items => {
+  await processRows(cursor, 1500, 10, items => {
     const updates = [];
 
     items.forEach(({id}) => {
@@ -120,8 +120,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
     success: 0,
   };
 
-  const connSecond = createConnection(MONGO_URI_SECOND);
-  const model = connSecond.model('broadcasts', Any.schema);
+  const model = Any.collection.conn.model('broadcasts', Any.schema);
 
   const filter = {
     sent: {$exists: false},
@@ -203,11 +202,9 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
   const cntSent = await model.countDocuments({cId, sent: true});
   const cntTotal = await model.countDocuments({cId});
 
-  ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${cntTotal}/${cntSent}`).catch(e => {
+  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${cntTotal}/${cntSent}`).catch(e => {
     logger(e)
   });
-
-  return connSecond.close();
 };
 
 /** @type BotHelper */
