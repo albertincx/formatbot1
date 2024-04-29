@@ -78,7 +78,7 @@ const createBroadcast = async (ctx, txt) => {
     sent: {$exists: false}
   };
 
-  await processRows(cursor, 1500, 10, items => {
+  await processRows(cursor, 1500, 0, items => {
     const updates = [];
 
     items.forEach(({id}) => {
