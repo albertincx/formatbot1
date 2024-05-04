@@ -1,6 +1,7 @@
 const {
   IS_DEV,
-  MONGO_URI_SECOND
+  MONGO_URI_SECOND,
+  MONGO_URI_BROAD,
 } = require('../../config/vars');
 const Any = require('../models/any.model');
 const {createConnection} = require('../../config/mongoose');
@@ -11,10 +12,10 @@ const cBroad = '/createBroadcast';
 const sBroad = '/startBroadcast';
 
 const processRows = async (cc, limit = 25, timeout, cb) => {
-  let items = [];
   if (!cb) {
     return;
   }
+  let items = [];
   await co(function* () {
     for (let doc = yield cc.next(); doc != null; doc = yield cc.next()) {
       const item = doc.toObject();
@@ -53,10 +54,10 @@ const getCmdParams = txt => {
 const createBroadcast = async (ctx, txt) => {
   const [cId] = getCmdParams(txt);
   if (!cId) {
-    return ctx.reply('broad completed no id');
+    return ctx.reply('broad err no id');
   }
   const connSecond = createConnection(MONGO_URI_SECOND);
-  const model = Any.collection.conn.model('broadcasts', Any.schema);
+  const model = connSecond.model('broadcasts', Any.schema);
   const messages = connSecond.model('users', Any.schema);
   const filter = {};
   if (IS_DEV) {
@@ -99,7 +100,7 @@ const createBroadcast = async (ctx, txt) => {
     return updates.length ? model.bulkWrite(updates) : null;
   });
   const cnt = await model.countDocuments(updFilter);
-  ctx.reply('broad completed: ' + cnt);
+  ctx.reply(`broad ${cId} created: ${cnt}`);
   return connSecond.close();
 };
 
@@ -119,8 +120,9 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
     err: 0,
     success: 0,
   };
+  const connBroad = createConnection(MONGO_URI_BROAD);
 
-  const model = Any.collection.conn.model('broadcasts', Any.schema);
+  const model = connBroad.model('broadcasts', Any.schema);
 
   const filter = {
     sent: {$exists: false},
@@ -202,7 +204,16 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
   const cntSent = await model.countDocuments({cId, sent: true});
   const cntTotal = await model.countDocuments({cId});
 
-  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${cntTotal}/${cntSent}`).catch(e => {
+  let log = `${cntTotal}/${cntSent}`;
+
+  if (cntTotal && cntTotal === cntSent) {
+    const cntActive = await model.countDocuments({cId, error: {$exists: false}});
+    log += `/${cntActive}`;
+    botHelper.toggleConfig({text: 'broadcast', chat: ctx.message.chat}, false);
+  }
+  await connBroad.close();
+
+  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${log}`).catch(e => {
     logger(e)
   });
 };

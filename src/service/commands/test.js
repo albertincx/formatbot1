@@ -3,7 +3,7 @@ async function run(params, botHelper) {
     const chat = {chat: {id: botHelper.tgAdmin}, text: ''};
 
     const conf = botHelper.getConf('cron_test')
-    const broadcastIsOn = botHelper.getConf('broadcast_val')
+    const broadcastIsOn = botHelper.getConf('broadcast')
 
     // console.log('cnf = ', botHelper.showConfig());
     if (conf) {
@@ -11,8 +11,9 @@ async function run(params, botHelper) {
       // await botHelper.sendAdmin('cron')
       // await botHelper.sendAdmin('cron test', process.env.TGGROUPLOGS);
     }
+    // console.log('broadcastIsOn = ', broadcastIsOn);
     if (broadcastIsOn) {
-      botHelper.startBroad({message: {...chat, text: broadcastIsOn}, reply: (s) => {
+      botHelper.startBroad({message: {...chat, text: `/${broadcastIsOn}`}, reply: (s) => {
           // console.log(s)
           botHelper.sendAdmin(s)
           return {catch: (cb) => cb()}

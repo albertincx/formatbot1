@@ -67,6 +67,7 @@ const exportVars = {
   NO_PARSE: process.env.NO_PARSE === '1',
   IS_DEV: process.env.DEV,
   MONGO_URI_SECOND: process.env.MONGO_URI_SECOND,
+  MONGO_URI_BROAD: process.env.MONGO_URI_BROAD,
   MONGO_URI_OLD: process.env.MONGO_URI_OLD,
   MONGO_COLL_LINKS: process.env.MONGO_COLL_LINKS,
   MONGO_COLL_I_LINKS: process.env.MONGO_COLL_ILINKS,

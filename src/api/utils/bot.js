@@ -180,24 +180,32 @@ class BotHelper {
 
   parseConfig(params) {
     let content;
-    let param;
+    if (params[0] === '_') {
+      // eslint-disable-next-line no-unused-vars
+      const [_, param, ...val] = params.split('_');
+      params = `${param} ${val.join('_')}`;
+    }
     const c = params.replace(' _content', '_content').split(/\s/);
+    let [param] = c;
+
     if (c.length === 2) {
-      [param] = c;
       content = c[1].replace(/~/g, ' ');
       if (this.config[param] === content) content = OFF;
     } else {
-      [param] = c;
-      if (this.config[param] === ON) {
+      if (this.config[param] === ON || this.config[param]) {
         content = OFF;
       } else {
         content = ON;
       }
     }
+
     return {param, content};
   }
 
-  toggleConfig(msg) {
+  toggleConfig(msg, send = true) {
+    if (typeof msg === 'string') {
+      msg = {text: msg};
+    }
     const params = msg.text.replace('/config', '').trim();
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
@@ -206,7 +214,8 @@ class BotHelper {
     const {param, content} = this.parseConfig(params);
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
-    return this.botMes(TG_ADMIN, content, false);
+
+    return send && this.botMes(TG_ADMIN, content, false);
   }
 
   showConfig() {
