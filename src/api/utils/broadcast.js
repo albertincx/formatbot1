@@ -1,12 +1,13 @@
 const {
-  IS_DEV,
   MONGO_URI_SECOND,
   MONGO_URI_BROAD,
+  DEV_USERNAME,
 } = require('../../config/vars');
 const Any = require('../models/any.model');
 const {createConnection} = require('../../config/mongoose');
 const co = require('co');
 const {logger} = require('./logger');
+const mongoose = require('mongoose');
 
 const cBroad = '/createBroadcast';
 const sBroad = '/startBroadcast';
@@ -52,55 +53,60 @@ const getCmdParams = txt => {
 };
 
 const createBroadcast = async (ctx, txt) => {
-  const [cId] = getCmdParams(txt);
+  const [cId, onlyMe] = getCmdParams(txt);
   if (!cId) {
     return ctx.reply('broad err no id');
   }
   const connSecond = createConnection(MONGO_URI_SECOND);
-  const model = connSecond.model('broadcasts', Any.schema);
+  const model = connSecond.model('broadcasts', new mongoose.Schema({}, {
+    strict: false,
+    versionKey: false
+  }));
+
   const messages = connSecond.model('users', Any.schema);
   const filter = {};
-  if (IS_DEV) {
-    // filter.username = {$in: ['safiullin']};
+
+  if (onlyMe === 1) {
+    filter.username = {$in: [DEV_USERNAME]};
   }
-  // filter.username = {$in: ['safiullin']};
-  // await model.updateMany(
-  //   {cId: 10, error: /:429/},
-  //   {$unset: {sent: '', error: ''}},
-  // );
-  /* await model.updateMany({ cId: 10, code: 403 },
-    { $unset: { sent: '', error: '', code:'' } }); */
 
   const cursor = messages.find(filter)
     .cursor();
+
+  let updates = [],
+    document;
+
+  while ((document = await cursor.next())) {
+    const {id} = document.toObject();
+    updates.push({
+      insertOne: {
+        document: {
+          _id: new mongoose.Types.ObjectId(),
+          uid: id,
+          cId
+        }
+      },
+    });
+
+    if (updates.length % 1000 === 0) {
+      console.log(`updates added ${updates.length}`);
+      await model.bulkWrite(updates);
+      updates = [];
+    }
+  }
+
+  if (updates.length) {
+    console.log(`updates added ${updates.length}`);
+    await model.bulkWrite(updates);
+  }
 
   const updFilter = {
     cId,
     sent: {$exists: false}
   };
-
-  await processRows(cursor, 1500, 0, items => {
-    const updates = [];
-
-    items.forEach(({id}) => {
-      updates.push({
-        updateOne: {
-          filter: {
-            ...updFilter,
-            id
-          },
-          update: {
-            id,
-            cId
-          },
-          upsert: true,
-        },
-      });
-    });
-    return updates.length ? model.bulkWrite(updates) : null;
-  });
   const cnt = await model.countDocuments(updFilter);
   ctx.reply(`broad ${cId} created: ${cnt}`);
+
   return connSecond.close();
 };
 
@@ -146,7 +152,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
 
         const {
           _id,
-          id
+          uid: id
         } = items[i];
 
         const runCmd = () => botHelper.forwardMes(mId, fromId * (isChannel ? -1 : 1), id);
@@ -168,7 +174,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
           });
           result.success += 1;
         } catch (e) {
-          logger(e)
+          logger(e);
           if (e.code !== 'ETIMEDOUT') {
             if (e.code === 429) {
               breakProcess = JSON.stringify(e);
@@ -188,7 +194,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
         }
       }
     } catch (e) {
-      logger(e)
+      logger(e);
       if (e.code === 429) {
         if (e.response.parameters) {
           logger(e.response.parameters.retry_after);
@@ -201,21 +207,31 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
     }
   });
   const r = `${JSON.stringify(result)}`;
-  const cntSent = await model.countDocuments({cId, sent: true});
+  const cntSent = await model.countDocuments({
+    cId,
+    sent: true
+  });
   const cntTotal = await model.countDocuments({cId});
 
   let log = `${cntTotal}/${cntSent}`;
 
   if (cntTotal && cntTotal === cntSent) {
-    const cntActive = await model.countDocuments({cId, error: {$exists: false}});
+    const cntActive = await model.countDocuments({
+      cId,
+      error: {$exists: false}
+    });
     log += `/${cntActive}`;
-    botHelper.toggleConfig({text: 'broadcast', chat: ctx.message.chat}, false);
+    botHelper.toggleConfig({
+      text: 'broadcast',
+      chat: ctx.message.chat
+    }, false);
   }
   await connBroad.close();
 
-  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${log}`).catch(e => {
-    logger(e)
-  });
+  return ctx.reply(`broad completed: ${r} with ${breakProcess || ''} ${log}`)
+    .catch(e => {
+      logger(e);
+    });
 };
 
 /** @type BotHelper */

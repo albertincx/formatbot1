@@ -85,6 +85,7 @@ const exportVars = {
   USER_IDS: process.env.USERIDS,
   HELP_MESSAGE: process.env.HELP_MESSAGE,
   TG_PH_TOKEN2: process.env.TGPHTOKEN2,
+  DEV_USERNAME: process.env.DEV_USERNAME,
 };
 
 // logger(exportVars);
