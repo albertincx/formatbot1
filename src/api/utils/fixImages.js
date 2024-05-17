@@ -153,7 +153,12 @@ const replaceServices = contentParam => {
 const fixHtml = async (contentParam, iframeParam, parsedUrl, params) => {
   let content = contentParam;
   let iframe = iframeParam;
-  const images = await findImages(content, parsedUrl, params);
+
+  const images = await findImages(content, parsedUrl, params).catch(e => {
+    console.log(parsedUrl, e,' \nfindImages');
+    return [];
+  });
+
   if (!iframe) {
     iframe = findIframes(content);
   }
