@@ -1,10 +1,22 @@
-const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached|nodb)_force(.*?)$/;
-function check(txt) {
+const {
+  Agent,
+  fetch
+} = require('undici');
+
+const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached|no_db)_force(.*?)$/;
+
+function commandCheck(txt) {
   const m = txt.match(CHECK_REGEX);
   if (m && m[1]) {
     return m[1];
   }
   return false;
+}
+
+function fetchTimeout(u, connectTimeout = 10000) {
+  return fetch(u, {
+    dispatcher: new Agent({connectTimeout})
+  });
 }
 
 function timeout(s, f) {
@@ -39,15 +51,16 @@ function parseEnvArray(name = '') {
 
 const toUrl = url => {
   if (url.match('www.')) {
-    url = url.replace(/www\./,'');
+    url = url.replace(/www\./, '');
   }
   if (!url.match(/^(https?|ftp|file)/)) return `http://${url}`;
   return url;
 };
 
-module.exports.check = check;
+module.exports.commandCheck = commandCheck;
 module.exports.timeout = timeout;
 module.exports.checkData = checkData;
 module.exports.toUrl = toUrl;
 
 module.exports.parseEnvArray = parseEnvArray;
+module.exports.fetchTimeout = fetchTimeout;

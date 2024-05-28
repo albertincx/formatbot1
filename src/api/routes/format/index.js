@@ -14,14 +14,13 @@ const {
   IV_CHAN_ID,
   IV_CHAN_MID,
   IV_CHAN_MID_2,
-  USER_IDS,
   HELP_MESSAGE,
   NO_PARSE,
 } = require('../../../config/vars');
 
 const db = require('../../utils/db');
 const {
-  check,
+  commandCheck,
   timeout,
   checkData,
   toUrl
@@ -40,7 +39,6 @@ const group = TG_GROUP;
 const groupBugs = TG_BUGS_GROUP;
 
 const IV_TIMEOUT = +(IV_MAKING_TIMEOUT || 60);
-const userIds = (USER_IDS || '').split(',');
 const TIMEOUT_EXCEEDED = 'timedOut';
 
 global.lastIvTime = +new Date();
@@ -55,9 +53,6 @@ const support = async (ctx, botHelper) => {
     chat: {id: chatId},
   } = ctx.message;
 
-  if (userIds.length && userIds.includes(`${chatId}`)) {
-    return;
-  }
   try {
     if (!Number.isNaN(IV_CHAN_MID)) {
       botHelper
@@ -78,21 +73,6 @@ const support = async (ctx, botHelper) => {
 };
 
 const startOrHelp = (ctx, botHelper) => {
-  if (!ctx.message) {
-    const {
-      chat: {id: chatId},
-    } = ctx.message;
-    if (userIds.length && userIds.includes(`${chatId}`)) {
-      return;
-    }
-  } else {
-    const {
-      chat: {id: chatId},
-    } = ctx.message;
-    if (userIds.length && userIds.includes(`${chatId}`)) {
-      return;
-    }
-  }
   if (ctx && ctx.message.text && ctx.message.text.match(/\/start\s(.*?)/)) {
     const cmd = ctx.message.text.match(/\/start\s(.*?)$/)[1];
     if (cmd === 'support') {
@@ -100,6 +80,7 @@ const startOrHelp = (ctx, botHelper) => {
       return;
     }
   }
+
   let system = JSON.stringify(ctx.message.from);
   try {
     ctx.reply(messages.start(), keyboards.start());
@@ -160,7 +141,10 @@ const format = (bot, botHelper, skipCountBool) => {
           messageId: id,
           ivLink: ivObj.iv,
         })
-        .catch(e => logger(e));
+        .catch(e => {
+          logger('sendInline');
+          logger(e);
+        });
     }
     const exist = await db.getInline(links[0])
       .catch(() => false);
@@ -255,7 +239,8 @@ const format = (bot, botHelper, skipCountBool) => {
 
     const {
       reply_to_message: rplToMsg,
-      caption_entities: cEntities
+      caption_entities: cEntities,
+      from,
     } =
     message || {};
     if (rplToMsg || message.audio) {
@@ -272,6 +257,7 @@ const format = (bot, botHelper, skipCountBool) => {
       caption,
     } = msg;
     let {text} = msg;
+
     const isAdm = botHelper.isAdmin(chatId);
     const rpl = rplToMsg;
     if (msg.document || (rpl && rpl.document)) {
@@ -285,7 +271,6 @@ const format = (bot, botHelper, skipCountBool) => {
       }
     }
     if (msg && text) {
-      const force = isAdm && check(text);
       let links = getAllLinks(text);
       let link = links[0];
       if (!link && entities) {
@@ -300,70 +285,97 @@ const format = (bot, botHelper, skipCountBool) => {
       try {
         parsed = new url.URL(link);
       } catch (e) {
-        logger(e)
         logger('exit wrong url');
+        logger(e);
         return;
       }
-      logger(parsed)
-      if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-        const l = link.match(/url=(.*?)($|&)/);
-        if (l && l[1]) link = decodeURIComponent(l[1]);
-      }
+      logger('parsed');
+      logger(parsed.protocol);
+      try {
 
-      if (link.match(new RegExp(validRegex))) {
-        ctx
-          .reply(messages.showIvMessage('', link, link), {
-            parse_mode: botHelper.markdown(),
-          })
-          .catch(e => botHelper.sendError(e));
-        return;
-      }
-      if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
-        return;
-      }
+        if (link.match(/^(https?:\/\/)?(www.)?google/)) {
+          const l = link.match(/url=(.*?)($|&)/);
+          if (l && l[1]) link = decodeURIComponent(l[1]);
+        }
 
-      if (link.match(/yandex\.ru\/showcap/)) {
-        return;
-      }
-
-      // allow https only main page
-      if (!parsed.pathname && !parsed.protocol.match('https')) {
-        return;
-      }
-
-      let mid;
-      if (!botHelper.waitSec) {
-        const res =
-          (await ctx.reply('Waiting for instantView...')
-            .catch(() => {
-            })) || {};
-        const messageId = res && res.message_id;
-        await timeout(0.1);
-        if (!messageId) {
+        if (link.match(new RegExp(validRegex))) {
+          ctx
+            .reply(messages.showIvMessage('', link, link, parsed.host), {
+              parse_mode: botHelper.markdown(),
+            })
+            .catch(e => {
+              logger('reply');
+              logger(e);
+              botHelper.sendError(e);
+            });
           return;
         }
-        mid = messageId;
+        if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
+          logger('youtube exit')
+          return;
+        }
+
+        if (link.match(/yandex\.ru\/showcap/)) {
+          logger('yandex cap')
+          return;
+        }
+
+        // allow https only main page
+        if (!parsed.pathname && !parsed.protocol.match('https')) {
+          logger('main no ssl')
+          return;
+        }
+
+        let mid;
+        if (!botHelper.waitSec) {
+          const res = await ctx.reply('Waiting for instantView...')
+            .catch((e) => {
+              logger('reply wait');
+              logger(e);
+              return {};
+            });
+
+          const messageId = res && res.message_id;
+          await timeout(0.1);
+          if (!messageId) {
+            logger('no MessageId exit')
+            return;
+          }
+          mid = messageId;
+        }
+        const task = {
+          message_id: mid,
+          chatId,
+          link,
+          isChanMesId,
+        };
+        if (from) {
+          task.fromId = from.id;
+        }
+        const force = (isAdm || (task.fromId && botHelper.isAdmin(task.fromId))) && commandCheck(text);
+        if (force) {
+          task.force = force;
+        }
+        let newIvTime = +new Date();
+        newIvTime = (newIvTime - global.lastIvTime) / 1000;
+        if (newIvTime > 3600) {
+          global.lastIvTime = +new Date();
+          botHelper.sendAdmin(`alert ${newIvTime} sec`);
+        }
+        if (from) {
+          task.fromId = from.id;
+        }
+
+        if (NO_MQ) {
+          console.log('cloud massaging is disabled');
+          return jobMessage(task);
+        }
+        logger('sent to channel')
+        rabbitMq.addToChannel(task);
+      } catch (e) {
+        logger('send error')
+        logger(e)
       }
-      const task = {
-        message_id: mid,
-        chatId,
-        link,
-        isChanMesId,
-      };
-      if (force) {
-        task.force = force;
-      }
-      let newIvTime = +new Date();
-      newIvTime = (newIvTime - global.lastIvTime) / 1000;
-      if (newIvTime > 3600) {
-        global.lastIvTime = +new Date();
-        botHelper.sendAdmin(`alert ${newIvTime} sec`);
-      }
-      if (NO_MQ) {
-        console.log('cloud massaging is disabled');
-        return jobMessage(task);
-      }
-      rabbitMq.addToChannel(task);
     }
   };
 
@@ -403,6 +415,7 @@ const format = (bot, botHelper, skipCountBool) => {
       isChanMesId,
       inline,
       w: isWorker,
+      fromId,
     } = task;
 
     let {link} = task;
@@ -412,9 +425,9 @@ const format = (bot, botHelper, skipCountBool) => {
     }
 
     if (isWorker) {
-      logger('Im a worker')
+      logger('Im a worker');
     }
-
+    const {host} = new url.URL(link);
     let error = '';
     let isBroken = false;
     const resolveMsgId = false;
@@ -436,7 +449,8 @@ const format = (bot, botHelper, skipCountBool) => {
       let successIv = false;
       try {
         let params = rabbitMq.getMqParams();
-        const isAdm = botHelper.isAdmin(chatId);
+        const isAdm = botHelper.isAdmin(chatId) || (fromId && botHelper.isAdmin(fromId));
+
         logger(`isAdm = ${isAdm}`);
         logger(`force = ${force}`);
         if (isAdm) {
@@ -477,7 +491,7 @@ const format = (bot, botHelper, skipCountBool) => {
           params = {...params, ...botParams};
           params.browserWs = browserWs;
           params.db = botHelper.db !== false;
-          if (force === 'nodb' && isAdm) {
+          if (isAdm && force === 'no_db') {
             params.db = false;
           }
           await timeout(0.2);
@@ -527,9 +541,9 @@ const format = (bot, botHelper, skipCountBool) => {
             ivFromDb = true;
           }
           ivLink = iv;
-          const longStr = isLong ? `Long${pages ? ` ${pages}`: ''}` : '';
+          const longStr = isLong ? `Long${pages ? ` ${pages}` : ''}` : '';
           IV_TITLE = `${title}\n`;
-          RESULT = messages.showIvMessage(longStr, iv, `${link}`);
+          RESULT = messages.showIvMessage(longStr, iv, `${link}`, host);
           successIv = true;
         }
       } catch (e) {

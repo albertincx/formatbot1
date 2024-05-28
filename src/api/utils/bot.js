@@ -81,6 +81,7 @@ class BotHelper {
     }
 
     return this.bot.sendMessage(chatId, text, opts).catch((e) => {
+      logger('Send admin')
       logger(e)
     });
   }

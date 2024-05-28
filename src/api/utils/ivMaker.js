@@ -2,10 +2,10 @@ const makeTelegraph = require('./makeTelegraph');
 const {logger} = require('./logger');
 const ParseHelper = require('./parseHelper');
 const db = require('./db');
-const {toUrl} = require('./index');
-
-const USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:21.0) Gecko/20100101 Firefox/21.0';
+const {
+  toUrl,
+  fetchTimeout
+} = require('./index');
 
 function from64(v) {
   return Buffer.from(v, 'base64');
@@ -28,20 +28,33 @@ const makeIvLink = async (urlParam, paramsObj) => {
   if (url.match(/yandex\.ru\/showcap/)) {
     throw new Error('unsupported');
   }
-  const {access_token: accessToken, ...params} = paramsObj;
+  const {
+    access_token: accessToken,
+    ...params
+  } = paramsObj;
+
   const authorUrl = `${url}`;
   const parseHelper = new ParseHelper(url, params);
-  const {title, content} = await parseHelper.parse();
+  const {
+    title,
+    content
+  } = await parseHelper.parse();
   if (!content) {
     throw new Error('empty content');
   }
-  const obj = {title, access_token: accessToken};
+  const obj = {
+    title,
+    access_token: accessToken
+  };
   if (authorUrl.length <= 255) {
     obj.author_url = authorUrl;
     obj.author_name = authorUrl.substring(0, 127);
   }
   const tgRes = await makeTelegraph(obj, content);
-  const {telegraphLink, pages} = tgRes;
+  const {
+    telegraphLink,
+    pages
+  } = tgRes;
   if (!telegraphLink) {
     throw new Error('empty ivlink');
   }
@@ -64,8 +77,7 @@ const parse = u => {
   if (u.match(G)) {
     let p = u.split(/es\/(.*?)\?/);
     if (p) {
-      p = from64(p[1]).toString();
-      // eslint-disable-next-line no-control-regex
+      p = `${from64(p[1])}`;
       p = p.match(/^\x08\x13".(.*)\//);
       return p[1];
     }
@@ -76,18 +88,24 @@ const parse = u => {
 const isText = async (urlParam, q) => {
   if (q && q.match('cached')) {
     logger('cached is text = true');
-    return {isText: true, url: urlParam};
+    return {
+      isText: true,
+      url: urlParam
+    };
   }
 
   let u = toUrl(urlParam);
   if (!u.match('%')) u = encodeURI(u);
 
-  const headersCheck = {Accept: 'text/html', 'user-agent': USER_AGENT};
   let startsText = false;
   let url = u;
+  logger(url);
   try {
-    const r = await fetch(u, {timeout: 5000, headers: headersCheck});
-    const {url: newUrl, headers} = r;
+    const r = await fetchTimeout(url);
+    const {
+      url: newUrl,
+      headers
+    } = r;
     url = newUrl;
     const contentType = headers.get('content-type') || '';
     startsText = contentType.startsWith('text/');
@@ -95,7 +113,10 @@ const isText = async (urlParam, q) => {
     logger(e);
   }
 
-  return {isText: startsText, url};
+  return {
+    isText: startsText,
+    url
+  };
 };
 
 exports.parse = parse;

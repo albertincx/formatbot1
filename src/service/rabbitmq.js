@@ -201,7 +201,6 @@ const addToChannel = (taskParams, qName = TASKS_CHANNEL) => {
       const elTime = elapsedSec(queueName);
       logger('');
       logger(`availableOne ${availableOne}`);
-      logger(`elTime ${elTime}`);
       if (queueName === TASKS_CHANNEL && !availableOne && elTime > 15) {
         queueName = R_MQ_SECOND_CHANNEL;
       }
@@ -227,6 +226,7 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
   }
   return t;
 };
+
 const timeStart = q => time(q, true);
 
 module.exports.startFirst = startFirst;

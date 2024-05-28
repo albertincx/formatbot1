@@ -12,6 +12,7 @@ const fixImages = require('./fixImages');
 const puppet = require('./puppet');
 const {getDom} = require('./dom');
 const {logger} = require('./logger');
+const {fetchTimeout} = require('./index');
 
 const ASYNC_FILE = 'asyncContent.html';
 
@@ -128,11 +129,13 @@ class ParseHelper {
       this.log(content, 'puppet.html');
     } else {
       try {
-        content = await fetch(link, {timeout: 5000}).then(r => r.text());
+        content = await fetchTimeout(link)
+          .then(r => r.text());
       } catch (e) {
+        logger(e);
         content = '';
       }
-      this.log(content, 'fetchContent.html');
+      this.log(content, 'fetched_content.html');
     }
     if (this.fb) {
       const title = content.match(/<title.*>([^<]+\/?)/);
@@ -148,7 +151,7 @@ class ParseHelper {
     if (!content) {
       throw new Error('empty content');
     }
-    this.log(content, 'fixedFetched.html');
+    this.log(content, 'fixed_fetched.html');
 
     return content;
   }
@@ -193,7 +196,6 @@ class ParseHelper {
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
-      // eslint-disable-next-line
       if (mozillaParserEnabled) {
         logger('mozilla');
         if (opts.html) {
@@ -206,11 +208,13 @@ class ParseHelper {
       }
     }
     let {content} = result;
+    this.log(content, 'before_content.html');
+
     let preContent = sanitizeHtml(content);
     if (typeof preContent === 'string') {
       preContent = preContent.trim();
     }
-    this.log(preContent, 'preContent.html');
+
     if (preContent.length === 0) {
       const html = await this.puppet(userUrl);
       if (html) {
@@ -218,7 +222,10 @@ class ParseHelper {
         this.log(result.content, 'mercuryAsyncContent.html');
       }
     }
-    const {url: source, iframe} = result;
+    const {
+      url: source,
+      iframe
+    } = result;
     let {title = ''} = result;
     if (iframe) {
       this.log(iframe, 'iframes.html');
@@ -230,9 +237,10 @@ class ParseHelper {
     if (content) {
       content = await this.fixHtml(content, iframe);
       content = this.fixImages(content);
-      this.log(content, 'tg_content.html');
-      this.log(`after san ${content.length}`);
+      this.log(content, 'after_content.html');
+      this.log(`after clean ${content.length}`);
     }
+
     title = title && title.trim();
     title = title || 'Untitled article';
 
