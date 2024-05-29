@@ -20,7 +20,6 @@ const inlineLinksOld1 = conn2 && conn2.model(I_LINKS_COLL, Any.schema);
 
 const stat = () => links.countDocuments();
 
-
 const clear = async msg => {
   const {text} = msg;
 
@@ -44,7 +43,10 @@ const clear = async msg => {
   const fromDate = new Date();
   fromDate.setMonth(fromDate.getMonth() - 1);
 
-  const dMany = {url: s, createdAt: {$lte: fromDate}};
+  const dMany = {
+    url: s,
+    createdAt: {$lte: fromDate}
+  };
 
   const d = await links.deleteMany(dMany);
   return JSON.stringify(d);

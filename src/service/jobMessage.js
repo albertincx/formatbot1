@@ -45,9 +45,6 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
         return;
     }
 
-    if (isWorker) {
-        logger('Im a worker');
-    }
     const {host} = new url.URL(link);
     let error = '';
     let isBroken = false;
@@ -72,8 +69,6 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
             let params = rabbitMq.getMqParams();
             const isAdm = botHelper.isAdmin(chatId) || (fromId && botHelper.isAdmin(fromId));
 
-            logger(`isAdm = ${isAdm}`);
-            logger(`force = ${force}`);
             if (isAdm) {
                 params.isadmin = true;
             }
@@ -112,19 +107,19 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                 params = {...params, ...botParams};
                 params.browserWs = browserWs;
                 params.db = botHelper.db !== false;
-                if (isAdm && force === 'no_db') {
-                    params.db = false;
-                }
+                if (isAdm && force === 'no_db') params.db = false;
+
                 await timeout(0.2);
                 let ivTask = Promise.resolve('skipped link');
                 if (!NO_PARSE) {
+                    let parseStart = true;
                     if (params.db) {
                         const exist = await db.getIV(link);
                         if (exist && exist.iv) {
-                            logger('from db');
                             ivFromDb = true;
                             exist.isLong = exist.p;
                             ivTask = Promise.resolve(exist)
+                            parseStart = false;
                         } else {
                             // check domain
                             if (!isWorker) {
@@ -132,7 +127,10 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                             }
                         }
                     }
-                    ivTask = ivMaker.makeIvLink(link, params);
+
+                    if (parseStart) {
+                        ivTask = ivMaker.makeIvLink(link, params)
+                    }
                 }
                 const ivTimer = new Promise(resolve => {
                     skipTimer = setInterval(() => {
@@ -158,6 +156,8 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                 clearInterval(skipTimer);
                 clearTimeout(timeoutRes);
             }
+            logger(`isAdm = ${isAdm} force = ${force} worker = ${isWorker} ivFromDb = ${ivFromDb}`);
+
             if (isFile) {
                 RESULT = messages.isLooksLikeFile(link);
             } else if (timeOutLink) {
