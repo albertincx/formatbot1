@@ -8,7 +8,6 @@ const {
   R_MQ_MAIN_CHANNEL,
   R_MQ_SECOND_CHANNEL,
   WORKER,
-  TG_PH_TOKEN2,
 } = require('../config/vars');
 const {parseEnvArray} = require('../api/utils');
 
@@ -108,7 +107,6 @@ const runMqChannel = async (job, qName) => {
     }
     const channel = await createChan(queueName);
     if (!channel) return;
-    // eslint-disable-next-line no-param-reassign
     job.isClosed = false;
     channel.consume(queueName, message => {
       if (message) {
@@ -140,7 +138,7 @@ const runMqChannels = job => {
     return;
   }
   setTimeout(() => {
-    runMqChannel(job, R_MQ_MAIN_CHANNEL);
+    runMqChannel(job, TASKS_CHANNEL);
     if (R_MQ_SECOND_CHANNEL) {
       runMqChannel(job, R_MQ_SECOND_CHANNEL);
     }
@@ -166,9 +164,7 @@ function shuffle(arr) {
 
     // And swap it with the current element.
     temporaryValue = arr[currentIndex];
-    // eslint-disable-next-line no-param-reassign
     arr[currentIndex] = arr[randomIndex];
-    // eslint-disable-next-line no-param-reassign
     arr[randomIndex] = temporaryValue;
   }
 
@@ -183,13 +179,11 @@ function getKey() {
 
 const getMqParams = (queueName = TASKS_CHANNEL) => {
   const isPuppet = queueName === PUPPET_QUE;
-  let accessToken = getKey();
-  if (queueName === R_MQ_SECOND_CHANNEL) {
-    accessToken = TG_PH_TOKEN2;
-  }
+  const access_token = getKey();
+
   return {
     isPuppet,
-    access_token: accessToken,
+    access_token,
   };
 };
 

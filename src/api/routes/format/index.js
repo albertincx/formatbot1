@@ -392,7 +392,7 @@ const format = (bot, botHelper, skipCountBool) => {
       .then(ws => {
         browserWs = ws;
       });
-  };
+  }
 
   try {
     rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));

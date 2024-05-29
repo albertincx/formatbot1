@@ -4,7 +4,14 @@ const {logger} = require('../api/utils/logger');
 const {timeout, checkData} = require('../api/utils');
 const rabbitMq = require('./rabbitmq');
 const ivMaker = require('../api/utils/ivMaker');
-const {NO_PARSE, HELP_MESSAGE, TG_GROUP, TG_BUGS_GROUP, IV_MAKING_TIMEOUT} = require('../config/vars');
+const {
+    NO_PARSE,
+    HELP_MESSAGE,
+    TG_GROUP,
+    TG_BUGS_GROUP,
+    IV_MAKING_TIMEOUT
+} = require('../config/vars');
+
 const messages = require('../messages/format');
 const db = require('../api/utils/db');
 const keyboards = require('../keyboards/keyboards');
@@ -57,7 +64,7 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
         let RESULT;
         let IV_TITLE = '';
         let isFile = false;
-        let linkData = '';
+        let linkData = {};
         let timeOutLink = false;
         let ivFromDb = false;
         let successIv = false;
@@ -91,17 +98,17 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
             } else {
                 global.emptyTextCount = 0;
                 const IV_LIMIT = isAdm ? 120 : IV_TIMEOUT;
-                const {hostname} = url.parse(link);
-                checkData(hostname.match('djvu'));
+
+                checkData(host.match('djvu'));
                 clearInterval(skipTimer);
                 if (skipCount) {
                     skipCount -= 1;
                     timeOutLink = true;
                     checkData(1, `skip links buffer ${skipCount}`);
                 }
-                checkData(botHelper.isBlackListed(hostname), 'BlackListed');
+                checkData(botHelper.isBlackListed(host), 'BlackListed');
 
-                const botParams = botHelper.getParams(hostname, chatId, force);
+                const botParams = botHelper.getParams(host, chatId, force);
                 params = {...params, ...botParams};
                 params.browserWs = browserWs;
                 params.db = botHelper.db !== false;
@@ -111,6 +118,20 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                 await timeout(0.2);
                 let ivTask = Promise.resolve('skipped link');
                 if (!NO_PARSE) {
+                    if (params.db) {
+                        const exist = await db.getIV(link);
+                        if (exist && exist.iv) {
+                            logger('from db');
+                            ivFromDb = true;
+                            exist.isLong = exist.p;
+                            ivTask = Promise.resolve(exist)
+                        } else {
+                            // check domain
+                            if (!isWorker) {
+                                //
+                            }
+                        }
+                    }
                     ivTask = ivMaker.makeIvLink(link, params);
                 }
                 const ivTimer = new Promise(resolve => {
@@ -122,15 +143,16 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                     }, 1000);
                     timeoutRes = setTimeout(resolve, IV_LIMIT * 1000, TIMEOUT_EXCEEDED);
                 });
+
                 await Promise.race([ivTimer, ivTask])
-                    .then(value => {
-                        if (value === TIMEOUT_EXCEEDED) {
+                    .then(ivDataOrTimeout => {
+                        if (ivDataOrTimeout === TIMEOUT_EXCEEDED) {
                             if (groupBugs) {
                                 botHelper.sendAdmin(`timedOut ${link}`, groupBugs);
                             }
                             timeOutLink = true;
                         } else {
-                            linkData = value;
+                            linkData = ivDataOrTimeout;
                         }
                     });
                 clearInterval(skipTimer);
@@ -149,11 +171,7 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                     isLong,
                     pages = '',
                     ti: title = '',
-                    isFromDb = false,
                 } = linkData;
-                if (isFromDb) {
-                    ivFromDb = true;
-                }
                 ivLink = iv;
                 const longStr = isLong ? `Long${pages ? ` ${pages}` : ''}` : '';
                 IV_TITLE = `${title}\n`;
