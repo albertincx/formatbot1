@@ -87,6 +87,6 @@ const exportVars = {
   DEV_USERNAME: env.DEV_USERNAME,
 };
 
-console.log(exportVars);
+// console.log(exportVars);
 
 module.exports = exportVars;
