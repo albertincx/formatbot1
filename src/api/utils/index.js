@@ -38,12 +38,14 @@ function checkData(data, msg = 'missing data') {
 
 function parseEnvArray(name = '') {
   const arr = [];
-  if (process.env[`${name}_0`]) {
-    arr.push(process.env[`${name}_0`]);
+  const {env} = process;
+
+  if (env[`${name}_0`]) {
+    arr.push(env[`${name}_0`]);
   }
   for (let i = 1; i < 10; i += 1) {
-    if (process.env[`${name}_${i}`]) {
-      arr.push(process.env[`${name}_${i}`]);
+    if (env[`${name}_${i}`]) {
+      arr.push(env[`${name}_${i}`]);
     }
   }
   return arr;

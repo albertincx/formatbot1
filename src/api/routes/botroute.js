@@ -140,6 +140,7 @@ const botRoute = (bot, conn) => {
   });
 
   process.on('unhandledRejection', reason => {
+    logger('unhandledRejection');
     if (`${reason}`.match('bot was blocked by the user')) {
       return;
     }

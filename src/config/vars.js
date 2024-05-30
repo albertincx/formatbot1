@@ -7,6 +7,7 @@ const messages = require('../messages/format');
 const envPath = path.join(__dirname, '../../.env');
 
 const unableToStart = [];
+const {env} = process;
 
 const confFile = path.join(__dirname, '../../.conf');
 
@@ -27,10 +28,10 @@ dotenv.config({
 if (!fs.existsSync(envPath)) {
   unableToStart.push(messages.errorEnv());
 }
-const MQ_IS_OFF = process.env.NO_MQ === '1';
-const RABBIT_MQ_QUEUE = !MQ_IS_OFF && process.env.MESSAGE_QUEUE;
+const MQ_IS_OFF = env.NO_MQ === '1';
+const RABBIT_MQ_QUEUE = !MQ_IS_OFF && env.MESSAGE_QUEUE;
 
-if (RABBIT_MQ_QUEUE && (!process.env.TASKS_DEV || !process.env.TASKS2_DEV)) {
+if (RABBIT_MQ_QUEUE && (!env.TASKS_DEV || !env.TASKS2_DEV)) {
   unableToStart.push(messages.errorTasks());
 }
 
@@ -38,8 +39,8 @@ if (unableToStart.length) {
   console.log(unableToStart.join('\n'));
   process.exit(0);
 }
-const BOT_IS_OFF = process.env.NO_BOT === '1';
-const DB_IS_OFF = process.env.DB_DISABLED === '1';
+const BOT_IS_OFF = env.NO_BOT === '1';
+const DB_IS_OFF = env.DB_DISABLED === '1';
 
 if (BOT_IS_OFF) {
   console.log('bot is off');
@@ -51,41 +52,41 @@ if (DB_IS_OFF) {
   console.log('DB_IS_OFF');
 }
 const exportVars = {
-  MONGO_URI: process.env.MONGO_URI,
+  MONGO_URI: env.MONGO_URI,
   BLACK_LIST_FILE: blacklistFile,
-  PUPPET_QUE: process.env.TASKSPUPPET_DEV || 'puppet',
+  PUPPET_QUE: env.TASKSPUPPET_DEV || 'puppet',
   RABBIT_MQ_QUE: RABBIT_MQ_QUEUE,
-  R_MQ_MAIN_CHANNEL: process.env.TASKS_DEV,
-  R_MQ_SECOND_CHANNEL: process.env.TASKS2_DEV,
-  BOT_USERNAME: process.env.BOT_USERNAME || '_no_username',
-  WORKER: process.env.WORKER,
+  R_MQ_MAIN_CHANNEL: env.TASKS_DEV,
+  R_MQ_SECOND_CHANNEL: env.TASKS2_DEV,
+  BOT_USERNAME: env.BOT_USERNAME || '_no_username',
+  WORKER: env.WORKER,
   NO_BOT: BOT_IS_OFF,
-  IS_PUPPET_DISABLED: process.env.NO_PUPPET === '1',
-  T_B_TKN: !BOT_IS_OFF && process.env.TBTKN,
+  IS_PUPPET_DISABLED: env.NO_PUPPET === '1',
+  T_B_TKN: !BOT_IS_OFF && env.TBTKN,
   NO_MQ: MQ_IS_OFF,
   NO_DB: DB_IS_OFF,
-  NO_PARSE: process.env.NO_PARSE === '1',
-  IS_DEV: process.env.DEV,
-  MONGO_URI_SECOND: process.env.MONGO_URI_SECOND,
-  MONGO_URI_BROAD: process.env.MONGO_URI_BROAD,
-  MONGO_URI_OLD: process.env.MONGO_URI_OLD,
-  MONGO_COLL_LINKS: process.env.MONGO_COLL_LINKS,
-  MONGO_COLL_I_LINKS: process.env.MONGO_COLL_ILINKS,
-  REST_API: process.env.REST_API,
-  HEADLESS: process.env.HDLSS,
-  NODE_CRON: process.env.NODE_CRON,
-  CRON_TASKS: process.env.CRON_TASKS,
-  TG_ADMIN_ID: process.env.TGADMIN,
-  TG_GROUP: process.env.TGGROUP,
-  TG_BUGS_GROUP: process.env.TGGROUPBUGS,
-  IV_MAKING_TIMEOUT: process.env.IV_MAKING_TIMEOUT,
-  IV_CHAN_ID: Number(process.env.IV_CHAN_ID),
-  IV_CHAN_MID: Number(process.env.IV_CHAN_MID),
-  IV_CHAN_MID_2: Number(process.env.IV_CHAN_MID_2),
-  HELP_MESSAGE: process.env.HELP_MESSAGE,
-  DEV_USERNAME: process.env.DEV_USERNAME,
+  NO_PARSE: env.NO_PARSE === '1',
+  IS_DEV: env.DEV,
+  MONGO_URI_SECOND: env.MONGO_URI_SECOND,
+  MONGO_URI_BROAD: env.MONGO_URI_BROAD,
+  MONGO_URI_OLD: env.MONGO_URI_OLD,
+  MONGO_COLL_LINKS: env.MONGO_COLL_LINKS,
+  MONGO_COLL_I_LINKS: env.MONGO_COLL_ILINKS,
+  REST_API: env.REST_API,
+  HEADLESS: env.HDLSS,
+  NODE_CRON: env.NODE_CRON,
+  CRON_TASKS: env.CRON_TASKS,
+  TG_ADMIN_ID: env.TGADMIN,
+  TG_GROUP: env.TGGROUP,
+  TG_BUGS_GROUP: env.TGGROUPBUGS,
+  IV_MAKING_TIMEOUT: env.IV_MAKING_TIMEOUT,
+  IV_CHAN_ID: Number(env.IV_CHAN_ID),
+  IV_CHAN_MID: Number(env.IV_CHAN_MID),
+  IV_CHAN_MID_2: Number(env.IV_CHAN_MID_2),
+  HELP_MESSAGE: env.HELP_MESSAGE,
+  DEV_USERNAME: env.DEV_USERNAME,
 };
 
-// logger(exportVars);
+console.log(exportVars);
 
 module.exports = exportVars;

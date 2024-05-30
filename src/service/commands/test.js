@@ -14,7 +14,6 @@ async function run(params, botHelper) {
     // console.log('broadcastIsOn = ', broadcastIsOn);
     if (broadcastIsOn) {
       botHelper.startBroad({message: {...chat, text: `/${broadcastIsOn}`}, reply: (s) => {
-          // console.log(s)
           botHelper.sendAdmin(s)
           return {catch: (cb) => cb()}
         }})
