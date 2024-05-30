@@ -13,7 +13,6 @@ exports.connect = uri => {
   }
 
   mongoose.connect(dbUri, {
-    keepAlive: true,
     connectTimeoutMS: 30000,
     useNewUrlParser: true,
     useUnifiedTopology: true,

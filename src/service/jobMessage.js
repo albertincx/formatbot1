@@ -120,15 +120,16 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
                             exist.isLong = exist.p;
                             ivTask = Promise.resolve(exist)
                             parseStart = false;
-                        } else {
-                            // check domain
-                            if (!isWorker) {
-                                //
-                            }
                         }
                     }
 
                     if (parseStart) {
+                        if (isWorker) {
+                            //
+                        } else {
+                            // check domain
+
+                        }
                         ivTask = ivMaker.makeIvLink(link, params)
                     }
                 }

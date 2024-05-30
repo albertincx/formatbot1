@@ -153,7 +153,9 @@ const botRoute = (bot, conn) => {
   format(bot, botHelper, skipCount);
 
   if (!NO_BOT) {
-    bot.launch();
+    bot.launch().catch(e => {
+        logger(e);
+    });
   }
 
   if (startCnt % 10 === 0 || IS_DEV) {
