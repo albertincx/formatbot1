@@ -172,6 +172,8 @@ class ParseHelper {
   }
 
   log(content, file) {
+    logger('log')
+    logger(content && content.length)
     if (this.params.isadmin) {
       logger(content, file);
     }
