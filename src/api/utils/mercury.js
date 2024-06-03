@@ -1,14 +1,14 @@
 const Mercury = require('@postlight/parser');
 const {logger} = require('./logger');
 
-const mercury = async (url, options = {}) => {
+const mercuryParse = async (url, options = {}) => {
   let result = '';
   try {
     result = await Mercury.parse(url, options);
     logger('merc');
-  } catch (e) {
+  } catch {
     throw new Error('Mercury failed');
   }
   return result;
 };
-module.exports = mercury;
+module.exports = mercuryParse;

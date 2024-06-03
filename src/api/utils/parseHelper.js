@@ -7,14 +7,19 @@ const url = require('url');
 
 const {REST_API} = require('../../config/vars');
 
-const mercury = require('./mercury');
+const mercuryParse = require('./mercury');
 const fixImages = require('./fixImages');
 const puppet = require('./puppet');
 const {getDom} = require('./dom');
 const {logger} = require('./logger');
-const {fetchTimeout} = require('./index');
+const {
+  fetchTimeout,
+  timeout
+} = require('./index');
 
 const ASYNC_FILE = 'asyncContent.html';
+
+const race = (promises) => Promise.race(promises);
 
 function parseServices(link) {
   if (link.match(/^(https?:\/\/)?(www.)?google/)) {
@@ -168,12 +173,15 @@ class ParseHelper {
   }
 
   fixHtml(content, iframe) {
+    if (!content) {
+      return Promise.resolve(false);
+    }
     return fixImages.fixHtml(content, iframe, this.parsed, this.params);
   }
 
   log(content, file) {
-    logger('log')
-    logger(content && content.length)
+    logger('log');
+    logger(content && content.length);
     if (this.params.isadmin) {
       logger(content, file);
     }
@@ -205,7 +213,7 @@ class ParseHelper {
           this.log(result.content, 'mozilla.html');
         }
       } else {
-        result = await mercury(userUrl, opts);
+        result = await mercuryParse(userUrl, opts);
         this.log(result.content, 'mercury.html');
       }
     }
@@ -220,7 +228,7 @@ class ParseHelper {
     if (preContent.length === 0) {
       const html = await this.puppet(userUrl);
       if (html) {
-        result = await mercury(userUrl, {html: Buffer.from(html)});
+        result = await mercuryParse(userUrl, {html: Buffer.from(html)});
         this.log(result.content, 'mercuryAsyncContent.html');
       }
     }
@@ -236,9 +244,14 @@ class ParseHelper {
       title = this.title;
     }
     content = result.content;
-    if (content) {
-      content = await this.fixHtml(content, iframe);
-      content = this.fixImages(content);
+    const data = await race([
+      this.fixHtml(content, iframe),
+      timeout(7)
+    ]);
+    logger('typeof data');
+    logger(typeof data);
+    if (typeof data === 'string' && data) {
+      content = this.fixImages(data);
       this.log(content, 'after_content.html');
       this.log(`after clean ${content.length}`);
     }
