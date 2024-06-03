@@ -173,10 +173,11 @@ class ParseHelper {
   }
 
   fixHtml(content, iframe) {
-    if (!content) {
-      return Promise.resolve(false);
-    }
-    return fixImages.fixHtml(content, iframe, this.parsed, this.params);
+    return content;
+    // if (!content) {
+    //   return Promise.resolve(false);
+    // }
+    // return fixImages.fixHtml(content, iframe, this.parsed, this.params);
   }
 
   log(content, file) {
