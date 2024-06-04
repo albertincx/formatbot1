@@ -1,4 +1,4 @@
-const Any = require('../models/any.model');
+const schema = require('../models/schema');
 
 const {
   MONGO_URI_OLD,
@@ -6,17 +6,18 @@ const {
   MONGO_COLL_I_LINKS,
 } = require('../../config/vars');
 const {createConnection} = require('../../config/mongoose');
+const {model} = require('mongoose');
 
 const LINKS_COLL = MONGO_COLL_LINKS || 'links';
 const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
 
-const links = Any.collection.conn.model(LINKS_COLL, Any.schema);
-const inlineLinks = Any.collection.conn.model(I_LINKS_COLL, Any.schema);
+const links = model(LINKS_COLL, schema);
+const inlineLinks = model(I_LINKS_COLL, schema);
 
 const conn2 = createConnection(MONGO_URI_OLD);
 
-const linksOld1 = conn2 && conn2.model(LINKS_COLL, Any.schema);
-const inlineLinksOld1 = conn2 && conn2.model(I_LINKS_COLL, Any.schema);
+const linksOld1 = conn2 && conn2.model(LINKS_COLL, schema);
+const inlineLinksOld1 = conn2 && conn2.model(I_LINKS_COLL, schema);
 
 const stat = () => links.countDocuments();
 
@@ -26,7 +27,11 @@ const clear = async msg => {
   if (text.match(/^\/cleardb2/)) {
     return clear2(msg);
   }
+
   let search;
+  let mon = 1;
+  const months = text.match('mon([0-9])');
+  if (months) mon = months[1];
 
   if (text.match(/^\/cleardb3_/)) {
     search = text.replace('/cleardb3_', '')
@@ -41,14 +46,14 @@ const clear = async msg => {
   const s = new RegExp(`^https?://${search}`);
 
   const fromDate = new Date();
-  fromDate.setMonth(fromDate.getMonth() - 1);
+  fromDate.setMonth(fromDate.getMonth() - mon);
 
   const dMany = {
     url: s,
     createdAt: {$lte: fromDate}
   };
-
-  const d = await links.deleteMany(dMany);
+  let d;
+  d = await links.deleteMany(dMany);
   return JSON.stringify(d);
 };
 
@@ -109,7 +114,11 @@ const getIV = async url => {
 
 const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: -1}});
 
-const getCleanData = async () => {
+const getCleanData = async (txt) => {
+  const nums = txt.match(/[0-9]+/);
+  let cnt = 4000;
+  if (nums) cnt = +nums[0];
+
   const agg = [
     {
       $addFields: {
@@ -129,13 +138,13 @@ const getCleanData = async () => {
     {
       $match: {
         cnt: {
-          $gte: 6000,
+          $gte: cnt,
         },
       },
     },
   ];
   const result = await links.aggregate(agg);
-  // const result2 = await checkTimeFromLast();
+
   return result.map(i => `${i._id.replace(/\./g, '_')} ${i.cnt}`);
 };
 

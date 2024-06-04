@@ -8,6 +8,7 @@ const {WORKER, NO_BOT, IS_DEV} = require('../../config/vars');
 const {logger} = require('../utils/logger');
 
 global.skipCount = 0;
+global.isDevEnabled = IS_DEV;
 
 const filepath = 'count.txt';
 if (!fs.existsSync(filepath)) {
@@ -131,9 +132,9 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('getCleanData', ({message}) => {
+  bot.command('getClean', ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
-      db.getCleanData().then(r => {
+      db.getCleanData(message.text).then(r => {
         botHelper.sendAdmin(`${messages.cleanCommands(r)}`);
       });
     }

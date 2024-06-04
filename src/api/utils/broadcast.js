@@ -3,7 +3,7 @@ const {
   MONGO_URI_BROAD,
   DEV_USERNAME,
 } = require('../../config/vars');
-const Any = require('../models/any.model');
+const schema = require('../models/schema');
 const {createConnection} = require('../../config/mongoose');
 const co = require('co');
 const {logger} = require('./logger');
@@ -63,7 +63,7 @@ const createBroadcast = async (ctx, txt) => {
     versionKey: false
   }));
 
-  const messages = connSecond.model('users', Any.schema);
+  const messages = connSecond.model('users', schema);
   const filter = {};
 
   if (onlyMe === 1) {
@@ -128,7 +128,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
   };
   const connBroad = createConnection(MONGO_URI_BROAD);
 
-  const model = connBroad.model('broadcasts', Any.schema);
+  const model = connBroad.model('broadcasts', schema);
 
   const filter = {
     sent: {$exists: false},

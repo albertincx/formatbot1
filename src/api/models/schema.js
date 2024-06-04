@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 mongoose.set('strictQuery', false);
 
-const anySchema = new mongoose.Schema(
+const schema = new mongoose.Schema(
   {},
   {
     timestamps: {createdAt: true, updatedAt: false},
@@ -10,10 +10,4 @@ const anySchema = new mongoose.Schema(
   },
 );
 
-anySchema.method({
-  transform() {
-    return this.toObject();
-  },
-});
-
-module.exports = anySchema;
+module.exports = schema;

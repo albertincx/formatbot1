@@ -1,8 +1,8 @@
 const url = require('url');
 
-const keyboards = require('../../../keyboards/keyboards');
-const messages = require('../../../messages/format');
-const rabbitMq = require('../../../service/rabbitmq');
+const keyboards = require('../../keyboards/keyboards');
+const messages = require('../../messages/format');
+const rabbitMq = require('../../service/rabbitmq');
 
 const {
   PUPPET_QUE,
@@ -11,23 +11,23 @@ const {
   IV_CHAN_ID,
   IV_CHAN_MID,
   IV_CHAN_MID_2,
-} = require('../../../config/vars');
+} = require('../../config/vars');
 
-const db = require('../../utils/db');
+const db = require('../utils/db');
 const {
   commandCheck,
   timeout,
   toUrl
-} = require('../../utils');
-const {logger} = require('../../utils/logger');
-const puppet = require('../../utils/puppet');
+} = require('../utils');
+const {logger} = require('../utils/logger');
+const puppet = require('../utils/puppet');
 const {
   getAllLinks,
   getLinkFromEntity,
   getLink
-} = require('../../utils/links');
-const {broadcast} = require('../../utils/broadcast');
-const {jobMessage} = require('../../../service/jobMessage');
+} = require('../utils/links');
+const {broadcast} = require('../utils/broadcast');
+const {jobMessage} = require('../../service/jobMessage');
 
 global.lastIvTime = +new Date();
 
@@ -297,18 +297,18 @@ const format = (bot, botHelper, skipCountBool) => {
           return;
         }
         if (link.match(/^((https?):\/\/)?(www\.)?(youtube|t)\.(com|me)\/?/)) {
-          logger('youtube exit')
+          logger('youtube exit');
           return;
         }
 
         if (link.match(/yandex\.ru\/showcap/)) {
-          logger('yandex cap')
+          logger('yandex cap');
           return;
         }
 
         // allow https only main page
         if (!parsed.pathname && !parsed.protocol.match('https')) {
-          logger('main no ssl')
+          logger('main no ssl');
           return;
         }
 
@@ -324,7 +324,7 @@ const format = (bot, botHelper, skipCountBool) => {
           const messageId = res && res.message_id;
           await timeout(0.1);
           if (!messageId) {
-            logger('no MessageId exit')
+            logger('no MessageId exit');
             return;
           }
           mid = messageId;
@@ -356,11 +356,11 @@ const format = (bot, botHelper, skipCountBool) => {
           console.log('cloud massaging is disabled');
           return jobMessage(task);
         }
-        logger('sent to channel')
+        logger('sent to channel');
         rabbitMq.addToChannel(task);
       } catch (e) {
-        logger('send error')
-        logger(e)
+        logger('send error');
+        logger(e);
       }
     }
   };

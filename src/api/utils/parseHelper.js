@@ -181,8 +181,7 @@ class ParseHelper {
   }
 
   log(content, file) {
-    logger('log');
-    logger(content && content.length);
+    logger(content && `len - ${content.length}`);
     if (this.params.isadmin) {
       logger(content, file);
     }
@@ -249,12 +248,11 @@ class ParseHelper {
       this.fixHtml(content, iframe),
       timeout(7)
     ]);
-    logger('typeof data');
-    logger(typeof data);
+    logger('typeof data ' + typeof data);
     if (typeof data === 'string' && data) {
       content = this.fixImages(data);
       this.log(content, 'after_content.html');
-      this.log(`after clean ${content.length}`);
+      logger(`after clean ${content.length}`);
     }
 
     title = title && title.trim();
