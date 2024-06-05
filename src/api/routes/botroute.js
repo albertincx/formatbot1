@@ -1,6 +1,8 @@
 const fs = require('fs');
 
-const {BotHelper} = require('../utils/bot');
+const {BotHelper,
+  BANNED_ERROR
+} = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
 const messages = require('../../messages/format');
@@ -151,10 +153,11 @@ const botRoute = (bot, conn) => {
   process.on('unhandledRejection', reason => {
     logger('unhandledRejection');
     if (`${reason}`.match('bot was blocked by the user')) {
-      return;
+      // return;
+      botHelper.sendAdmin(`unhandledRejection blocked ${reason}`);
     }
-    if (`${reason}`.match(BotHelper.BANNED_ERROR)) {
-      return;
+    if (`${reason}`.match(BANNED_ERROR)) {
+      botHelper.sendAdmin(`unhandledRejection banned ${reason}`);
     }
     botHelper.sendAdmin(`unhandledRejection: ${reason}`);
   });
