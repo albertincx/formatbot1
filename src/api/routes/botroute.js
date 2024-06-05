@@ -1,6 +1,7 @@
 const fs = require('fs');
 
-const {BotHelper,
+const {
+  BotHelper,
   BANNED_ERROR
 } = require('../utils/bot');
 const format = require('./format');
