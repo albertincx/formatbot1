@@ -4,7 +4,11 @@ const {BotHelper} = require('../utils/bot');
 const format = require('./format');
 const db = require('../utils/db');
 const messages = require('../../messages/format');
-const {WORKER, NO_BOT, IS_DEV} = require('../../config/vars');
+const {
+  WORKER,
+  NO_BOT,
+  IS_DEV
+} = require('../../config/vars');
 const {logger} = require('../utils/logger');
 
 global.skipCount = 0;
@@ -62,7 +66,7 @@ const botRoute = (bot, conn) => {
   bot.command('showconfig', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       try {
-        const c = botHelper.showConfig()
+        const c = botHelper.showConfig();
         ctx.reply(c);
       } catch (e) {
         botHelper.sendError(e);
@@ -70,12 +74,17 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('stat', ctx => {
+  bot.command('stat', async ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       if (!botHelper.conn) {
         return ctx.reply('db off');
       }
-      db.stat().then(r => ctx.reply(r).catch(e => botHelper.sendError(e)));
+      try {
+        const res = await db.stat();
+        return ctx.reply(res);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
     }
   });
 
@@ -124,19 +133,18 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('getInfo', ({message}) => {
+  bot.command('getInfo', async ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
-      botHelper.getInfo().then(info => {
-        botHelper.sendAdmin(`Info:\n${JSON.stringify(info)}`);
-      });
+      const info = await botHelper.getInfo();
+      return botHelper.sendAdmin(`Info:\n${JSON.stringify(info)}`);
     }
   });
 
-  bot.command('getClean', ({message}) => {
+  bot.command('getClean', async ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
-      db.getCleanData(message.text).then(r => {
-        botHelper.sendAdmin(`${messages.cleanCommands(r)}`);
-      });
+      const data = await db.getCleanData(message.text);
+
+      return botHelper.sendAdmin(messages.cleanCommands(data));
     }
   });
 
@@ -154,9 +162,7 @@ const botRoute = (bot, conn) => {
   format(bot, botHelper, skipCount);
 
   if (!NO_BOT) {
-    bot.launch().catch(e => {
-        logger(e);
-    });
+    bot.launch();
   }
 
   if (startCnt % 10 === 0 || IS_DEV) {
@@ -169,7 +175,7 @@ const botRoute = (bot, conn) => {
 
   if (startCnt >= 500) startCnt = 0;
 
-  fs.writeFileSync(filepath, parseInt(startCnt, 10).toString());
+  fs.writeFileSync(filepath, `${startCnt}`);
 
   botHelper.setBlacklist();
 

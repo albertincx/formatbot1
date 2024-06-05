@@ -5,7 +5,10 @@ mongoose.set('strictQuery', false);
 const schema = new mongoose.Schema(
   {},
   {
-    timestamps: {createdAt: true, updatedAt: false},
+    timestamps: {
+      createdAt: true,
+      updatedAt: false
+    },
     strict: false,
   },
 );

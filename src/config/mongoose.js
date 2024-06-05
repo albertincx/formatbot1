@@ -4,7 +4,6 @@ const {
   MONGO_URI
 } = require('./vars');
 
-
 exports.connect = uri => {
   const dbUri = uri || MONGO_URI;
 

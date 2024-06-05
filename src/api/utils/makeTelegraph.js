@@ -11,10 +11,43 @@ let pages = 0;
 function lengthInUtf8Bytes(str) {
   if (!str) return 0;
   // Matches only the 10.. bytes that are non-initial characters in a multi-byte sequence.
-  const m = encodeURIComponent(str).match(/%[89ABab]/g);
+  let m = encodeURIComponent(str);
+  m = m.match(/%[89ABab]/g);
+
   return str.length + (m ? m.length : 0);
 }
 
+const makeTelegraphLinkNew = async (obj, content) => {
+  const body = Object.assign(obj, {
+    // author_name: 'Source',
+    return_content: false,
+    content,
+  });
+  let res = '';
+  try {
+    const fetchRes = await fetch('https://api.telegra.ph/createPage', {
+      body: JSON.stringify(body),
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+    });
+    if (!fetchRes.ok) {
+      const err = new Error(fetchRes.statusText || 'Error calling telegra.ph');
+      err.statusCode = fetchRes.status;
+      throw err;
+    } else {
+      const json = await fetchRes.json();
+      if ('ok' in json && !json.ok) {
+        throw new Error(json.error || 'Error calling telegra.ph');
+      }
+      res = json.result.url;
+    }
+  } catch (e) {
+    logger(e);
+    throw e;
+  }
+
+  return res;
+};
 const makeTelegraphLink = async (obj, content) => {
   const body = Object.assign(obj, {
     // author_name: 'Source',
@@ -33,12 +66,13 @@ const makeTelegraphLink = async (obj, content) => {
         err.statusCode = res.status;
         throw err;
       }
-      return res.json().then(json => {
-        if ('ok' in json && !json.ok) {
-          throw new Error(json.error || 'Error calling telegra.ph');
-        }
-        return json.result.url;
-      });
+      return res.json()
+        .then(json => {
+          if ('ok' in json && !json.ok) {
+            throw new Error(json.error || 'Error calling telegra.ph');
+          }
+          return json.result.url;
+        });
     })
     .catch(() => '');
 };
@@ -79,10 +113,8 @@ const makeTelegaphMany = async (obj, domObj, chunksLen) => {
     const parts = chunk(dom, partsLen);
     for (let i = parts.length - 1; i > 0; i -= 1) {
       const domed = parts[i];
-      // eslint-disable-next-line no-await-in-loop
       await timeout(3);
       pages += 1;
-      // eslint-disable-next-line no-await-in-loop
       const iVlink = await makeLink(obj, domed, link, i);
       if (iVlink) {
         link = iVlink;

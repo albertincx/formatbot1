@@ -19,13 +19,15 @@ const getLinkFromEntity = (entities, txt) => {
   for (let i = 0; i < entities.length; i += 1) {
     if (entities[i].url) {
       links.push(entities[i].url);
-    } else if (entities[i].type === 'url') {
-      const checkFf = txt.substr(0, entities[i].length + 1).match(/\[(.*?)]/);
+    } else if (entities[i].type === 'url' || entities[i].type === 'text_link') {
+      let checkFf = txt.substring(0, entities[i].length);
+      checkFf = checkFf.match(/\[(.*?)]/);
       if (!checkFf) {
-        links.push(txt.substr(entities[i].offset, entities[i].length));
+        links.push(txt.substring(entities[i].offset, entities[i].offset + entities[i].length));
       }
     }
   }
+
   return links;
 };
 

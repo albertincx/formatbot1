@@ -2,11 +2,18 @@ const bot = {
   catch: () => {
     //
   },
-  command: () => {},
-  hears: () => {},
-  on: () => {},
-  action: () => {},
-  launch: () => ({catch: () => {}}),
+  command: () => {
+  },
+  hears: () => {
+  },
+  on: () => {
+  },
+  action: () => {
+  },
+  launch: () => ({
+    catch: () => {
+    }
+  }),
   sendMessage() {
     return this;
   },

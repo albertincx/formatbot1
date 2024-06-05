@@ -37,4 +37,5 @@ const toDomNode = html => {
   return domToNode(dom.body).children;
 };
 
-module.exports = {toDomNode, getDom};
+module.exports.toDomNode = toDomNode;
+module.exports.getDom = getDom;

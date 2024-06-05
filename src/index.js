@@ -8,11 +8,11 @@ const botInstance = require('./config/bot');
 const init = require('./cron');
 const {logger} = require('./api/utils/logger');
 
-const conn = require('./config/mongoose').connect();
+const conn = require('./config/mongoose');
 
 if (botInstance) {
-  const bh = botRoute(botInstance, conn);
-  if(bh) {
+  const bh = botRoute(botInstance, conn.connect());
+  if (bh) {
     init(bh);
   }
   // Enable graceful stop

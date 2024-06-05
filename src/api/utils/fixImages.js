@@ -16,7 +16,7 @@ function convert(strParam) {
   str = str.replace(/&gt;/g, '>');
   str = str.replace(/&lt;/g, '<');
   str = str.replace(/&quot;/g, '"');
-  str = str.replace(/&#039;/g, "'");
+  str = str.replace(/&#039;/g, '\'');
   return str;
 }
 
@@ -31,6 +31,7 @@ const replaceDir = (imgParam, parsedUrl) => {
       img = img.replace('../', dir);
     }
   }
+
   return img;
 };
 
@@ -41,8 +42,10 @@ const findImages = (content, parsedUrl, params) => {
   if (imgs.length && imgs.length < 10) {
     let baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
     for (let i = 0; i < imgs.length; i += 1) {
-      let img = imgs[i].replace(/\n/g, '').replace(/\s+/g, ' ');
+      let img = imgs[i].replace(/\n/g, '');
+      img = img.replace(/\s+/g, ' ');
       img = replaceDir(img, parsedUrl);
+
       const src = img.match(/src="(.*?)"/);
       if (src && src[1]) {
         let s = src[1];
@@ -56,7 +59,10 @@ const findImages = (content, parsedUrl, params) => {
         }
         s = convert(s);
         if (params.isCached) {
-          tasks.push({isValid: true, i});
+          tasks.push({
+            isValid: true,
+            i
+          });
         } else {
           tasks.push(
             checkImage(s)
@@ -64,19 +70,23 @@ const findImages = (content, parsedUrl, params) => {
                 isValid,
                 i,
               }))
-              .catch(() => ({isValid: false, i})),
+              .catch(() => ({
+                isValid: false,
+                i
+              })),
           );
         }
       }
     }
   }
 
-  return Promise.all(tasks).then(checked => {
-    for (let i = 0; i < checked.length; i += 1) {
-      if (!checked[i].isValid) imgs[checked[i].i] = '';
-    }
-    return imgs;
-  });
+  return Promise.all(tasks)
+    .then(checked => {
+      for (let i = 0; i < checked.length; i += 1) {
+        if (!checked[i].isValid) imgs[checked[i].i] = '';
+      }
+      return imgs;
+    });
 };
 
 const insertYoutube = (contentParam, links = []) => {
@@ -154,10 +164,11 @@ const fixHtml = async (contentParam, iframeParam, parsedUrl, params) => {
   let content = contentParam;
   let iframe = iframeParam;
 
-  const images = await findImages(content, parsedUrl, params).catch(e => {
-    console.log(parsedUrl, e,' \nfindImages');
-    return [];
-  });
+  const images = await findImages(content, parsedUrl, params)
+    .catch(e => {
+      console.log(parsedUrl, e, ' \nfindImages');
+      return [];
+    });
 
   if (!iframe) {
     iframe = findIframes(content);

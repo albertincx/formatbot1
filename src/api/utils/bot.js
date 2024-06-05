@@ -24,7 +24,7 @@ class BotHelper {
     try {
       c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {
-      logger(e)
+      logger(e);
     }
     this.config = c;
     this.tgAdmin = TG_ADMIN;
@@ -80,10 +80,11 @@ class BotHelper {
       }
     }
 
-    return this.bot.sendMessage(chatId, text, opts).catch((e) => {
-      logger('Send admin')
-      logger(e)
-    });
+    return this.bot.sendMessage(chatId, text, opts)
+      .catch(e => {
+        logger('Send admin');
+        logger(e);
+      });
   }
 
   sendAdminOpts(text, opts) {
@@ -91,10 +92,19 @@ class BotHelper {
       return Promise.resolve();
     }
     const chatId = TG_BUGS_GROUP || TG_ADMIN;
-    return this.bot.sendMessage(chatId, text, opts).catch(() => {});
+
+    return this.bot.sendMessage(chatId, text, opts)
+      .catch(e => {
+        logger('Send admin opts');
+        logger(e);
+      });
   }
 
-  sendInline({title, messageId, ivLink}) {
+  sendInline({
+    title,
+    messageId,
+    ivLink
+  }) {
     if (this.worker) {
       return Promise.resolve();
     }
@@ -186,11 +196,12 @@ class BotHelper {
       const [_, param, ...val] = params.split('_');
       params = `${param} ${val.join('_')}`;
     }
-    const c = params.replace(' _content', '_content').split(/\s/);
-    let [param] = c;
+    let config = params.replace(' _content', '_content');
+    config = config.split(/\s/);
+    let [param] = config;
 
-    if (c.length === 2) {
-      content = c[1].replace(/~/g, ' ');
+    if (config.length === 2) {
+      content = config[1].replace(/~/g, ' ');
       if (this.config[param] === content) content = OFF;
     } else {
       if (this.config[param] === ON || this.config[param]) {
@@ -200,19 +211,27 @@ class BotHelper {
       }
     }
 
-    return {param, content};
+    return {
+      param,
+      content
+    };
   }
 
   toggleConfig(msg, send = true) {
     if (typeof msg === 'string') {
       msg = {text: msg};
     }
-    const params = msg.text.replace('/config', '').trim();
+    let params = msg.text.replace('/config', '');
+    params = params.trim();
+
     if (!params || !this.isAdmin(msg.chat.id)) {
       return Promise.resolve('no param or forbidden');
     }
 
-    const {param, content} = this.parseConfig(params);
+    const {
+      param,
+      content
+    } = this.parseConfig(params);
     this.config[param] = content;
     fs.writeFileSync('.conf/config.json', JSON.stringify(this.config));
 
@@ -221,7 +240,7 @@ class BotHelper {
 
   showConfig() {
     let c = JSON.stringify(this.config);
-    return `${c} db is ${this.db}`
+    return `${c} db is ${this.db}`;
   }
 
   sendError(error, text = '') {
@@ -246,7 +265,8 @@ class BotHelper {
   }
 
   setBlacklist() {
-    this.bllist = fs.readFileSync(BLACK_LIST_FILE).toString() || '';
+    const blf = fs.readFileSync(BLACK_LIST_FILE);
+    this.bllist = `${blf ? `${blf}` : ''}`;
   }
 
   isBlackListed(h) {
@@ -264,13 +284,18 @@ class BotHelper {
     if (this.worker) {
       return Promise.resolve();
     }
+
     let text = messageText;
     if (extra && extra.parse_mode === this.markdown()) {
       text = text.replace(/[*`]/gi, '');
     }
+
     return this.bot
       .editMessageText(chatId, messageId, inlineMessageId, text, extra)
-      .catch(() => {});
+      .catch(e => {
+        logger('send iv error');
+        logger(e);
+      });
   }
 
   sendIVNew(chatId, messageText, extra) {
@@ -281,14 +306,22 @@ class BotHelper {
     if (extra && extra.parse_mode === this.markdown()) {
       text = text.replace(/[*`]/gi, '');
     }
-    return this.bot.sendMessage(chatId, text, extra).catch(() => {});
+    return this.bot.sendMessage(chatId, text, extra)
+      .catch(e => {
+        logger('send iv new error');
+        logger(e);
+      });
   }
 
   delMessage(chatId, messageId) {
     if (this.worker) {
       return Promise.resolve();
     }
-    return this.bot.deleteMessage(chatId, messageId).catch(() => {});
+    return this.bot.deleteMessage(chatId, messageId)
+      .catch((e) => {
+        logger('del mess error');
+        logger(e);
+      });
   }
 
   markdown() {
@@ -300,7 +333,8 @@ class BotHelper {
     spawn('pm2', ['restart', 'Format'], {
       stdio: 'ignore',
       detached: true,
-    }).unref();
+    })
+      .unref();
     this.sendAdmin('restarted');
   }
 
@@ -325,14 +359,14 @@ class BotHelper {
     return Promise.resolve({});
   }
 
-  getMidMessage(mId){
+  getMidMessage(mId) {
     let mMessage = process.env[`MID_MESSAGE${mId}`] || '';
     mMessage = mMessage.replace('*', '\n');
     return mMessage;
   }
 
-  startBroad(ctx){
-    broadcast(ctx, this)
+  startBroad(ctx) {
+    broadcast(ctx, this);
   }
 }
 
