@@ -340,11 +340,12 @@ class BotHelper {
 
   gitPull() {
     const {spawn} = require('child_process');
-    const gpull = spawn('git', ['pull']);
-    const rest = spawn('pm2', ['restart', 'Format']);
-    gpull.stdout.pipe(rest.stdin);
-    rest.stdout.on('data', data => {
-      this.sendAdmin(data);
+    const gPull = spawn('git pull && pm2 restart Format --time', {shell: true});
+    let log = '';
+    gPull.stdout.on('data', data => (log += `${data}`))
+    gPull.stdout.on('end', () => {
+      logger(log)
+      this.sendAdmin(log);
     });
   }
 
