@@ -54,7 +54,7 @@ const clear = async msg => {
   };
   let d;
   d = await links.deleteMany(dMany);
-  return JSON.stringify(d);
+  return `${JSON.stringify(d)}-${s}-${JSON.stringify(fromDate)}`;
 };
 
 const clear2 = async msg => {
