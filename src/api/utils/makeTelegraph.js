@@ -11,10 +11,10 @@ let pages = 0;
 function lengthInUtf8Bytes(str) {
   if (!str) return 0;
   // Matches only the 10.. bytes that are non-initial characters in a multi-byte sequence.
-  let m = encodeURIComponent(str);
-  m = m.match(/%[89ABab]/g);
+  let encodedStr = encodeURIComponent(str);
+  encodedStr = encodedStr.match(/%[89ABab]/g);
 
-  return str.length + (m ? m.length : 0);
+  return str.length + (encodedStr ? encodedStr.length : 0);
 }
 
 const makeTelegraphLinkNew = async (obj, content) => {
@@ -111,11 +111,11 @@ const makeTelegaphMany = async (obj, domObj, chunksLen) => {
   try {
     const partsLen = Math.ceil(dom.length / chunksLen);
     const parts = chunk(dom, partsLen);
-    for (let i = parts.length - 1; i > 0; i -= 1) {
-      const domed = parts[i];
+    for (let partIdx = parts.length - 1; partIdx > 0; partIdx -= 1) {
+      const domed = parts[partIdx];
       await timeout(3);
       pages += 1;
-      const iVlink = await makeLink(obj, domed, link, i);
+      const iVlink = await makeLink(obj, domed, link, partIdx);
       if (iVlink) {
         link = iVlink;
       }

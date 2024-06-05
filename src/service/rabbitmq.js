@@ -172,9 +172,10 @@ function shuffle(arr) {
 }
 
 function getKey() {
-  const h = new Date().getHours();
-  const keys1 = shuffle(keys);
-  return keys1.find((k, i) => h <= (24 / keys.length) * (i + 1)) || keys[0];
+  const hours = new Date().getHours();
+  const shuffleKeys = shuffle(keys);
+
+  return shuffleKeys.find((k, i) => hours <= (24 / keys.length) * (i + 1)) || keys[0];
 }
 
 const getMqParams = (queueName = TASKS_CHANNEL) => {
@@ -214,11 +215,11 @@ const time = (queueName = TASKS_CHANNEL, start = false) => {
   if (queueName === TASKS_CHANNEL) {
     availableOne = !start;
   }
-  const t = elapsedTime(queueName);
+  const time1 = elapsedTime(queueName);
   if (start) {
     resetTime(queueName);
   }
-  return t;
+  return time1;
 };
 
 const timeStart = q => time(q, true);

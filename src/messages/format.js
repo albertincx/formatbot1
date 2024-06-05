@@ -15,9 +15,7 @@ module.exports = {
   isLooksLikeFile: link => `It looks like a file [link](${link})`,
   resolved: () => 'This error resolved, please check link again',
   support: links => {
-    let s = 'For support:';
-    s += `${links.length ? `\n${links.join('\n\n')}` : ''}`;
-    return s;
+    return `For support:${links.length ? `\n${links.join('\n\n')}` : ''}`;
   },
   cleanCommands: links =>
     `${links.length ? `\n/cleardb3_${links.join('\n/cleardb3_')}` : ''}`,

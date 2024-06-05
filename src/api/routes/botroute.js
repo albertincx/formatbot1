@@ -68,12 +68,7 @@ const botRoute = (bot, conn) => {
 
   bot.command('showconfig', ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
-      try {
-        const c = botHelper.showConfig();
-        ctx.reply(c);
-      } catch (e) {
-        botHelper.sendError(e);
-      }
+      return ctx.reply(botHelper.showConfig());
     }
   });
 
@@ -93,12 +88,8 @@ const botRoute = (bot, conn) => {
 
   bot.hears(/^\/cleardb*/, async ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
-      const r = await db.clear(ctx.message);
-      try {
-        ctx.reply(r);
-      } catch (e) {
-        botHelper.sendError(e);
-      }
+      const res = await db.clear(ctx.message);
+      return ctx.reply(res);
     }
   });
 

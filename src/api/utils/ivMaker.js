@@ -11,7 +11,7 @@ function from64(v) {
   return Buffer.from(v, 'base64');
 }
 
-const G = from64('bmV3cy5nb29nbGUuY29t');
+const GOOG = from64('bmV3cy5nb29nbGUuY29t');
 
 const makeIvLink = async (urlParam, paramsObj) => {
   const url = toUrl(urlParam);
@@ -64,14 +64,15 @@ const makeIvLink = async (urlParam, paramsObj) => {
 };
 
 const parse = u => {
-  if (u.match(G)) {
-    let p = u.split(/es\/(.*?)\?/);
-    if (p) {
-      p = `${from64(p[1])}`;
-      p = p.match(/^\x08\x13".(.*)\//);
-      return p[1];
+  if (u.match(GOOG)) {
+    let parsed = u.split(/es\/(.*?)\?/);
+    if (parsed) {
+      parsed = `${from64(parsed[1])}`;
+      parsed = parsed.match(/^\x08\x13".(.*)\//);
+      return parsed[1];
     }
   }
+
   return u;
 };
 
@@ -84,18 +85,19 @@ const isText = async (urlParam, q) => {
     };
   }
 
-  let u = toUrl(urlParam);
-  if (!u.match('%')) u = encodeURI(u);
+  let fromParam = toUrl(urlParam);
+  if (!fromParam.match('%')) fromParam = encodeURI(fromParam);
 
   let startsText = false;
-  let url = u;
+  let url = fromParam;
   logger(url);
   try {
-    const r = await fetchTimeout(url);
+    const response = await fetchTimeout(url);
     const {
       url: newUrl,
       headers
-    } = r;
+    } = response;
+
     url = newUrl;
     const contentType = headers.get('content-type') || '';
     startsText = contentType.startsWith('text/');

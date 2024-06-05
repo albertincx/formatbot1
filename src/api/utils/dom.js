@@ -11,8 +11,8 @@ function domToNode(domNode) {
   }
   const nodeElement = {};
   nodeElement.tag = domNode.tagName.toLowerCase();
-  for (let i = 0; i < domNode.attributes.length; i += 1) {
-    const attr = domNode.attributes[i];
+  for (let nodeIdx = 0; nodeIdx < domNode.attributes.length; nodeIdx += 1) {
+    const attr = domNode.attributes[nodeIdx];
     if (attr.name === 'href' || attr.name === 'src') {
       if (!nodeElement.attrs) {
         nodeElement.attrs = {};
@@ -22,8 +22,8 @@ function domToNode(domNode) {
   }
   if (domNode.childNodes.length > 0) {
     nodeElement.children = [];
-    for (let i = 0; i < domNode.childNodes.length; i += 1) {
-      const child = domNode.childNodes[i];
+    for (let childIdx = 0; childIdx < domNode.childNodes.length; childIdx += 1) {
+      const child = domNode.childNodes[childIdx];
       nodeElement.children.push(domToNode(child));
     }
   }

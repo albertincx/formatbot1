@@ -52,15 +52,15 @@ const puppet = async (url, params) => {
       logger('cannot open google.com');
     } else {
       logger('wait');
-      const scCnt = scroll ? 6 : 3;
+      const scrollCount = scroll ? 6 : 3;
       logger(scroll);
       await timeout(5);
-      for (let i = 0; i < scCnt; i += 1) {
+      for (let scrollTime = 0; scrollTime < scrollCount; scrollTime += 1) {
         await page.evaluate(sc => {
           window.scrollBy(0, 200);
-          const s = document.getElementById(sc);
-          if (s) {
-            s.scrollTop += 200;
+          const scrollElement = document.getElementById(sc);
+          if (scrollElement) {
+            scrollElement.scrollTop += 200;
           }
         }, scroll);
       }

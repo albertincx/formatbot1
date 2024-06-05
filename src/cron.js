@@ -1,7 +1,6 @@
 const fs = require('fs');
 const {CronJob} = require('cron');
 const {
-  IS_DEV,
   NODE_CRON,
   CRON_TASKS
 } = require('./config/vars');
@@ -12,17 +11,16 @@ const JOB_SEP = ',';
 function cron(crontime, tasks, botHelper) {
   console.log(`init cron ${crontime} ${tasks}`);
   const job = new CronJob(`${crontime}`, async () => {
-    if (IS_DEV) {
-      const d = new Date();
-      console.log(`created task ${crontime} `, d);
+    if (global.isDevEnabled) {
+      console.log(`created task ${crontime} `, new Date());
     }
-    for (let i = 0; i < tasks.length; i += 1) {
-      const taskName = tasks[i];
+    for (let taskIdx = 0; taskIdx < tasks.length; taskIdx += 1) {
+      const taskName = tasks[taskIdx];
       try {
         const microtasks = require(`./service/commands/${taskName}`);
         await microtasks.run({cronJob: crontime}, botHelper);
       } catch (e) {
-        if (IS_DEV) {
+        if (global.isDevEnabled) {
           console.log(`task error ${taskName}`);
           console.log(e);
         }
@@ -41,18 +39,18 @@ function init(botHelper) {
 
   try {
     if (cronArray && cronArray.length) {
-      for (let i = 0; i < cronArray.length; i += 1) {
-        const cronTime = `${cronArray[i]}`
+      for (let cronIdx = 0; cronIdx < cronArray.length; cronIdx += 1) {
+        const cronTime = `${cronArray[cronIdx]}`
           .trim()
           .replace(/G/g, '*')
           .replace(/d/g, '/');
 
-        if (cronTime && tasksMain[i]) {
-          const jobs = tasksMain[i].split(JOB_SEP);
+        if (cronTime && tasksMain[cronIdx]) {
+          const jobs = tasksMain[cronIdx].split(JOB_SEP);
           if (jobs && jobs.length) {
             const tasks = [];
-            for (let t = 0; t < jobs.length; t += 1) {
-              const taskName = `${jobs[t]}`.trim();
+            for (let jobIdx = 0; jobIdx < jobs.length; jobIdx += 1) {
+              const taskName = `${jobs[jobIdx]}`.trim();
               const cmdPath = `${__dirname}/service/commands/${taskName}.js`;
               if (fs.existsSync(cmdPath)) {
                 tasks.push(taskName);

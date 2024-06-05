@@ -5,7 +5,6 @@ const messages = require('../../messages/format');
 const rabbitMq = require('../../service/rabbitmq');
 
 const {
-  PUPPET_QUE,
   IS_PUPPET_DISABLED,
   NO_MQ,
   IV_CHAN_ID,
@@ -157,55 +156,6 @@ const format = (bot, botHelper, skipCountBool) => {
       });
   });
 
-  bot.action(/.*/, async ctx => {
-    const [data] = ctx.match;
-    logger('action');
-    const s = data === 'no_img';
-    if (s) {
-      const {message} = ctx.update.callback_query;
-      const {
-        message_id,
-        chat,
-        entities
-      } = message;
-
-      const actionMessage = {
-        message_id,
-        chatId: chat.id,
-        link: entities[1].url,
-      };
-
-      rabbitMq.addToChannel(actionMessage, PUPPET_QUE);
-      return;
-    }
-    const resolveDataMatch = data.match(/^r_([0-9]+)_([0-9]+)/);
-    if (resolveDataMatch) {
-      const [, msgId, userId] = resolveDataMatch;
-      const extra = {reply_to_message_id: msgId};
-      let error = '';
-      try {
-        await bot.telegram.sendMessage(userId, messages.resolved(), extra);
-      } catch (e) {
-        error = JSON.stringify(e);
-      }
-      const {
-        update: {callback_query},
-      } = ctx;
-      const {
-        message: {
-          text,
-          message_id
-        },
-        from,
-      } = callback_query;
-      const RESULT = `${text}\nResolved! ${error}`;
-      await bot.telegram
-        .editMessageText(from.id, message_id, null, RESULT)
-        .catch(() => {
-        });
-    }
-  });
-
   const addToQueue = async ctx => {
     const {update} = ctx;
     let {message} = ctx;
@@ -280,8 +230,8 @@ const format = (bot, botHelper, skipCountBool) => {
       try {
 
         if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-          const l = link.match(/url=(.*?)($|&)/);
-          if (l && l[1]) link = decodeURIComponent(l[1]);
+          const matchUrl = link.match(/url=(.*?)($|&)/);
+          if (matchUrl && matchUrl[1]) link = decodeURIComponent(matchUrl[1]);
         }
 
         if (link.match(new RegExp(validRegex))) {

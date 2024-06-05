@@ -6,9 +6,9 @@ function getAllLinks(text) {
 
 function getLink(links) {
   let lnk = links[0];
-  for (let i = 1; i < links.length; i += 1) {
-    if (links[i].startsWith(lnk)) {
-      lnk = links[i];
+  for (let linkIdx = 1; linkIdx < links.length; linkIdx += 1) {
+    if (links[linkIdx].startsWith(lnk)) {
+      lnk = links[linkIdx];
     }
   }
   return lnk;
@@ -16,14 +16,14 @@ function getLink(links) {
 
 const getLinkFromEntity = (entities, txt) => {
   const links = [];
-  for (let i = 0; i < entities.length; i += 1) {
-    if (entities[i].url) {
-      links.push(entities[i].url);
-    } else if (entities[i].type === 'url' || entities[i].type === 'text_link') {
-      let checkFf = txt.substring(0, entities[i].length);
+  for (let entIdx = 0; entIdx < entities.length; entIdx += 1) {
+    if (entities[entIdx].url) {
+      links.push(entities[entIdx].url);
+    } else if (entities[entIdx].type === 'url' || entities[entIdx].type === 'text_link') {
+      let checkFf = txt.substring(0, entities[entIdx].length);
       checkFf = checkFf.match(/\[(.*?)]/);
       if (!checkFf) {
-        links.push(txt.substring(entities[i].offset, entities[i].offset + entities[i].length));
+        links.push(txt.substring(entities[entIdx].offset, entities[entIdx].offset + entities[entIdx].length));
       }
     }
   }

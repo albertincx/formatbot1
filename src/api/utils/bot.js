@@ -20,13 +20,12 @@ const RIGHTS_ERROR = 'need administrator rights in the channel chat';
 class BotHelper {
   constructor(bot, worker) {
     this.bot = bot;
-    let c = {no_puppet: false};
+    this.config = {no_puppet: false};
     try {
-      c = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
+      this.config = JSON.parse(`${fs.readFileSync('.conf/config.json')}`);
     } catch (e) {
       logger(e);
     }
-    this.config = c;
     this.tgAdmin = TG_ADMIN;
     this.waitSec = false;
     this.worker = worker;
@@ -183,10 +182,9 @@ class BotHelper {
   }
 
   getConf(param) {
-    let c = this.config[param] || this.config[`_${param}`];
-    if (c === OFF) c = '';
+    let configParam = this.config[param] || this.config[`_${param}`];
 
-    return c;
+    return configParam === OFF ? '' : configParam;
   }
 
   parseConfig(params) {
@@ -239,24 +237,23 @@ class BotHelper {
   }
 
   showConfig() {
-    let c = JSON.stringify(this.config);
-    return `${c} db is ${this.db}`;
+    return `${JSON.stringify(this.config)} db is ${this.db}`;
   }
 
   sendError(error, text = '') {
-    let e = error;
-    if (typeof e === 'object' && !global.isDevEnabled) {
-      if (e.response && typeof e.response === 'object') {
-        e = e.response.description || 'unknown error';
-        if (e.match(BANNED_ERROR) || e.match(RIGHTS_ERROR)) {
+    let errorResult = error;
+    if (typeof errorResult === 'object' && !global.isDevEnabled) {
+      if (errorResult.response && typeof errorResult.response === 'object') {
+        errorResult = errorResult.response.description || 'unknown error';
+        if (errorResult.match(BANNED_ERROR) || errorResult.match(RIGHTS_ERROR)) {
           return;
         }
       }
     } else {
-      e = `has error: ${JSON.stringify(e)} ${e.toString()} ${text}`;
+      errorResult = `has error: ${JSON.stringify(errorResult)} ${errorResult.toString()} ${text}`;
     }
 
-    this.sendAdmin(e);
+    this.sendAdmin(errorResult);
   }
 
   disDb() {

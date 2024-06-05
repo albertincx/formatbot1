@@ -6,11 +6,9 @@ const {
 const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached|no_db)_force(.*?)$/;
 
 function commandCheck(txt) {
-  const m = txt.match(CHECK_REGEX);
-  if (m && m[1]) {
-    return m[1];
-  }
-  return false;
+  const found = txt.match(CHECK_REGEX);
+
+  return found && found[1];
 }
 
 function fetchTimeout(u, connectTimeout = 10000) {
@@ -43,9 +41,9 @@ function parseEnvArray(name = '') {
   if (env[`${name}_0`]) {
     arr.push(env[`${name}_0`]);
   }
-  for (let i = 1; i < 10; i += 1) {
-    if (env[`${name}_${i}`]) {
-      arr.push(env[`${name}_${i}`]);
+  for (let envItem = 1; envItem < 10; envItem += 1) {
+    if (env[`${name}_${envItem}`]) {
+      arr.push(env[`${name}_${envItem}`]);
     }
   }
   return arr;

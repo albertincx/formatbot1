@@ -23,12 +23,12 @@ const race = (promises) => Promise.race(promises);
 
 function parseServices(link) {
   if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-    const l = link.match(/url=(.*?)($|&)/);
-    if (l && l[1]) return l[1];
+    const found = link.match(/url=(.*?)($|&)/);
+    if (found && found[1]) return found[1];
   }
   if (link.match(/\/turbo\?text=/)) {
-    const l = link.match(/text=(.*?)($|&)/);
-    if (l && l[1]) return l[1];
+    const found = link.match(/text=(.*?)($|&)/);
+    if (found && found[1]) return found[1];
   }
   return link;
 }
@@ -61,7 +61,8 @@ class ParseHelper {
 
   addExtractor() {
     if (!this.domain) return;
-    const e = {
+
+    const newExtractor = {
       domain: this.domain,
       extend: {
         iframe: {
@@ -70,6 +71,7 @@ class ParseHelper {
         },
       },
     };
+
     let selectors = null;
     if (this.fb) {
       selectors = ['.userContentWrapper'];
@@ -82,10 +84,10 @@ class ParseHelper {
       selectors = [this.params.content];
     }
     if (selectors) {
-      e.content = {selectors};
+      newExtractor.content = {selectors};
     }
-    if (e) {
-      Mercury.addExtractor(e);
+    if (newExtractor) {
+      Mercury.addExtractor(newExtractor);
     }
   }
 
@@ -107,13 +109,13 @@ class ParseHelper {
   }
 
   async puppet() {
-    let l = this.link;
+    let link = this.link;
     if (this.params.isCached) {
-      l = `${REST_API}file?file=${ASYNC_FILE}`;
+      link = `${REST_API}file?file=${ASYNC_FILE}`;
     }
     let html = '';
     if (!this.params.isPuppet) {
-      html = await puppet(l, this.params);
+      html = await puppet(link, this.params);
       if (!this.params.isCached) {
         this.log(html, ASYNC_FILE);
       }

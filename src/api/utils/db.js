@@ -69,10 +69,11 @@ const clear2 = async msg => {
   if (!search) {
     return Promise.resolve('empty');
   }
-  const s = new RegExp(`^https?://${search}`);
-  const d = await linksOld1.deleteMany({url: s});
-  return JSON.stringify(d);
+  const urlRegExp = new RegExp(`^https?://${search}`);
+  const deleteResult = await linksOld1.deleteMany({url: urlRegExp});
+  return JSON.stringify(deleteResult);
 };
+
 // linksOld1
 const removeInline = url => inlineLinks.deleteMany({url});
 
