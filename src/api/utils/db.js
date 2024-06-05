@@ -30,31 +30,36 @@ const clear = async msg => {
 
   let search;
   let mon = 1;
-  const months = text.match('mon([0-9])');
-  if (months) mon = months[1];
 
   if (text.match(/^\/cleardb3_/)) {
-    search = text.replace('/cleardb3_', '')
-      .replace(/_/g, '.');
+    const months = text.match('mon([0-9])');
+    if (months) {
+      mon = months[1];
+    }
+    search = text.replace('/cleardb3_', '');
+    search = search.replace(/\s(.*?)$/, '');
+    search = search.replace(/_/g, '.');
   } else {
-    search = text.replace('/cleardb', '')
-      .trim();
+    search = text.replace('/cleardb', '');
+    search = search.trim();
   }
   if (!search) {
     return Promise.resolve('empty');
   }
-  const s = new RegExp(`^https?://${search}`);
+
+  const searchByDomain = new RegExp(`^https?://${search}`);
 
   const fromDate = new Date();
   fromDate.setMonth(fromDate.getMonth() - mon);
 
   const dMany = {
-    url: s,
+    url: searchByDomain,
     createdAt: {$lte: fromDate}
   };
   let d;
   d = await links.deleteMany(dMany);
-  return `${JSON.stringify(d)} - ${s} - ${JSON.stringify(fromDate)}`;
+
+  return `${JSON.stringify(d)} - ${searchByDomain} - ${JSON.stringify(fromDate)}`;
 };
 
 const clear2 = async msg => {
