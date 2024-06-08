@@ -69,7 +69,7 @@ const removeInline = url => inlineLinks.deleteMany({url});
 const updateOneLink = (item, collection = links) => {
   const {url} = item;
 
-  if (item && !item.iv) {
+  if (item && item.iv) {
     item.$inc = {af: 1};
   }
 
