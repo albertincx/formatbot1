@@ -306,7 +306,6 @@ const format = (bot, botHelper, skipCountBool) => {
           console.log('cloud massaging is disabled');
           return jobMessage(task);
         }
-        logger('sent to channel');
         rabbitMq.addToChannel(task);
       } catch (e) {
         logger('send error');

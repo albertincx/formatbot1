@@ -2,11 +2,13 @@ const schema = require('../models/schema');
 
 const {
   MONGO_URI_OLD,
+  MONGO_URI_OLD_2,
   MONGO_COLL_LINKS,
   MONGO_COLL_I_LINKS,
 } = require('../../config/vars');
 const {createConnection} = require('../../config/mongoose');
 const {model} = require('mongoose');
+const {logger} = require('./logger');
 
 const LINKS_COLL = MONGO_COLL_LINKS || 'links';
 const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
@@ -14,19 +16,19 @@ const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
 const links = model(LINKS_COLL, schema);
 const inlineLinks = model(I_LINKS_COLL, schema);
 
-const conn2 = createConnection(MONGO_URI_OLD);
+const conn0 = createConnection(MONGO_URI_OLD);
+const conn1 = createConnection(MONGO_URI_OLD_2);
 
-const linksOld1 = conn2 && conn2.model(LINKS_COLL, schema);
-const inlineLinksOld1 = conn2 && conn2.model(I_LINKS_COLL, schema);
+const linksOld1 = conn0 && conn0.model(LINKS_COLL, schema);
+const inlineOld1 = conn0 && conn0.model(I_LINKS_COLL, schema);
+
+const linksOld2 = conn1 && conn1.model(LINKS_COLL, schema);
+const inlineOld2 = conn1 && conn1.model(I_LINKS_COLL, schema);
 
 const stat = () => links.countDocuments();
 
-const clear = async msg => {
+const clearFromCollection = async msg => {
   const {text} = msg;
-
-  if (text.match(/^\/cleardb2/)) {
-    return clear2(msg);
-  }
 
   let search;
   let mon = 1;
@@ -62,40 +64,41 @@ const clear = async msg => {
   return `${JSON.stringify(d)} - ${searchByDomain} - ${JSON.stringify(fromDate)}`;
 };
 
-const clear2 = async msg => {
-  let search = msg.text.replace('/cleardb2', '')
-    .trim();
-  search = `${search}`.trim();
-  if (!search) {
-    return Promise.resolve('empty');
-  }
-  const urlRegExp = new RegExp(`^https?://${search}`);
-  const deleteResult = await linksOld1.deleteMany({url: urlRegExp});
-  return JSON.stringify(deleteResult);
-};
-
-// linksOld1
 const removeInline = url => inlineLinks.deleteMany({url});
 
-const updateOne = (item, collection = links) => {
+const updateOneLink = (item, collection = links) => {
   const {url} = item;
-  item.$inc = {af: 1};
+
+  if (item && !item.iv) {
+    item.$inc = {af: 1};
+  }
+
   return collection.updateOne({url}, item, {upsert: true});
 };
 
 const getFromCollection = async (url, coll, insert = true) => {
   const me = await coll.findOne({url});
   if (insert || me) {
-    await updateOne({url}, coll);
+    await updateOneLink({url}, coll);
   }
+
   return me;
 };
 
 const getInline = async url => {
   // check from old DB without insert
   let me;
-  if (inlineLinksOld1) {
-    me = await getFromCollection(url, inlineLinksOld1, false);
+  if (inlineOld1) {
+    me = await getFromCollection(url, inlineOld1, false);
+    if (me) {
+      logger('link from Old1 db')
+    }
+  }
+  if (!me && inlineOld2) {
+    me = await getFromCollection(url, inlineOld2, false);
+    if (me) {
+      logger('link from Old2 db')
+    }
   }
   if (!me) {
     me = await getFromCollection(url, inlineLinks);
@@ -108,6 +111,15 @@ const getIV = async url => {
   let me;
   if (linksOld1) {
     me = await getFromCollection(url, linksOld1, false);
+    if (me) {
+      logger('link from Old1 db')
+    }
+  }
+  if (!me && linksOld2) {
+    me = await getFromCollection(url, linksOld2, false);
+    if (me) {
+      logger('link from Old2 db')
+    }
   }
   if (!me) {
     me = await getFromCollection(url, links);
@@ -155,9 +167,8 @@ const getCleanData = async (txt) => {
 };
 
 module.exports.stat = stat;
-module.exports.clear = clear;
-module.exports.clear2 = clear2;
-module.exports.updateOne = updateOne;
+module.exports.clearFromCollection = clearFromCollection;
+module.exports.updateOneLink = updateOneLink;
 module.exports.removeInline = removeInline;
 module.exports.getInline = getInline;
 module.exports.getIV = getIV;

@@ -88,7 +88,7 @@ const botRoute = (bot, conn) => {
 
   bot.hears(/^\/cleardb*/, async ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
-      const res = await db.clear(ctx.message);
+      const res = await db.clearFromCollection(ctx.message);
       return ctx.reply(res);
     }
   });

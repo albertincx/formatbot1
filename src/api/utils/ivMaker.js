@@ -11,7 +11,7 @@ function from64(v) {
   return Buffer.from(v, 'base64');
 }
 
-const GOOG = from64('bmV3cy5nb29nbGUuY29t');
+const GOOGLE_DOMAIN = from64('bmV3cy5nb29nbGUuY29t');
 
 const makeIvLink = async (urlParam, paramsObj) => {
   const url = toUrl(urlParam);
@@ -56,7 +56,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
     res.p = pages;
   }
   if (paramsObj.db) {
-    await db.updateOne({url, ...res});
+    await db.updateOneLink({url, ...res});
   }
 
   res.isLong = res.p;
@@ -64,7 +64,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
 };
 
 const parse = u => {
-  if (u.match(GOOG)) {
+  if (u.match(GOOGLE_DOMAIN)) {
     let parsed = u.split(/es\/(.*?)\?/);
     if (parsed) {
       parsed = `${from64(parsed[1])}`;
