@@ -25,7 +25,6 @@ const {
   getLinkFromEntity,
   getLink
 } = require('../utils/links');
-const {broadcast} = require('../utils/broadcast');
 const {jobMessage} = require('../../service/jobMessage');
 
 global.lastIvTime = +new Date();
@@ -84,11 +83,6 @@ global.emptyTextCount = 0;
 
 const format = (bot, botHelper, skipCountBool) => {
   bot.command(['start', 'help'], ctx => startOrHelp(ctx, botHelper));
-
-  bot.command(['createBroadcast', 'startBroadcast'], ctx =>
-    broadcast(ctx, botHelper),
-  );
-
   bot.hears('👋 Help', ctx => startOrHelp(ctx, botHelper));
   bot.hears('👍Support', ctx => support(ctx, botHelper));
   bot.command('support', ctx => support(ctx, botHelper));
@@ -165,7 +159,7 @@ const format = (bot, botHelper, skipCountBool) => {
       message.text &&
       message.text.match(/(createBroadcast|startBroadcast)/)
     ) {
-      broadcast(ctx, botHelper);
+      botHelper.startBroad(ctx)
       return;
     }
     let isChanMesId = false;
