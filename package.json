@@ -52,7 +52,7 @@
     "statuses": "^2.0.1",
     "sync-request": "^6.1.0",
     "telegraf": "4.16.3",
-    "tgsend": "^0.0.5",
+    "tgsend": "^0.0.7",
     "trace-unhandled": "^2.0.1",
     "undici": "^6.18.2",
     "wget-improved": "^3.4.0"
