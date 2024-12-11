@@ -58,6 +58,6 @@
     "wget-improved": "^3.4.0"
   },
   "devDependencies": {
-    "ava": "^6.1.3"
+    "ava": "6.2.0"
   }
 }
