@@ -10,6 +10,7 @@ const {
 const {logger} = require('./logger');
 
 const {createConnection} = require("../../config/mongoose");
+const {Schema} = require("mongoose");
 
 const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
 const OFF = 'Off';
@@ -370,8 +371,14 @@ class BotHelper {
     }
 
     startBroad(ctx) {
-        this.conn = createConnection(MONGO_URI_SECOND);
+        if (ctx.message.text.match('createBroadcast')) {
+            this.conn = createConnection(MONGO_URI_SECOND);
+        }
         this.connSend = createConnection(MONGO_URI_BROAD);
+        this.schema = new Schema({}, {
+            strict: false,
+            versionKey: false
+        });
         broadcast(ctx, this);
     }
 }
