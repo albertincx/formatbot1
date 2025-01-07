@@ -201,10 +201,10 @@ const format = (bot, botHelper, skipCountBool) => {
             && file_name.match(/.pdf$/)
             && mime_type === 'application/pdf'
         ) {
-            if (file_size < 1e6) {
+            if (file_size < 4e6) {
               pdfData.pdf = file_id;
               pdfData.pdfTitle = file_name;
-              text = PDF_LINK
+              text = PDF_LINK + encodeURI(file_name);
             } else {
               console.log('big pdf')
               return;
