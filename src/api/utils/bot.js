@@ -1,4 +1,5 @@
 const broadcast = require('tgsend');
+// const broadcast = require('../../../../../git/tgsend');
 const fs = require('fs');
 const {
     TG_ADMIN_ID,
@@ -371,6 +372,13 @@ class BotHelper {
     }
 
     startBroad(ctx) {
+        if (!this.isAdmin(ctx.message.chat.id)) {
+            console.log('is not adm')
+            return 'is not admin';
+        }
+        // console.log('is adm')
+        // return 'is admin';
+
         if (ctx.message.text.match('createBroadcast')) {
             this.conn = createConnection(MONGO_URI_SECOND);
         }
