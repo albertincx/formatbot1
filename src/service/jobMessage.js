@@ -39,6 +39,8 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
     inline,
     w: isWorker,
     fromId,
+    pdf,
+    pdfTitle,
   } = task;
 
   let {link} = task;
@@ -89,7 +91,7 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
         link = baseUrl;
       }
 
-      if (!isText) {
+      if (!isText && !pdf) {
         isFile = true;
         global.emptyTextCount = (global.emptyTextCount || 0) + 1;
       } else {
@@ -126,11 +128,12 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
           }
 
           if (parseStart) {
-            if (isWorker) {
-              //
-            } else {
-              // check domain
-
+            if (pdf) {
+              // console.log(pdf);
+              const pdfLink = await botHelper.bot.getFileLink(pdf);
+              // console.log(pdfLink);
+              params.pdf = pdfLink.href;
+              params.pdfTitle = pdfTitle;
             }
             ivTask = ivMaker.makeIvLink(link, params);
           }

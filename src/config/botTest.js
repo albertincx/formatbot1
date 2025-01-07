@@ -17,6 +17,7 @@ const bot = {
   sendMessage() {
     return this;
   },
+  stop: () => {},
 };
 bot.telegram = {...bot};
 

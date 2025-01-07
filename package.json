@@ -46,6 +46,7 @@
     "lodash": "^4.17.21",
     "mongoose": "^8.4.1",
     "nodemon": "^3.1.3",
+    "pdfjs-dist": "^4.9.155",
     "puppeteer": "^22.10.0",
     "sanitize-html": "^2.13.0",
     "showdown": "^2.1.0",

@@ -35,6 +35,8 @@ if (!NO_MQ) {
   rabbitMq.startFirst();
 }
 
+const PDF_LINK = 'https://pdf.pdf/pdf';
+
 const support = async (ctx, botHelper) => {
   let system = JSON.stringify(ctx.message.from);
   const {
@@ -190,8 +192,26 @@ const format = (bot, botHelper, skipCountBool) => {
 
     const isAdm = botHelper.isAdmin(chatId);
     const rpl = rplToMsg;
+    let pdfData = {};
+
     if (msg.document || (rpl && rpl.document)) {
-      return;
+        const {file_name, mime_type, file_id, file_size} = msg.document;
+        if (
+            isAdm
+            && file_name.match(/.pdf$/)
+            && mime_type === 'application/pdf'
+        ) {
+            if (file_size < 1e6) {
+              pdfData.pdf = file_id;
+              pdfData.pdfTitle = file_name;
+              text = PDF_LINK
+            } else {
+              console.log('big pdf')
+              return;
+            }
+        } else {
+            return;
+        }
     }
 
     if (caption) {
@@ -207,7 +227,12 @@ const format = (bot, botHelper, skipCountBool) => {
         links = getLinkFromEntity(entities, text);
       }
       link = getLink(links);
-      if (!link) return;
+
+      if (!link) {
+          logger('no link');
+          return;
+      }
+
       let parsed;
       if (link) {
         link = toUrl(link);
@@ -222,7 +247,6 @@ const format = (bot, botHelper, skipCountBool) => {
       logger('parsed');
       logger(parsed.protocol);
       try {
-
         if (link.match(/^(https?:\/\/)?(www.)?google/)) {
           const matchUrl = link.match(/url=(.*?)($|&)/);
           if (matchUrl && matchUrl[1]) link = decodeURIComponent(matchUrl[1]);
@@ -278,6 +302,7 @@ const format = (bot, botHelper, skipCountBool) => {
           chatId,
           link,
           isChanMesId,
+          ...pdfData,
         };
         if (from) {
           task.fromId = from.id;
@@ -307,6 +332,13 @@ const format = (bot, botHelper, skipCountBool) => {
       }
     }
   };
+
+  // bot.use(ctx =>
+  //     addToQueue(ctx)
+  //         .catch(e =>
+  //             botHelper.sendError(`tg err1: ${JSON.stringify(e)}`),
+  //         ),
+  // );
 
   bot.on('channel_post', ctx =>
     addToQueue(ctx)

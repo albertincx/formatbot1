@@ -10,8 +10,10 @@ const unableToStart = [];
 const {env} = process;
 
 const confFile = path.join(__dirname, '../../.conf');
-
 if (!fs.existsSync(confFile)) fs.mkdirSync(confFile);
+
+const docsDir = path.join(__dirname, '../../.docs');
+if (!fs.existsSync(docsDir)) fs.mkdirSync(docsDir);
 
 const blacklistFile = path.join(__dirname, '../../.conf/blacklist.txt');
 
@@ -86,6 +88,7 @@ const exportVars = {
   IV_CHAN_MID_2: Number(env.IV_CHAN_MID_2),
   HELP_MESSAGE: env.HELP_MESSAGE,
   DEV_USERNAME: env.DEV_USERNAME,
+  docsDir,
 };
 
 // console.log(exportVars);
