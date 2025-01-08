@@ -178,7 +178,7 @@ const format = (bot, botHelper, skipCountBool) => {
     message || {};
     if (rplToMsg || message.audio) {
       if (botHelper.isAdmin(message.from.id)) {
-          botHelper.sendAdmin(message.from.id, rplToMsg.message_id);
+          botHelper.sendAdmin(rplToMsg.message_id, message.from.id);
       }
       return;
     }
