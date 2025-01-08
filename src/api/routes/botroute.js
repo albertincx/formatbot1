@@ -142,6 +142,29 @@ const botRoute = (bot, conn) => {
     }
   });
 
+  bot.command('deleteall', async (ctx) => {
+    if (!botHelper.isAdmin(ctx.message.chat.id)) {
+      return ctx.reply('This command can only be used by bot owner');
+    }
+    if (ctx.chat.type === 'private') {
+      return ctx.reply('This command can only be used in groups');
+    }
+    // Check if bot has necessary permissions
+    const botMember = await ctx.telegram.getChatMember(ctx.chat.id, ctx.botInfo.id);
+    if (!botMember.can_delete_messages) {
+      return ctx.reply('I need admin permissions to delete messages');
+    }
+    let limit = +ctx.message.text.replace('/deleteall ', '');
+    // Start deletion process
+    const result = await botHelper.deleteAllMessages(bot, ctx.chat.id, limit);
+
+    if (result.success) {
+      ctx.reply(`Deleted ${result.deletedCount} messages. ${result.errors.length} errors occurred.`);
+    } else {
+      ctx.reply(`Failed to delete messages: ${result.error}`);
+    }
+  });
+
   process.on('unhandledRejection', reason => {
     logger('unhandledRejection');
     if (`${reason}`.match('bot was blocked by the user')) {

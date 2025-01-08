@@ -389,6 +389,50 @@ class BotHelper {
         });
         broadcast(ctx, this);
     }
+
+    async deleteAllMessages(bot, chatId, limit = 10) {
+        try {
+            // Get chat information to find the maximum message ID
+            const chat = await bot.telegram.getChat(chatId);
+
+            // Start from the most recent message
+            let messageId = chat.message_id || 0;
+            // const deletedMessages = [];
+            const errors = [];
+            let i = 0;
+            // Delete messages in batches
+            while (messageId > 0) {
+                try {
+                    await bot.telegram.deleteMessage(chatId, messageId);
+                    // deletedMessages.push(messageId);
+                } catch (error) {
+                    // Skip if message doesn't exist or can't be deleted
+                    if (error.description !== 'Message to delete not found') {
+                        errors.push({messageId, error: error.description});
+                    }
+                }
+                messageId--;
+
+                // Optional: Add a small delay to avoid hitting rate limits
+                await new Promise(resolve => setTimeout(resolve, 50));
+                if (i >= limit) {
+                    break;
+                }
+            }
+
+            return {
+                success: true,
+                deletedCount: i,
+                errors: errors
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.description || error.message,
+                deletedCount: 0
+            };
+        }
+    }
 }
 
 exports.BotHelper = BotHelper;
