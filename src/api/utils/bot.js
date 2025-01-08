@@ -398,7 +398,7 @@ class BotHelper {
             // Start from the most recent message
             let messageId = startId || 0;
             // console.log(messageId, lim)
-            // const deletedMessages = [];
+            let deletedMessages = 0;
             const errors = [];
             let i = 0;
             // Delete messages in batches
@@ -406,14 +406,16 @@ class BotHelper {
                 try {
                     await this.bot.deleteMessage(chatId, messageId);
                     // deletedMessages.push(messageId);
+                    deletedMessages++;
                 } catch (error) {
+                    // console.log(error);;
                     // Skip if message doesn't exist or can't be deleted
                     if (error.description !== 'Message to delete not found') {
-                        errors.push({messageId, error: error.description});
+                        // errors.push({messageId, error: error.description});
                     }
                 }
                 messageId--;
-
+                i++
                 // Optional: Add a small delay to avoid hitting rate limits
                 await new Promise(resolve => setTimeout(resolve, 50));
                 if (i >= lim) {
@@ -423,10 +425,12 @@ class BotHelper {
 
             return {
                 success: true,
-                deletedCount: i,
+                deletedCount: deletedMessages,
+                messageId: messageId,
                 errors: errors
             };
         } catch (error) {
+            // console.error(error);
             return {
                 success: false,
                 error: error.description || error.message,
