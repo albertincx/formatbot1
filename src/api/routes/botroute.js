@@ -143,7 +143,7 @@ const botRoute = (bot, conn) => {
   });
 
   bot.command('deleteall', async (ctx) => {
-    if (!botHelper.isAdmin(ctx.message.chat.id)) {
+    if (!botHelper.isAdmin(ctx.message.from.id)) {
       return ctx.reply('This command can only be used by bot owner');
     }
     if (ctx.chat.type === 'private') {
