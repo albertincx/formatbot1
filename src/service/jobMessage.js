@@ -18,6 +18,7 @@ const {
 const messages = require('../messages/format');
 const db = require('../api/utils/db');
 const keyboards = require('../keyboards/keyboards');
+const {dbKeys} = require("../config/consts");
 
 const group = TG_GROUP;
 const groupBugs = TG_BUGS_GROUP;
@@ -40,6 +41,7 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
     w: isWorker,
     fromId,
     pdf,
+    pdfReset,
     pdfTitle,
   } = task;
 
@@ -181,6 +183,14 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
         ivLink = iv;
         const longStr = isLong ? `Long${pages ? ` ${pages}` : ''}` : '';
         IV_TITLE = `${title}\n`;
+        if (pdf) {
+          let pdfUpd = {url: chatId}
+          if (pdfReset) {
+            pdfUpd.$inc = {count: 1};
+            pdfUpd.af = 1;
+          } else pdfUpd.iv = 'pdf';
+          await db.updateOneLink(pdfUpd, db.getCol(dbKeys.counter));
+        }
         RESULT = messages.showIvMessage(longStr, iv, `${link}`, host);
         successIv = true;
       }

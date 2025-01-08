@@ -26,6 +26,7 @@ const {
   getLink
 } = require('../utils/links');
 const {jobMessage} = require('../../service/jobMessage');
+const {dbKeys} = require("../../config/consts");
 
 global.lastIvTime = +new Date();
 
@@ -202,6 +203,25 @@ const format = (bot, botHelper, skipCountBool) => {
             && mime_type === 'application/pdf'
         ) {
             if (file_size < 4e6) {
+              const cnt = await db.get({
+                  key: dbKeys.counter,
+                  filter: {url: chatId, iv: 'pdf'},
+                  project: 'af updatedAt'
+              });
+              if (cnt) {
+                  const now = Date.now();
+                  const oneDay = 24 * 60 * 60 * 1000;
+                  const isMoreThanADay = (now - cnt.updatedAt) > oneDay;
+                  if (isMoreThanADay) {
+                      pdfData.pdfReset = 1;
+                  } else {
+                      if (cnt.af >= 10) {
+                          console.log('exceeded pdf');
+                          let hours = Math.floor((now - cnt.updatedAt)/3_600_000);
+                          return ctx.reply('You have exceeded the maximum number of pdfs in 24 hours period, come back after ' + (24 - hours) + 'h');
+                      }
+                  }
+              }
               pdfData.pdf = file_id;
               pdfData.pdfTitle = file_name;
               text = PDF_LINK + encodeURI(file_name);

@@ -9,13 +9,15 @@ const {
 const {createConnection} = require('../../config/mongoose');
 const {model} = require('mongoose');
 const {logger} = require('./logger');
+const {dbKeys} = require("../../config/consts");
+const schemaUpd = require("../models/schemaUpdatedAt");
 
 const LINKS_COLL = MONGO_COLL_LINKS || 'links';
 const I_LINKS_COLL = MONGO_COLL_I_LINKS || 'ilinks';
 
 const links = model(LINKS_COLL, schema);
 const inlineLinks = model(I_LINKS_COLL, schema);
-
+const counter = model('counter', schemaUpd);
 const conn0 = createConnection(MONGO_URI_OLD);
 const conn1 = createConnection(MONGO_URI_OLD_2);
 
@@ -131,6 +133,7 @@ const getIV = async url => {
 };
 
 const checkTimeFromLast = () => links.findOne({}, {}, {sort: {createdAt: -1}});
+const get = (params) => getCol(params.key).findOne(params.filter, params.project || {});
 
 const getCleanData = async (txt) => {
   const nums = txt.match(/[0-9]+/);
@@ -166,6 +169,10 @@ const getCleanData = async (txt) => {
   return result.map(i => `${i._id.replace(/\./g, '_')} ${i.cnt}`);
 };
 
+const getCol = (key) => {
+  if (key === dbKeys.counter) return counter;
+}
+
 module.exports.stat = stat;
 module.exports.clearFromCollection = clearFromCollection;
 module.exports.updateOneLink = updateOneLink;
@@ -174,3 +181,5 @@ module.exports.getInline = getInline;
 module.exports.getIV = getIV;
 module.exports.checkTimeFromLast = checkTimeFromLast;
 module.exports.getCleanData = getCleanData;
+module.exports.getCol = getCol;
+module.exports.get = get;
