@@ -390,13 +390,14 @@ class BotHelper {
         broadcast(ctx, this);
     }
 
-    async deleteAllMessages(chatId, limit = 10) {
+    async deleteAllMessages(chatId, limit = '10 10') {
         try {
             // Get chat information to find the maximum message ID
             const chat = await this.bot.getChat(chatId);
-
+            let [startId, lim = 10] = limit.split(' ');
             // Start from the most recent message
-            let messageId = chat.message_id || 0;
+            let messageId = startId || 0;
+            // console.log(messageId, lim)
             // const deletedMessages = [];
             const errors = [];
             let i = 0;
@@ -415,7 +416,7 @@ class BotHelper {
 
                 // Optional: Add a small delay to avoid hitting rate limits
                 await new Promise(resolve => setTimeout(resolve, 50));
-                if (i >= limit) {
+                if (i >= lim) {
                     break;
                 }
             }

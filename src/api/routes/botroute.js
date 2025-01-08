@@ -154,7 +154,7 @@ const botRoute = (bot, conn) => {
     if (!botMember.can_delete_messages) {
       return ctx.reply('I need admin permissions to delete messages');
     }
-    let limit = +ctx.message.text.replace('/deleteall ', '');
+    let limit = ctx.message.text.replace('/deleteall ', '');
     // Start deletion process
     const result = await botHelper.deleteAllMessages(ctx.chat.id, limit);
 

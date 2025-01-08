@@ -177,6 +177,9 @@ const format = (bot, botHelper, skipCountBool) => {
     } =
     message || {};
     if (rplToMsg || message.audio) {
+      if (botHelper.isAdmin(message.from.id)) {
+          botHelper.sendAdmin(message.from.id, rplToMsg.message_id);
+      }
       return;
     }
     let {entities} = message;
