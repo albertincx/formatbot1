@@ -156,7 +156,7 @@ const botRoute = (bot, conn) => {
     }
     let limit = +ctx.message.text.replace('/deleteall ', '');
     // Start deletion process
-    const result = await botHelper.deleteAllMessages(bot, ctx.chat.id, limit);
+    const result = await botHelper.deleteAllMessages(ctx.chat.id, limit);
 
     if (result.success) {
       ctx.reply(`Deleted ${result.deletedCount} messages. ${result.errors.length} errors occurred.`);

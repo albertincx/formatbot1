@@ -390,10 +390,10 @@ class BotHelper {
         broadcast(ctx, this);
     }
 
-    async deleteAllMessages(bot, chatId, limit = 10) {
+    async deleteAllMessages(chatId, limit = 10) {
         try {
             // Get chat information to find the maximum message ID
-            const chat = await bot.telegram.getChat(chatId);
+            const chat = await this.bot.getChat(chatId);
 
             // Start from the most recent message
             let messageId = chat.message_id || 0;
@@ -403,7 +403,7 @@ class BotHelper {
             // Delete messages in batches
             while (messageId > 0) {
                 try {
-                    await bot.telegram.deleteMessage(chatId, messageId);
+                    await this.bot.deleteMessage(chatId, messageId);
                     // deletedMessages.push(messageId);
                 } catch (error) {
                     // Skip if message doesn't exist or can't be deleted
