@@ -226,8 +226,8 @@ const format = (bot, botHelper, skipCountBool) => {
               pdfData.pdfTitle = file_name;
               text = PDF_LINK + encodeURI(file_name);
             } else {
-              console.log('big pdf')
-              return;
+              console.log('big pdf');
+              return ctx.reply('You have exceeded the maximum size of pdf (4mb) ');
             }
         } else {
             return;
