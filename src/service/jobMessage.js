@@ -237,10 +237,10 @@ ${RESULT}`;
           await botHelper.sendIV(chatId, messageId, null, messageText, extra);
           toDelete = isChanMesId;
         }
-        await botHelper.delMessage(chatId, toDelete);
+        if (!pdf) await botHelper.delMessage(chatId, toDelete);
       } else if (successIv) {
         await botHelper.sendIVNew(chatId, messageText, extra);
-        if (messageId) {
+        if (messageId && !pdf) {
           await botHelper.delMessage(chatId, messageId);
         }
       } else {
