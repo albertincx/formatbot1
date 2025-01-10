@@ -220,7 +220,14 @@ const format = (bot, botHelper, skipCountBool) => {
                       if (cnt.af >= 10) {
                           console.log('exceeded pdf');
                           let hours = Math.floor((now - cnt.updatedAt)/3_600_000);
-                          return ctx.reply('You have exceeded the maximum number of pdfs in 24 hours period, come back after ' + (24 - hours) + 'h');
+                          if (isChannelPost) {
+                            return;
+                          }
+                          return ctx.reply(
+                              'You have exceeded the maximum number of pdfs in 24 hours period, come back after ' + (24 - hours) + 'h'
+                          ).catch(e => {
+                            // skip
+                          });
                       }
                   }
               }
@@ -229,7 +236,12 @@ const format = (bot, botHelper, skipCountBool) => {
               text = PDF_LINK + encodeURI(file_name);
             } else {
               console.log('big pdf');
-              return ctx.reply('You have exceeded the maximum size of pdf (4mb) ');
+              if (isChannelPost) {
+                return;
+              }
+              return ctx.reply('You have exceeded the maximum size of pdf (4mb) ').catch(e => {
+                // skip
+              });
             }
         } else {
             return;

@@ -252,15 +252,13 @@ ${RESULT}`;
 
     if (!error) {
       let mark = inline ? 'i' : '';
-      if (isChanMesId) {
-        mark += 'c';
-      }
-      if (ivFromDb) {
-        mark += ' db';
-      }
-      const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
+      if (isChanMesId) mark += 'c';
+      if (ivFromDb) mark += ' db';
+
+      // const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
       if (group) {
-        botHelper.sendAdminMark(text, group);
+        // now it disabled by default
+        // botHelper.sendAdminMark(text, group);
       }
     }
   } catch (e) {
@@ -278,7 +276,8 @@ ${RESULT}`;
         keyboards.resolvedBtn(resolveMsgId, chatId),
       );
     } else if (groupBugs) {
-      botHelper.sendAdmin(error, groupBugs);
+      // now it disabled by default
+      // botHelper.sendAdmin(error, groupBugs);
     }
   }
 };
