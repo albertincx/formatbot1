@@ -26,4 +26,4 @@ You can find this bot by keywords such as “InstantViewBot”
 
 ### Wiki [Instruction to run](https://github.com/albertincx/formatbot1/wiki/How-to-RUN)
 
-### The story of the Bot https://safiullin.io/2024/03/31/ru/kak-ya-sozdaval-bota-dlya-telegram-InstantViewBot/
+### The story of the Bot https://safiullin.dev/2024/03/31/ru/kak-ya-sozdaval-bota-dlya-telegram-InstantViewBot/
