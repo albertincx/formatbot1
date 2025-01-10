@@ -240,7 +240,7 @@ ${RESULT}`;
         if (!pdf) await botHelper.delMessage(chatId, toDelete);
       } else if (successIv) {
         await botHelper.sendIVNew(chatId, messageText, extra);
-        if (messageId && !pdf) {
+        if (messageId) {
           await botHelper.delMessage(chatId, messageId);
         }
       } else {
