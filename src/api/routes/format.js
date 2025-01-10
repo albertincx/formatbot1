@@ -201,9 +201,8 @@ const format = (bot, botHelper, skipCountBool) => {
     if (msg.document || (rpl && rpl.document)) {
         const {file_name, mime_type, file_id, file_size} = msg.document;
         if (
-            isAdm
-            && file_name.match(/.pdf$/)
-            && mime_type === 'application/pdf'
+            file_name.match(/.pdf$/) &&
+            mime_type === 'application/pdf'
         ) {
             if (file_size < 4e6) {
               const cnt = await db.get({
