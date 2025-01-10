@@ -3,7 +3,8 @@ const {logger} = require('../api/utils/logger');
 
 const {
   timeout,
-  checkData
+  checkData,
+  isDateMoreADay,
 } = require('../api/utils');
 const rabbitMq = require('./rabbitmq');
 const ivMaker = require('../api/utils/ivMaker');
@@ -255,10 +256,17 @@ ${RESULT}`;
       if (isChanMesId) mark += 'c';
       if (ivFromDb) mark += ' db';
 
-      // const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
-      if (group) {
-        // now it disabled by default
-        // botHelper.sendAdminMark(text, group);
+      let logToGroup;
+      if (!global.lastLogTime) {
+        global.lastLogTime = +new Date();
+        logToGroup = true;
+      } else {
+        logToGroup = isDateMoreADay(global.lastLogTime);
+      }
+      // now it disabled by default
+      if (group && logToGroup) {
+        const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
+        botHelper.sendAdminMark(text, group);
       }
     }
   } catch (e) {
@@ -277,7 +285,14 @@ ${RESULT}`;
       );
     } else if (groupBugs) {
       // now it disabled by default
-      // botHelper.sendAdmin(error, groupBugs);
+      let logToGroup;
+      if (!global.lastErrorLogTime) {
+        global.lastErrorLogTime = +new Date();
+        logToGroup = true;
+      } else {
+        logToGroup = isDateMoreADay(global.lastErrorLogTime);
+      }
+      if (groupBugs && logToGroup) botHelper.sendAdmin(error, groupBugs);
     }
   }
 };

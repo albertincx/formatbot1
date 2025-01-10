@@ -57,6 +57,12 @@ const toUrl = url => {
   return url;
 };
 
+const isDateMoreADay = (date) => {
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+  return (now - date) > oneDay;
+}
+
 module.exports.commandCheck = commandCheck;
 module.exports.timeout = timeout;
 module.exports.checkData = checkData;
@@ -64,3 +70,4 @@ module.exports.toUrl = toUrl;
 
 module.exports.parseEnvArray = parseEnvArray;
 module.exports.fetchTimeout = fetchTimeout;
+module.exports.isDateMoreADay = isDateMoreADay;

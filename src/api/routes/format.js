@@ -16,7 +16,8 @@ const db = require('../utils/db');
 const {
   commandCheck,
   timeout,
-  toUrl
+  toUrl,
+  isDateMoreADay,
 } = require('../utils');
 const {logger} = require('../utils/logger');
 const puppet = require('../utils/puppet');
@@ -212,9 +213,7 @@ const format = (bot, botHelper, skipCountBool) => {
               });
               if (cnt) {
                   const now = Date.now();
-                  const oneDay = 24 * 60 * 60 * 1000;
-                  const isMoreThanADay = (now - cnt.updatedAt) > oneDay;
-                  if (isMoreThanADay) {
+                  if (isDateMoreADay(cnt.updatedAt)) {
                       pdfData.pdfReset = 1;
                   } else {
                       if (cnt.af >= 10) {
