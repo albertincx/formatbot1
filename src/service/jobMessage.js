@@ -154,8 +154,9 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
         await Promise.race([ivTimer, ivTask])
           .then(ivDataOrTimeout => {
             if (ivDataOrTimeout === TIMEOUT_EXCEEDED) {
-              if (groupBugs) {
+              if (groupBugs && isDateMoreADay(global.lastErrorLogTime)) {
                 botHelper.sendAdmin(`timedOut ${link}`, groupBugs);
+                global.lastErrorLogTime = +new Date();
               }
               timeOutLink = true;
             } else {
@@ -267,6 +268,7 @@ ${RESULT}`;
       if (group && logToGroup) {
         const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
         botHelper.sendAdminMark(text, group);
+        global.lastLogTime = +new Date();
       }
     }
   } catch (e) {
@@ -292,7 +294,10 @@ ${RESULT}`;
       } else {
         logToGroup = isDateMoreADay(global.lastErrorLogTime);
       }
-      if (groupBugs && logToGroup) botHelper.sendAdmin(error, groupBugs);
+      if (groupBugs && logToGroup) {
+        botHelper.sendAdmin(error, groupBugs);
+        global.lastErrorLogTime = +new Date();
+      }
     }
   }
 };

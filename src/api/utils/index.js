@@ -58,6 +58,9 @@ const toUrl = url => {
 };
 
 const isDateMoreADay = (date) => {
+  if (!date) {
+    return true;
+  }
   const now = Date.now();
   const oneDay = 24 * 60 * 60 * 1000;
   return (now - date) > oneDay;
