@@ -375,24 +375,27 @@ const format = (bot, botHelper, skipCountBool) => {
 
   bot.on('channel_post', ctx =>
     addToQueue(ctx)
-      .catch(e =>
-        botHelper.sendError(`tg err1: ${JSON.stringify(e)}`),
-      ),
+      .catch(e =>{
+        console.log(e);
+        botHelper.sendError(`tg err1: ${JSON.stringify(e)}`)
+      }),
   );
 
   bot.hears(/.*/, ctx =>
     addToQueue(ctx)
-      .catch(e =>
-        botHelper.sendError(`tg err2: ${JSON.stringify(e)}`),
-      ),
+      .catch(e =>{
+        console.log(e);
+        botHelper.sendError(`tg err2: ${JSON.stringify(e)}`)
+      }),
   );
 
-  bot.on('message', ctx =>
-    addToQueue(ctx)
-      .catch(e =>
-        botHelper.sendError(`tg err3: ${JSON.stringify(e)}`),
-      ),
-  );
+    bot.on('message', ctx =>
+        addToQueue(ctx)
+            .catch(e => {
+                console.log(e);
+                botHelper.sendError(`tg err3: ${JSON.stringify(e)}`)
+            }),
+    );
 
   let browserWs = null;
   if (!botHelper.config.no_puppet && !IS_PUPPET_DISABLED) {
