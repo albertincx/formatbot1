@@ -231,13 +231,11 @@ const format = (bot, botHelper, skipCountBool) => {
                   }
               }
               pdfData.pdf = file_id;
-              pdfData.pdfTitle = file_name;
+              pdfData.pdfTitle = file_name.replace(/[^a-z\s0-9]/gi,'').replace(/\s/g,'_');
               text = PDF_LINK + encodeURI(file_name);
             } else {
               console.log('big pdf');
-              if (isChannelPost) {
-                return;
-              }
+              if (isChannelPost) return;
               return ctx.reply('You have exceeded the maximum size of pdf (4mb) ').catch(e => {
                 // skip
               });
