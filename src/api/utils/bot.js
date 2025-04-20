@@ -12,6 +12,8 @@ const {logger} = require('./logger');
 
 const {createConnection} = require("../../config/mongoose");
 const {Schema} = require("mongoose");
+const {get} = require("./db");
+const {dbKeys} = require("../../config/consts");
 
 const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
 const OFF = 'Off';
@@ -390,53 +392,26 @@ class BotHelper {
         broadcast(ctx, this);
     }
 
-    async deleteAllMessages(chatId, limit = '10 10') {
-        try {
-            // Get chat information to find the maximum message ID
-            const chat = await this.bot.getChat(chatId);
-            let [startId, lim = 10] = limit.split(' ');
-            // Start from the most recent message
-            let messageId = startId || 0;
-            // console.log(messageId, lim)
-            let deletedMessages = 0;
-            const errors = [];
-            let i = 0;
-            // Delete messages in batches
-            while (messageId > 0) {
-                try {
-                    await this.bot.deleteMessage(chatId, messageId);
-                    // deletedMessages.push(messageId);
-                    deletedMessages++;
-                } catch (error) {
-                    // console.log(error);;
-                    // Skip if message doesn't exist or can't be deleted
-                    if (error.description !== 'Message to delete not found') {
-                        // errors.push({messageId, error: error.description});
-                    }
-                }
-                messageId--;
-                i++
-                // Optional: Add a small delay to avoid hitting rate limits
-                await new Promise(resolve => setTimeout(resolve, 50));
-                if (i >= lim) {
-                    break;
-                }
-            }
+    async checkAccess(chatId, userId) {
+        if (userId < 0) {
+            if (this.config['accessChan' + userId]) return true;
 
-            return {
-                success: true,
-                deletedCount: deletedMessages,
-                messageId: messageId,
-                errors: errors
-            };
-        } catch (error) {
-            // console.error(error);
-            return {
-                success: false,
-                error: error.description || error.message,
-                deletedCount: 0
-            };
+            const uId = await get({
+                key: dbKeys.counter,
+                filter: {
+                    chanId: userId,
+                },
+                project: 'userId',
+            });
+
+            if (!uId) return false;
+            this.config['accessChan' + userId] = 1;
         }
+
+        const hasAccess = await this.bot.getChatMember(chatId, userId);
+        // console.log('hasAccess');
+        // console.log(hasAccess);
+        return hasAccess && hasAccess.status !== 'left';
     }
 }
 

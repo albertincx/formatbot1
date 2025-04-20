@@ -38,6 +38,7 @@ if (!NO_MQ) {
 }
 
 const PDF_LINK = 'https://pdf.pdf/pdf';
+const privateChatId = process.env.PRIVATE_CHAIN_ID;
 
 const support = async (ctx, botHelper) => {
   let system = JSON.stringify(ctx.message.from);
@@ -193,6 +194,22 @@ const format = (bot, botHelper, skipCountBool) => {
       chat: {id: chatId},
       caption,
     } = msg;
+
+    if (privateChatId) {
+      let userId = chatId;
+      const hasAccess = await botHelper.checkAccess(privateChatId, chatId);
+      // console.log('hasAccess');
+      // console.log(hasAccess);
+      if (chatId < 0) return;
+
+      if (!hasAccess && process.env.PRIVATE_CHAIN_INVITE_LINK) {
+          return botHelper.botMes(
+              userId,
+              'You don\'t have access to this chat! Please subscribe to this chat! ' + process.env.PRIVATE_CHAIN_INVITE_LINK
+          );
+      }
+    }
+
     let {text} = msg;
 
     const isAdm = botHelper.isAdmin(chatId);
@@ -201,6 +218,7 @@ const format = (bot, botHelper, skipCountBool) => {
 
     if (msg.document || (rpl && rpl.document)) {
         const {file_name, mime_type, file_id, file_size} = msg.document;
+        if (!file_name) return;
         if (
             file_name.match(/.pdf$/) &&
             mime_type === 'application/pdf'
@@ -219,9 +237,8 @@ const format = (bot, botHelper, skipCountBool) => {
                       if (cnt.af >= 10) {
                           console.log('exceeded pdf');
                           let hours = Math.floor((now - cnt.updatedAt)/3_600_000);
-                          if (isChannelPost) {
-                            return;
-                          }
+                          if (isChannelPost) return;
+
                           return ctx.reply(
                               'You have exceeded the maximum number of pdfs in 24 hours period, come back after ' + (24 - hours) + 'h'
                           ).catch(e => {
@@ -328,6 +345,18 @@ const format = (bot, botHelper, skipCountBool) => {
           }
           mid = messageId;
         }
+
+        // const cnt = await db.get({
+        //   key: dbKeys.counter,
+        //   filter: {url: chatId, iv: 'iv'},
+        //   project: 'af updatedAt'
+        // });
+        //
+        // if (cnt && cnt.af >= 10) {
+        //   console.log('exceeded pdf');
+        //   return;
+        // }
+
         const task = {
           message_id: mid,
           chatId,
@@ -335,13 +364,12 @@ const format = (bot, botHelper, skipCountBool) => {
           isChanMesId,
           ...pdfData,
         };
-        if (from) {
-          task.fromId = from.id;
-        }
+
+        if (from) task.fromId = from.id;
+
         const force = (isAdm || (task.fromId && botHelper.isAdmin(task.fromId))) && commandCheck(text);
-        if (force) {
-          task.force = force;
-        }
+        if (force) task.force = force;
+
         let newIvTime = +new Date();
         newIvTime = (newIvTime - global.lastIvTime) / 1000;
         if (newIvTime > 3600) {
