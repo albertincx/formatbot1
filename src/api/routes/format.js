@@ -215,7 +215,7 @@ const format = (bot, botHelper, skipCountBool) => {
       chat: {id: chatId},
       caption,
     } = msg;
-    let userId = from.id;
+    let userId = (from && from.id) || chatId;
 
     if (privateChatId) {
       const hasAccess = await botHelper.checkAccess(privateChatId, userId);
