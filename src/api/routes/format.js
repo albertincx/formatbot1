@@ -39,6 +39,7 @@ if (!NO_MQ) {
 
 const PDF_LINK = 'https://pdf.pdf/pdf';
 const privateChatId = process.env.PRIVATE_CHAIN_ID;
+const privateUserId = +process.env.PRIVATE_USER_ID;
 
 const support = async (ctx, botHelper) => {
   let system = JSON.stringify(ctx.message.from);
@@ -102,6 +103,26 @@ const format = (bot, botHelper, skipCountBool) => {
   bot.on('inline_query', async msg => {
     const {id} = msg.update.inline_query;
     let {query} = msg.update.inline_query;
+    let chatId = msg.from.id;
+    let userId = chatId;
+
+    if (privateUserId && privateUserId !== userId) {
+        // console.log('privateUserId', userId);
+        return;
+    }
+
+    if (privateChatId) {
+      const hasAccess = await botHelper.checkAccess(privateChatId, userId);
+      if (chatId < 0) return;
+
+      if (!hasAccess && process.env.PRIVATE_CHAIN_INVITE_LINK) {
+        return botHelper.botMes(
+            userId,
+            'You don\'t have access to this chat! Please subscribe to this chat! ' + process.env.PRIVATE_CHAIN_INVITE_LINK
+        );
+      }
+    }
+
     query = query.trim();
     const links = getAllLinks(query);
     if (links.length === 0) {
@@ -194,10 +215,10 @@ const format = (bot, botHelper, skipCountBool) => {
       chat: {id: chatId},
       caption,
     } = msg;
+    let userId = from.id;
 
     if (privateChatId) {
-      let userId = chatId;
-      const hasAccess = await botHelper.checkAccess(privateChatId, chatId);
+      const hasAccess = await botHelper.checkAccess(privateChatId, userId);
       // console.log('hasAccess');
       // console.log(hasAccess);
       if (chatId < 0) return;
@@ -209,6 +230,7 @@ const format = (bot, botHelper, skipCountBool) => {
           );
       }
     }
+    if (privateUserId && privateUserId !== userId) return;
 
     let {text} = msg;
 
