@@ -1,4 +1,5 @@
 const url = require('url');
+const {Markup} = require("telegraf");
 
 const keyboards = require('../../keyboards/keyboards');
 const messages = require('../../messages/format');
@@ -39,6 +40,8 @@ if (!NO_MQ) {
 
 const PDF_LINK = 'https://pdf.pdf/pdf';
 const privateChatId = process.env.PRIVATE_CHAIN_ID;
+const PARTNER_ID = process.env.PARTNER_ID;
+const PARTNER_URL = process.env.PARTNER_URL;
 const privateUserId = +process.env.PRIVATE_USER_ID;
 
 const support = async (ctx, botHelper) => {
@@ -352,6 +355,31 @@ const format = (bot, botHelper, skipCountBool) => {
 
         let mid;
         if (!botHelper.waitSec) {
+          if (PARTNER_ID && botHelper.isAdmin(chatId)) {
+            const item = {url: chatId, iv: PARTNER_ID}
+            const cnt = await db.get({
+              key: dbKeys.counter,
+              filter: item,
+              project: 'af updatedAt'
+            });
+            if (!cnt || (cnt && isDateMoreADay(cnt.updatedAt))) {
+              const pad = await fetch(PARTNER_URL.replace('T=', chatId)).then(res => res.json()).catch(e => {
+              });
+              console.log(pad, PARTNER_URL.replace('T=', chatId))
+              await db.updateOneLink(item, db.getCol(dbKeys.counter));
+              if (pad) {
+                ctx.replyWithPhoto({url: pad.image_url},
+                    {
+                      protect_content: true,
+                      caption: pad.text,
+                      ...Markup.inlineKeyboard([
+                        Markup.button.url(pad.button_name, pad.click_url),
+                      ])
+                    });
+              }
+            }
+          }
+
           const res = await ctx.reply('Waiting for instantView...')
             .catch((e) => {
               logger('reply wait');
