@@ -104,7 +104,7 @@ const format = (bot, botHelper, skipCountBool) => {
   });
 
   bot.on('inline_query', async msg => {
-    const {id} = msg.update.inline_query;
+    const {id, chat_type} = msg.update.inline_query;
     let {query} = msg.update.inline_query;
     let chatId = msg.from.id;
     let userId = chatId;
@@ -114,7 +114,7 @@ const format = (bot, botHelper, skipCountBool) => {
         return;
     }
 
-    if (privateChatId) {
+    if (privateChatId && chat_type === 'channel') {
       const hasAccess = await botHelper.checkAccess(privateChatId, userId);
       if (chatId < 0) return;
 
@@ -220,7 +220,7 @@ const format = (bot, botHelper, skipCountBool) => {
     } = msg;
     let userId = (from && from.id) || chatId;
 
-    if (privateChatId) {
+    if (privateChatId && isChannelPost) {
       const hasAccess = await botHelper.checkAccess(privateChatId, userId);
       // console.log('hasAccess');
       // console.log(hasAccess);
@@ -355,7 +355,7 @@ const format = (bot, botHelper, skipCountBool) => {
 
         let mid;
         if (!botHelper.waitSec) {
-          if (PARTNER_ID && botHelper.isAdmin(chatId)) {
+          if (PARTNER_ID) {
             const item = {url: chatId, iv: PARTNER_ID}
             const cnt = await db.get({
               key: dbKeys.counter,
@@ -363,15 +363,19 @@ const format = (bot, botHelper, skipCountBool) => {
               project: 'af updatedAt'
             });
             if (!cnt || (cnt && isDateMoreADay(cnt.updatedAt))) {
-              const pad = await fetch(PARTNER_URL.replace('T=', chatId)).then(res => res.json()).catch(e => {
+              const pad = await fetch(PARTNER_URL.replace('T=', chatId))
+                  .then(res => res.json())
+                  // .then(res => res.result)
+                  .catch(e => {
+                // console.log(e);
               });
-              console.log(pad, PARTNER_URL.replace('T=', chatId))
               await db.updateOneLink(item, db.getCol(dbKeys.counter));
               if (pad) {
-                ctx.replyWithPhoto({url: pad.image_url},
+                ctx.replyWithPhoto(pad.image_url,
                     {
                       protect_content: true,
-                      caption: pad.text,
+                      caption: pad.text_html,
+                      parse_mode: 'html',
                       ...Markup.inlineKeyboard([
                         Markup.button.url(pad.button_name, pad.click_url),
                       ])
