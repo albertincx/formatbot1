@@ -363,12 +363,14 @@ const format = (bot, botHelper, skipCountBool) => {
               project: 'af updatedAt'
             });
             if (!cnt || (cnt && isDateMoreADay(cnt.updatedAt))) {
-              const pad = await fetch(PARTNER_URL.replace('T=', chatId))
+              let u = PARTNER_URL.replace('T=', chatId) + `&language=${from.language_code || 'en'}`;
+              const pad = await fetch(u)
                   .then(res => res.json())
                   // .then(res => res.result)
                   .catch(e => {
-                // console.log(e);
+                console.log(e);
               });
+              console.log(pad, u)
               await db.updateOneLink(item, db.getCol(dbKeys.counter));
               if (pad) {
                 ctx.replyWithPhoto(pad.image_url,
