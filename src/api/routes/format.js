@@ -370,7 +370,7 @@ const format = (bot, botHelper, skipCountBool) => {
                                 .catch(e => {
                                     console.log(`${e}`.substr(0,5));
                                 });
-                            console.log(pad, u)
+                            // console.log(pad, u)
                             await db.updateOneLink(item, db.getCol(dbKeys.counter));
                             if (pad) {
                                 ctx.replyWithPhoto(pad.image_url,
