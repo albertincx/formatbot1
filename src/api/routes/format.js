@@ -355,7 +355,7 @@ const format = (bot, botHelper, skipCountBool) => {
 
         let mid;
         if (!botHelper.waitSec) {
-          if (PARTNER_ID) {
+            if (PARTNER_ID && chatId > 0) {
             const item = {url: chatId, iv: PARTNER_ID}
             const cnt = await db.get({
               key: dbKeys.counter,
