@@ -368,7 +368,7 @@ const format = (bot, botHelper, skipCountBool) => {
                                 .then(res => res.json())
                                 // .then(res => res.result)
                                 .catch(e => {
-                                    console.log(e);
+                                    console.log(`${e}`.substr(0,5));
                                 });
                             console.log(pad, u)
                             await db.updateOneLink(item, db.getCol(dbKeys.counter));
