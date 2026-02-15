@@ -91,7 +91,7 @@ const createChan = async (queueName = TASKS_CHANNEL) => {
     await channel.prefetch(1);
     await channel.assertQueue(queueName, {durable: true});
   } catch (e) {
-    console.log('err rabbit');
+    console.log('err rabbit 1');
     logger(e);
   }
 
