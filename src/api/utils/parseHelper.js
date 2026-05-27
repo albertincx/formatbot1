@@ -3,7 +3,6 @@ const Mercury = require('@postlight/parser');
 const {Readability} = require('@mozilla/readability');
 const sanitizeHtml = require('sanitize-html');
 const path = require('path');
-const url = require('url');
 
 const {REST_API} = require('../../config/vars');
 
@@ -44,7 +43,7 @@ class ParseHelper {
     }
     const matches = link.match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i);
     this.domain = matches && matches[1];
-    this.parsed = url.parse(link);
+    this.parsed = new URL(link);
     const {host} = this.parsed;
     const {dir = ''} = path.parse(link);
     if (dir.match(/:\/\/./)) {

@@ -86,6 +86,60 @@ const botRoute = (bot, conn) => {
     }
   });
 
+  bot.command('last10', async ctx => {
+    if (botHelper.isAdmin(ctx.message.from.id)) {
+      if (!botHelper.conn) {
+        return botHelper.sendAdminMark('db off', ctx.message.chat.id);
+      }
+      try {
+        const res = await db.getLastCreatedLinks();
+        return botHelper.sendAdminMark(res, ctx.message.chat.id);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
+    }
+  });
+
+  bot.command('dbsize', async ctx => {
+    if (botHelper.isAdmin(ctx.message.from.id)) {
+      if (!botHelper.conn) {
+        return botHelper.sendAdminMark('db off', ctx.message.chat.id);
+      }
+      try {
+        const res = await db.getDbSizeStats(ctx.message.text.split('/dbsize')[1].trim());
+        return botHelper.sendAdminMark(res, ctx.message.chat.id);
+      } catch (e) {
+        botHelper.sendError(e);
+      }
+    }
+  });
+
+  bot.command(['sendall', 'broadcast'], async ctx => {
+    if (botHelper.isAdmin(ctx.message.from.id)) {
+      const text = ctx.message.text.replace(/^\/(sendall|broadcast)\s*/i, '').trim();
+      if (!text) {
+        return ctx.reply('Использование: /sendall <текст> [test]');
+      }
+
+      const isTest = text.endsWith('test');
+      const broadcastText = isTest ? text.slice(0, -4).trim() : text;
+
+      if (!broadcastText) {
+        return ctx.reply('Ошибка: Пустой текст рассылки.');
+      }
+
+      ctx.reply(isTest ? 'Запуск тестовой рассылки на админа...' : 'Запуск полной рассылки по всем пользователям...');
+
+      try {
+        const res = await db.sendBroadcast(botHelper, broadcastText, isTest);
+        return ctx.reply(`📢 Рассылка завершена!\nУспешно: ${res.success}\nОшибок: ${res.failed}\nВсего получателей: ${res.total}${res.isTest ? ' (Тестовый режим)' : ''}`);
+      } catch (e) {
+        botHelper.sendError(e);
+        return ctx.reply(`Ошибка рассылки: ${e.message || e}`);
+      }
+    }
+  });
+
   bot.hears(/^\/cleardb*/, async ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       const res = await db.clearFromCollection(ctx.message);

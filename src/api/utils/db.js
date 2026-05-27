@@ -173,6 +173,149 @@ const getCol = (key) => {
   if (key === dbKeys.counter) return counter;
 }
 
+const getLastCreatedLinks = async (limit = 10) => {
+  const docs = await links.find({}).sort({ createdAt: -1 }).limit(limit);
+  if (docs.length === 0) {
+    return 'Список созданных ссылок пуст.';
+  }
+  let msg = `📅 *Последние ${docs.length} созданных ссылок:*\n\n`;
+  docs.forEach((doc, i) => {
+    const dateStr = doc.createdAt
+      ? new Date(doc.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' MSK'
+      : 'нет даты';
+    const url = doc.url || 'нет URL';
+    msg += `${i + 1}. [${url}](${url}) (${dateStr})\n`;
+  });
+  return msg;
+};
+
+const getDbSizeStats = async (aaa_db='') => {
+    console.log('aaa_db')
+    console.log(aaa_db)
+  const mongoose = require('mongoose');
+  let conn = mongoose.connection;
+  if (aaa_db === '0') conn = conn0
+  if (aaa_db === '1') conn = conn1
+  if (!conn || !conn.db) {
+    return 'Нет активного подключения к БД';
+  }
+  try {
+    const dbStatsRes = await conn.db.command({ dbStats: 1 });
+    const linksStats = await conn.db.command({ collStats: LINKS_COLL });
+    const ilinksStats = await conn.db.command({ collStats: I_LINKS_COLL });
+
+    const formatBytes = (bytes) => {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    let response = `📊 *Статистика базы данных MongoDB:*\n\n`;
+    response += `*База данных:* \`${dbStatsRes.db}\`\n`;
+    response += `• Объем данных (dataSize): ${formatBytes(dbStatsRes.dataSize)}\n`;
+    response += `• Объем на диске (storageSize): ${formatBytes(dbStatsRes.storageSize)}\n`;
+    response += `• Объем индексов (indexSize): ${formatBytes(dbStatsRes.indexSize)}\n`;
+    response += `• Количество коллекций: ${dbStatsRes.collections}\n`;
+    response += `• Количество объектов: ${dbStatsRes.objects}\n\n`;
+
+    response += `📦 *Коллекция ${LINKS_COLL}:*\n`;
+    response += `• Документов: ${linksStats.count}\n`;
+    response += `• Объем (size): ${formatBytes(linksStats.size)}\n`;
+    response += `• Объем на диске (storageSize): ${formatBytes(linksStats.storageSize)}\n\n`;
+
+    response += `📦 *Коллекция ${I_LINKS_COLL}:*\n`;
+    response += `• Документов: ${ilinksStats.count}\n`;
+    response += `• Объем (size): ${formatBytes(ilinksStats.size)}\n`;
+    response += `• Объем на диске (storageSize): ${formatBytes(ilinksStats.storageSize)}\n`;
+
+    return response;
+  } catch (e) {
+    logger(`Error fetching DB stats: ${e}`);
+    return `Ошибка получения статистики: ${e.message || e}`;
+  }
+};
+
+const getBroadcastUsers = async () => {
+  const { MONGO_URI_SECOND, TG_ADMIN_ID } = require('../../config/vars');
+  const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
+  let chatIds = [];
+
+  // 1. Try to fetch from secondary DB (users collection) if MONGO_URI_SECOND is configured
+  if (MONGO_URI_SECOND) {
+    try {
+      const { createConnection } = require('../../config/mongoose');
+      const connSecond = createConnection(MONGO_URI_SECOND);
+      if (connSecond) {
+        // Wait for connection to open
+        await new Promise((resolve, reject) => {
+          connSecond.once('open', resolve);
+          connSecond.once('error', reject);
+        }).catch(() => {});
+
+        const schema = require('../models/schema');
+        const usersModel = connSecond.model('users', schema);
+        const users = await usersModel.find({}, { id: 1 });
+        chatIds = users.map(u => u.id || u.uid).filter(Boolean);
+        await connSecond.close();
+      }
+    } catch (err) {
+      logger(`Error fetching users from secondary DB: ${err}`);
+    }
+  }
+
+  // 2. Fall back to counter collection in primary DB
+  if (chatIds.length === 0) {
+    try {
+      const docs = await counter.find({ url: { $exists: true } });
+      const primaryIds = docs
+        .map(d => parseInt(d.url, 10))
+        .filter(id => !isNaN(id) && id > 0);
+      chatIds = [...new Set(primaryIds)];
+    } catch (err) {
+      logger(`Error fetching users from primary DB counter: ${err}`);
+    }
+  }
+
+  // 3. Ensure the admin is included
+  if (TG_ADMIN && !chatIds.includes(TG_ADMIN)) {
+    chatIds.push(TG_ADMIN);
+  }
+
+  return chatIds;
+};
+
+const sendBroadcast = async (botHelper, text, isTest = false) => {
+  const adminId = botHelper.tgAdmin;
+  if (!adminId) {
+    throw new Error('Admin ID not set');
+  }
+
+  if (isTest) {
+    await botHelper.botMes(adminId, text, true);
+    return { success: 1, failed: 0, total: 1, isTest: true };
+  }
+
+  const chatIds = await getBroadcastUsers();
+  let success = 0;
+  let failed = 0;
+
+  for (const chatId of chatIds) {
+    try {
+      await botHelper.botMes(chatId, text, true);
+      success++;
+    } catch (err) {
+      logger(`Failed to send broadcast to ${chatId}: ${err}`);
+      failed++;
+    }
+    // Sleep 50ms to respect Telegram rate limits
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+
+  return { success, failed, total: chatIds.length, isTest: false };
+};
+
 module.exports.stat = stat;
 module.exports.clearFromCollection = clearFromCollection;
 module.exports.updateOneLink = updateOneLink;
@@ -183,3 +326,7 @@ module.exports.checkTimeFromLast = checkTimeFromLast;
 module.exports.getCleanData = getCleanData;
 module.exports.getCol = getCol;
 module.exports.get = get;
+module.exports.getLastCreatedLinks = getLastCreatedLinks;
+module.exports.getDbSizeStats = getDbSizeStats;
+module.exports.sendBroadcast = sendBroadcast;
+
