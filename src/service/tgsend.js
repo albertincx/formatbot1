@@ -108,7 +108,7 @@ const createBroadcast = async (ctx, txt, botHelper) => {
 };
 
 const startBroadcast = async (ctx, txtParam, botHelper) => {
-    const [cId, mId, fromId, isChannel] = getCmdParams(txtParam);
+    let [cId, mId, fromId, isChannel] = getCmdParams(txtParam);
     if (!cId) {
         return ctx.reply('broad err no id');
     }
@@ -121,10 +121,10 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
     const connSend = botHelper.connSend;
 
     const messages = connSend.model('broadcasts', botHelper.schema);
-
+    cId = String(cId)
     const filter = {
         sent: {$exists: false},
-        cId: String(cId),
+        cId,
     };
 
     const cursor = messages.find(filter)
