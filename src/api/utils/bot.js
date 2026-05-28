@@ -1,5 +1,5 @@
-const broadcast = require('tgsend');
-// const broadcast = require('../../../../../git/tgsend');
+const broadcast = require('../../service/tgsend');
+
 const fs = require('fs');
 const {
     TG_ADMIN_ID,
@@ -381,7 +381,7 @@ class BotHelper {
         // console.log('is adm')
         // return 'is admin';
 
-        if (ctx.message.text.match('createBroadcast')) {
+        if (ctx.message.text.match(/(createBroadcast|broad_custom)/)) {
             this.conn = createConnection(MONGO_URI_SECOND);
         }
         this.connSend = createConnection(MONGO_URI_BROAD);
