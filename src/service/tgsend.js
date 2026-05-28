@@ -124,13 +124,13 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
 
     const filter = {
         sent: {$exists: false},
-        cId,
+        cId: String(cId),
     };
 
     const cursor = messages.find(filter)
         .limit(800)
         .cursor();
-
+    // console.log(cursor.count)
     let breakProcess = false;
 
     await processRows(cursor, 5, 500, async items => {
@@ -208,7 +208,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
 
     let log = `${cntTotal}/${cntSent}`;
 
-    if (cntTotal && cntTotal === cntSent) {
+    if (cntTotal === cntSent) {
         const cntActive = await messages.countDocuments({
             cId,
             error: {$exists: false}
