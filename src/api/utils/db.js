@@ -316,6 +316,38 @@ const sendBroadcast = async (botHelper, text, isTest = false) => {
   return { success, failed, total: chatIds.length, isTest: false };
 };
 
+const reactivateUser = async (chatId) => {
+  const { MONGO_URI_SECOND } = require('../../config/vars');
+  if (!MONGO_URI_SECOND || !chatId) return;
+
+  try {
+    const { createConnection } = require('../../config/mongoose');
+    const connSecond = createConnection(MONGO_URI_SECOND);
+    if (connSecond) {
+      await new Promise((resolve, reject) => {
+        connSecond.once('open', resolve);
+        connSecond.once('error', reject);
+      }).catch(() => {});
+
+      const schema = require('../models/schema');
+      const usersModel = connSecond.model('users', schema);
+
+      const result = await usersModel.updateOne(
+        { $or: [{ id: chatId }, { uid: chatId }] },
+        { $set: { blocked: false } }
+      );
+
+      if (result.modifiedCount > 0) {
+        console.log(`[REACTIVATION] User ${chatId} automatically reactivated!`);
+      }
+
+      await connSecond.close();
+    }
+  } catch (err) {
+    console.error(`[REACTIVATION ERROR] Failed to reactivate user ${chatId}:`, err);
+  }
+};
+
 module.exports.stat = stat;
 module.exports.clearFromCollection = clearFromCollection;
 module.exports.updateOneLink = updateOneLink;
@@ -329,4 +361,6 @@ module.exports.get = get;
 module.exports.getLastCreatedLinks = getLastCreatedLinks;
 module.exports.getDbSizeStats = getDbSizeStats;
 module.exports.sendBroadcast = sendBroadcast;
+module.exports.reactivateUser = reactivateUser;
+
 

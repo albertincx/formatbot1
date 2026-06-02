@@ -66,7 +66,7 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
   }
   try {
     let RESULT;
-    let IV_TITLE = '';
+    let IV_TITLE = 'unknown';
     let isFile = false;
     let linkData = {};
     let timeOutLink = false;
@@ -214,7 +214,7 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
       botHelper.sendAdmin('@admin need to /restartApp');
     }
     const extra = {parse_mode: botHelper.markdown()};
-    const messageText = `${IV_TITLE && ivLink ? `[${IV_TITLE}](${ivLink})` : ''}
+    const messageText = `${IV_TITLE && ivLink ? `[${IV_TITLE}](${ivLink})` : IV_TITLE}
 ${RESULT}`;
     if (inline) {
       let title = '';

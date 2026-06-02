@@ -230,14 +230,19 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
 };
 
 const broadCustom = async (ctx, txt, botHelper) => {
+    const connSecond = botHelper.conn;
+    const connSend = botHelper.connSend;
+    if (!connSecond || !connSend) {
+        return ctx.reply('Ошибка: нет подключения к БД в botHelper');
+    }
     try {
         const args = txt.replace(/^\/broad_custom\s+/i, '').trim().split(/\s+/);
         if (args.length < 3) {
-            return ctx.reply('Использование:\nРассылка текста:\n/broad_custom <campaign_id> <batch_size> text:<текст>\n\nРассылка сообщения канала:\n/broad_custom <campaign_id> <batch_size> chan:<message_id>:<channel_id>\n\nРассылка по ссылке на канал:\n/broad_custom <campaign_id> <batch_size> chanlink:<t.me_link>');
+            return ctx.reply('Использование:\nРассылка текста:\n/broad_custom <campaign_id> <limit> text:<текст>\n\nРассылка сообщения канала:\n/broad_custom <campaign_id> <limit> chan:<message_id>:<channel_id>\n\nРассылка по ссылке на канал:\n/broad_custom <campaign_id> <limit> chanlink:<t.me_link>');
         }
 
         const cId = args[0];
-        const batchSize = parseInt(args[1], 10) || 5;
+        const limit = parseInt(args[1], 10) || 800;
         const typeAndContent = args.slice(2).join(' ');
 
         let mode = ''; // 'text' or 'chan'
@@ -287,13 +292,7 @@ const broadCustom = async (ctx, txt, botHelper) => {
             return ctx.reply('Ошибка: формат должен начинаться с text:, chan: или chanlink:');
         }
 
-        ctx.reply(`Начинаем подготовку кампании ${cId} (пачками по ${batchSize})...`);
-
-        const connSecond = botHelper.conn;
-        const connSend = botHelper.connSend;
-        if (!connSecond || !connSend) {
-            return ctx.reply('Ошибка: нет подключения к БД в botHelper');
-        }
+        ctx.reply(`Начинаем подготовку кампании ${cId} (лимит отправки ${limit})...`);
 
         const messages = connSend.model('broadcasts', botHelper.schema);
 
@@ -304,32 +303,12 @@ const broadCustom = async (ctx, txt, botHelper) => {
             users = connSecond.model('users');
         }
 
-        // Check if users collection is empty or fails, and fallback to counter/counters if so
-        let count = 0;
-        // try {
-        //     count = await users.countDocuments();
-        // } catch (e) {
-        //     count = 0;
-        // }
-
-        if (count === 0) {
-            // try {
-            //     users = connSecond.model('counter', botHelper.schema);
-            // } catch (e) {
-            //     try {
-            //         users = connSecond.model('counters', botHelper.schema);
-            //     } catch (err) {
-            //     }
-            // }
-        }
-
         // 1. Populate broadcasts collection with users
         let start = cId.match(/^_/)
         let start10 = cId.match(/^_10_/)
         if (start10) start = false
 
-        let filter = start ? {username: 'safiullin'} : {}
-        // console.log(filter)
+        let filter = start ? {username: 'safiullin'} : { blocked: { $ne: true } }
 
         const cursor = users.find(filter).limit(start10 ? 10 : 0).cursor();
         let updates = [];
@@ -366,11 +345,13 @@ const broadCustom = async (ctx, txt, botHelper) => {
             // 2. Sending Phase (run campaign)
             const result = {success: 0, err: 0};
             const sendFilter = {cId, sent: {$exists: false}};
-            const sendCursor = messages.find(sendFilter).cursor();
+            const sendCursor = messages.find(sendFilter).limit(limit).cursor();
 
             let breakProcess = false;
+            const chunkSize = Math.min(limit, 5);
+            const blockedUserIds = [];
 
-            await processRows(sendCursor, batchSize, 500, async items => {
+            await processRows(sendCursor, chunkSize, 500, async items => {
                 if (breakProcess) return;
                 const bulkOps = [];
                 for (const item of items) {
@@ -395,6 +376,9 @@ const broadCustom = async (ctx, txt, botHelper) => {
                         if (e.code === 429) {
                             breakProcess = JSON.stringify(e);
                         }
+                        if (e.code === 403 || (e.response && e.response.error_code === 403)) {
+                            blockedUserIds.push(id);
+                        }
                         result.err += 1;
                         bulkOps.push({
                             updateOne: {
@@ -414,18 +398,47 @@ const broadCustom = async (ctx, txt, botHelper) => {
                 }
             });
 
+            // Auto-Soft-Block users who blocked the bot
+            if (blockedUserIds.length > 0) {
+                try {
+                    const usersModel = connSecond.model('users', botHelper.schema);
+                    await usersModel.updateMany(
+                        { $or: [{ id: { $in: blockedUserIds } }, { uid: { $in: blockedUserIds } }] },
+                        { $set: { blocked: true } }
+                    );
+                    console.log(`[SOFT BLOCK] Bulk marked ${blockedUserIds.length} users as blocked.`);
+                } catch (e) {
+                    console.error('Failed to bulk mark users as blocked in broadCustom:', e);
+                }
+            }
+
             const successCount = await messages.countDocuments({cId, sent: true});
-            return ctx.reply(`Рассылка ${cId} завершена!\nУспешно: ${result.success}\nОшибок: ${result.err}\nВсего отправлено: ${successCount}`);
+            let responseMsg = `Рассылка ${cId} завершена!\nУспешно: ${result.success}\nОшибок: ${result.err}\nВсего отправлено: ${successCount}`;
+            if (breakProcess) {
+                responseMsg += `\n⚠️ Процесс был приостановлен из-за превышения лимитов (429): ${breakProcess}`;
+            }
+            return ctx.reply(responseMsg);
         } else {
             ctx.reply(`Кампания ${cId} создана. Получателей: ${campaignCount}.`);
         }
     } catch (err) {
         console.error('Error in broadCustom:', err);
         return ctx.reply(`Ошибка рассылки: ${err.message || err}`);
+    } finally {
+        if (connSecond && typeof connSecond.close === 'function') {
+            await connSecond.close().catch(e => console.error('Error closing connSecond:', e));
+        }
+        if (connSend && typeof connSend.close === 'function') {
+            await connSend.close().catch(e => console.error('Error closing connSend:', e));
+        }
     }
 };
 
 const broadStartCustom = async (ctx, txt, botHelper) => {
+    const connSend = botHelper.connSend;
+    if (!connSend) {
+        return ctx.reply('Ошибка: нет подключения к БД в botHelper');
+    }
     try {
         let cId;
         let limit = 800; // Default limit for total messages sent in one command run
@@ -450,10 +463,6 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
         }
 
         ctx.reply(`Запуск отправки кампании ${cId} (лимит отправки ${limit})...`);
-        const connSend = botHelper.connSend;
-        if (!connSend) {
-            return ctx.reply('Ошибка: нет подключения к БД в botHelper');
-        }
 
         const messages = connSend.model('broadcasts', botHelper.schema);
 
@@ -484,6 +493,7 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
 
         let breakProcess = false;
         const chunkSize = Math.min(limit, 5);
+        const blockedUserIds = [];
 
         await processRows(sendCursor, chunkSize, 500, async items => {
             if (breakProcess) return;
@@ -510,6 +520,9 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
                     if (e.code === 429) {
                         breakProcess = JSON.stringify(e);
                     }
+                    if (e.code === 403 || (e.response && e.response.error_code === 403)) {
+                        blockedUserIds.push(id);
+                    }
                     result.err += 1;
                     bulkOps.push({
                         updateOne: {
@@ -529,11 +542,45 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
             }
         });
 
+        // Auto-Soft-Block users who blocked the bot
+        if (blockedUserIds.length > 0) {
+            try {
+                const { MONGO_URI_SECOND } = require('../../config/vars');
+                const { createConnection } = require('../../config/mongoose');
+                const connSecond = createConnection(MONGO_URI_SECOND);
+                if (connSecond) {
+                    await new Promise((resolve, reject) => {
+                        connSecond.once('open', resolve);
+                        connSecond.once('error', reject);
+                    }).catch(() => {});
+
+                    const schema = botHelper.schema || require('../models/schema');
+                    const usersModel = connSecond.model('users', schema);
+                    await usersModel.updateMany(
+                        { $or: [{ id: { $in: blockedUserIds } }, { uid: { $in: blockedUserIds } }] },
+                        { $set: { blocked: true } }
+                    );
+                    console.log(`[SOFT BLOCK] Bulk marked ${blockedUserIds.length} users as blocked.`);
+                    await connSecond.close();
+                }
+            } catch (e) {
+                console.error('Failed to bulk mark users as blocked in broadStartCustom:', e);
+            }
+        }
+
         const successCount = await messages.countDocuments({cId, sent: true});
-        return ctx.reply(`Рассылка ${cId} завершена!\nУспешно: ${result.success}\nОшибок: ${result.err}\nВсего отправлено: ${successCount}`);
+        let responseMsg = `Рассылка ${cId} завершена!\nУспешно: ${result.success}\nОшибок: ${result.err}\nВсего отправлено: ${successCount}`;
+        if (breakProcess) {
+            responseMsg += `\n⚠️ Процесс был приостановлен из-за превышения лимитов (429): ${breakProcess}`;
+        }
+        return ctx.reply(responseMsg);
     } catch (err) {
         console.error('Error in broadStartCustom:', err);
         return ctx.reply(`Ошибка запуска рассылки: ${err.message || err}`);
+    } finally {
+        if (connSend && typeof connSend.close === 'function') {
+            await connSend.close().catch(e => console.error('Error closing connSend:', e));
+        }
     }
 };
 

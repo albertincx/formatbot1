@@ -16,6 +16,7 @@ const {
 const db = require('../utils/db');
 const {
     commandCheck,
+    commandNoDb,
     timeout,
     toUrl,
     isDateMoreADay,
@@ -70,6 +71,11 @@ const support = async (ctx, botHelper) => {
 };
 
 const startOrHelp = (ctx, botHelper) => {
+    const chatId = ctx && ctx.message && ctx.message.chat && ctx.message.chat.id;
+    if (chatId) {
+        db.reactivateUser(chatId).catch(err => console.error('Error reactivating user:', err));
+    }
+
     if (ctx && ctx.message.text && ctx.message.text.match(/\/start\s(.*?)/)) {
         const cmd = ctx.message.text.match(/\/start\s(.*?)$/)[1];
         if (cmd === 'support') {
@@ -182,6 +188,12 @@ const format = (bot, botHelper, skipCountBool) => {
     const addToQueue = async ctx => {
         const {update} = ctx;
         let {message} = ctx;
+
+        const reactivateChatId = message && message.chat && message.chat.id;
+        if (reactivateChatId) {
+            db.reactivateUser(reactivateChatId).catch(err => console.error('Error reactivating user:', err));
+        }
+
         const isChannelPost = update && update.channel_post;
         if (
             message &&
@@ -324,8 +336,8 @@ const format = (bot, botHelper, skipCountBool) => {
                     const matchUrl = link.match(/url=(.*?)($|&)/);
                     if (matchUrl && matchUrl[1]) link = decodeURIComponent(matchUrl[1]);
                 }
-
-                if (link.match(new RegExp(validRegex))) {
+                let _force = commandNoDb(text)
+                if (link.match(new RegExp(validRegex)) && !_force) {
                     ctx
                         .reply(messages.showIvMessage('', link, link, parsed.host), {
                             parse_mode: botHelper.markdown(),
@@ -368,7 +380,7 @@ const format = (bot, botHelper, skipCountBool) => {
                                 .then(res => res.json())
                                 // .then(res => res.result)
                                 .catch(e => {
-                                    console.log(`${e}`.substr(0,5));
+                                    console.log(`${e}`.substr(0, 5));
                                 });
                             // console.log(pad, u)
                             await db.updateOneLink(item, db.getCol(dbKeys.counter));
@@ -402,17 +414,6 @@ const format = (bot, botHelper, skipCountBool) => {
                     mid = messageId;
                 }
 
-                // const cnt = await db.get({
-                //   key: dbKeys.counter,
-                //   filter: {url: chatId, iv: 'iv'},
-                //   project: 'af updatedAt'
-                // });
-                //
-                // if (cnt && cnt.af >= 10) {
-                //   console.log('exceeded pdf');
-                //   return;
-                // }
-
                 const task = {
                     message_id: mid,
                     chatId,
@@ -424,6 +425,7 @@ const format = (bot, botHelper, skipCountBool) => {
                 if (from) task.fromId = from.id;
 
                 const force = (isAdm || (task.fromId && botHelper.isAdmin(task.fromId))) && commandCheck(text);
+
                 if (force) task.force = force;
 
                 let newIvTime = +new Date();

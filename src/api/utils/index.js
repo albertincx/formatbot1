@@ -5,6 +5,14 @@ const {
 
 const CHECK_REGEX = /(p_cache|content|custom|puppet|wget|cached|no_db)_force(.*?)$/;
 
+const CHECK_REGEX2 = /(no_db)_force(.*?)$/;
+
+function commandNoDb(txt) {
+  const found = txt.match(CHECK_REGEX2);
+
+  return found && found[1];
+}
+
 function commandCheck(txt) {
   const found = txt.match(CHECK_REGEX);
 
@@ -67,6 +75,7 @@ const isDateMoreADay = (date) => {
 }
 
 module.exports.commandCheck = commandCheck;
+module.exports.commandNoDb = commandNoDb;
 module.exports.timeout = timeout;
 module.exports.checkData = checkData;
 module.exports.toUrl = toUrl;
