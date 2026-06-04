@@ -1,4 +1,6 @@
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 const {
   BotHelper,
@@ -17,7 +19,7 @@ const {logger} = require('../utils/logger');
 global.skipCount = 0;
 global.isDevEnabled = IS_DEV;
 
-const filepath = 'count.txt';
+const filepath = path.join(os.tmpdir(), 'formatbot_count.txt');
 if (!fs.existsSync(filepath)) {
   fs.writeFileSync(filepath, '0');
 }
@@ -30,7 +32,12 @@ if (fs.existsSync(skipCountFile)) {
   skipCount = +`${fs.readFileSync(skipCountFile)}`.replace('SKIP_ITEMS=', '');
 }
 
-let startCnt = parseInt(`${fs.readFileSync('count.txt')}`, 10);
+let startCnt = 0;
+try {
+  startCnt = parseInt(fs.readFileSync(filepath, 'utf8'), 10) || 0;
+} catch (e) {
+  // Ignore read error
+}
 
 let limit90Sec = 0;
 
