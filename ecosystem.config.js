@@ -8,10 +8,12 @@ module.exports = {
       "node_modules",
       "logs",
       ".conf",
+      ".docs",
       "count.txt",
       "*.txt",
       "*.json",
       "*.log",
+      "*.pdf",
       ".test",
       ".git"
     ],
