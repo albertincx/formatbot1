@@ -317,6 +317,7 @@ const sendBroadcast = async (botHelper, text, isTest = false) => {
 };
 
 const reactivateUser = async (chatId) => {
+  return
   const { MONGO_URI_SECOND } = require('../../config/vars');
   if (!MONGO_URI_SECOND || !chatId) return;
 
