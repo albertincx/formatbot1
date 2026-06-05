@@ -345,21 +345,33 @@ class BotHelper {
 
     gitPull(chatId) {
         const {spawn} = require('child_process');
-        const gPull = spawn('git pull && pm2 restart Format --time', {shell: true});
-        let log = 'Res: ';
+        const env = {
+            ...process.env,
+            GIT_TERMINAL_PROMPT: '0',
+            GIT_SSH_COMMAND: 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new'
+        };
+        const gPull = spawn('git pull', {shell: true, env});
+        let log = 'Git Pull Output:\n';
         gPull.stdout.on('data', data => {
             log += `${data}`;
         });
         gPull.stderr.on('data', data => {
-            log += `\nErr: ${data}`;
+            log += `${data}`;
         });
         gPull.on('error', err => {
             log += `\nSpawn err: ${err.message}`;
         });
-        gPull.on('close', code => {
+        gPull.on('close', async (code) => {
             log += `\nExit code: ${code}`;
             logger(log);
-            this.sendAdmin(log, chatId);
+            if (code === 0) {
+                await this.sendAdmin(log + '\n\nStatus: Success! Restarting bot...', chatId);
+                setTimeout(() => {
+                    this.restartApp();
+                }, 1000);
+            } else {
+                await this.sendAdmin(log + '\n\nStatus: Failed! Bot will not restart.', chatId);
+            }
         });
     }
 
