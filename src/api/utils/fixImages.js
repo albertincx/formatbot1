@@ -7,7 +7,7 @@ const iframes = /(<iframe[^>]+>.*?<\/iframe>|<iframe><\/iframe>)/g;
 const imgReplacer = '##@#IMG#@##';
 
 function checkImage(url) {
-  return Promise.resolve(isImageUrl(url));
+  return isImageUrl(url);
 }
 
 function convert(strParam) {

@@ -121,32 +121,6 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command(['sendall', 'broadcast'], async ctx => {
-    if (botHelper.isAdmin(ctx.message.from.id)) {
-      const text = ctx.message.text.replace(/^\/(sendall|broadcast)\s*/i, '').trim();
-      if (!text) {
-        return ctx.reply('Использование: /sendall <текст> [test]');
-      }
-
-      const isTest = text.endsWith('test');
-      const broadcastText = isTest ? text.slice(0, -4).trim() : text;
-
-      if (!broadcastText) {
-        return ctx.reply('Ошибка: Пустой текст рассылки.');
-      }
-
-      ctx.reply(isTest ? 'Запуск тестовой рассылки на админа...' : 'Запуск полной рассылки по всем пользователям...');
-
-      try {
-        const res = await db.sendBroadcast(botHelper, broadcastText, isTest);
-        return ctx.reply(`📢 Рассылка завершена!\nУспешно: ${res.success}\nОшибок: ${res.failed}\nВсего получателей: ${res.total}${res.isTest ? ' (Тестовый режим)' : ''}`);
-      } catch (e) {
-        botHelper.sendError(e);
-        return ctx.reply(`Ошибка рассылки: ${e.message || e}`);
-      }
-    }
-  });
-
   bot.hears(/^\/cleardb*/, async ctx => {
     if (botHelper.isAdmin(ctx.message.chat.id)) {
       const res = await db.clearFromCollection(ctx.message);
@@ -160,14 +134,14 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('toggleDev', ({message}) => {
+  bot.command(['toggleDev', 'toggledev'], ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       global.isDevEnabled = !global.isDevEnabled;
       botHelper.sendAdmin(`dev is ${global.isDevEnabled}`);
     }
   });
 
-  bot.command('skipCount', ({message}) => {
+  bot.command(['skipCount', 'skipcount'], ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       if (!global.skipCount) {
         global.skipCount = 5;
@@ -176,26 +150,27 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command('restartApp', ({message}) => {
+  bot.command(['restartApp', 'restartapp'], ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       botHelper.restartApp();
     }
   });
 
-  bot.command('gitPull', ({message}) => {
+  bot.command(['gitPull', 'gitpull'], ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
-      botHelper.gitPull();
+      botHelper.sendAdmin('Executing git pull...', message.chat.id);
+      botHelper.gitPull(message.chat.id);
     }
   });
 
-  bot.command('getInfo', async ({message}) => {
+  bot.command(['getInfo', 'getinfo'], async ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       const info = await botHelper.getInfo();
       return botHelper.sendAdmin(`Info:\n${JSON.stringify(info)}`);
     }
   });
 
-  bot.command('getClean', async ({message}) => {
+  bot.command(['getClean', 'getclean'], async ({message}) => {
     if (botHelper.isAdmin(message.from.id)) {
       const data = await db.getCleanData(message.text);
 

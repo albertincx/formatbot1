@@ -343,16 +343,23 @@ class BotHelper {
         this.sendAdmin('restarted');
     }
 
-    gitPull() {
+    gitPull(chatId) {
         const {spawn} = require('child_process');
         const gPull = spawn('git pull && pm2 restart Format --time', {shell: true});
         let log = 'Res: ';
         gPull.stdout.on('data', data => {
             log += `${data}`;
         });
-        gPull.stdout.on('end', () => {
+        gPull.stderr.on('data', data => {
+            log += `\nErr: ${data}`;
+        });
+        gPull.on('error', err => {
+            log += `\nSpawn err: ${err.message}`;
+        });
+        gPull.on('close', code => {
+            log += `\nExit code: ${code}`;
             logger(log);
-            this.sendAdmin(log);
+            this.sendAdmin(log, chatId);
         });
     }
 
@@ -378,8 +385,6 @@ class BotHelper {
             console.log('is not adm')
             return 'is not admin';
         }
-        // console.log('is adm')
-        // return 'is admin';
 
         if (ctx.message.text.match(/(createBroadcast|broad_custom)/)) {
             this.conn = createConnection(MONGO_URI_SECOND);

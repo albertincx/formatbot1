@@ -4,7 +4,11 @@ const cBroad = '/createBroadcast';
 const sBroad = '/startBroadcast';
 
 let log = false;
+
 const logger = (r) => log && console.log(r);
+
+const BROAD_COLLECTION = process.env.BROAD_COLLECTION || 'broadcasts';
+const USERS_COLLECTION = process.env.USERS_COLLECTION || 'users';
 
 const processRows = async (cc, limit = 25, timeout, cb) => {
     if (!cb) return;
@@ -53,9 +57,9 @@ const createBroadcast = async (ctx, txt, botHelper) => {
 
     const connSecond = botHelper.conn;
 
-    const messages = connSecond.model('broadcasts', botHelper.schema);
+    const messages = connSecond.model(BROAD_COLLECTION, botHelper.schema);
 
-    const users = connSecond.model('users', botHelper.schema);
+    const users = connSecond.model(USERS_COLLECTION, botHelper.schema);
     let filter = {id: 1};
 
     const cursor = users.find(filter).cursor();
@@ -120,7 +124,7 @@ const startBroadcast = async (ctx, txtParam, botHelper) => {
 
     const connSend = botHelper.connSend;
 
-    const messages = connSend.model('broadcasts', botHelper.schema);
+    const messages = connSend.model(BROAD_COLLECTION, botHelper.schema);
     cId = String(cId)
     const filter = {
         sent: {$exists: false},
@@ -294,13 +298,13 @@ const broadCustom = async (ctx, txt, botHelper) => {
 
         ctx.reply(`Начинаем подготовку кампании ${cId} (лимит отправки ${limit})...`);
 
-        const messages = connSend.model('broadcasts', botHelper.schema);
+        const messages = connSend.model(BROAD_COLLECTION, botHelper.schema);
 
         let users;
         try {
-            users = connSecond.model('users', botHelper.schema);
+            users = connSecond.model(USERS_COLLECTION, botHelper.schema);
         } catch (e) {
-            users = connSecond.model('users');
+            users = connSecond.model(USERS_COLLECTION);
         }
 
         // 1. Populate broadcasts collection with users
@@ -401,7 +405,7 @@ const broadCustom = async (ctx, txt, botHelper) => {
             // Auto-Soft-Block users who blocked the bot
             if (blockedUserIds.length > 0) {
                 try {
-                    const usersModel = connSecond.model('users', botHelper.schema);
+                    const usersModel = connSecond.model(USERS_COLLECTION, botHelper.schema);
                     await usersModel.updateMany(
                         { $or: [{ id: { $in: blockedUserIds } }, { uid: { $in: blockedUserIds } }] },
                         { $set: { blocked: true } }
@@ -464,7 +468,7 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
 
         ctx.reply(`Запуск отправки кампании ${cId} (лимит отправки ${limit})...`);
 
-        const messages = connSend.model('broadcasts', botHelper.schema);
+        const messages = connSend.model(BROAD_COLLECTION, botHelper.schema);
 
         // Find the first unsent document to determine the mode and content
         const sample = await messages.findOne({cId, sent: {$exists: false}});
@@ -555,7 +559,7 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
                     }).catch(() => {});
 
                     const schema = botHelper.schema || require('../models/schema');
-                    const usersModel = connSecond.model('users', schema);
+                    const usersModel = connSecond.model(USERS_COLLECTION, schema);
                     await usersModel.updateMany(
                         { $or: [{ id: { $in: blockedUserIds } }, { uid: { $in: blockedUserIds } }] },
                         { $set: { blocked: true } }
@@ -591,7 +595,7 @@ const showCampaigns = async (ctx, botHelper) => {
             return ctx.reply('Ошибка: нет подключения к БД в botHelper');
         }
 
-        const messages = connSend.model('broadcasts', botHelper.schema);
+        const messages = connSend.model(BROAD_COLLECTION, botHelper.schema);
 
         const agg = [
             {
@@ -636,7 +640,7 @@ const clearCampaigns = async (ctx, botHelper) => {
             return ctx.reply('Ошибка: нет подключения к БД в botHelper');
         }
 
-        const messages = connSend.model('broadcasts', botHelper.schema);
+        const messages = connSend.model(BROAD_COLLECTION, botHelper.schema);
         const count = await messages.countDocuments();
 
         await messages.deleteMany({});

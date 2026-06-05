@@ -237,85 +237,6 @@ const getDbSizeStats = async (aaa_db='') => {
   }
 };
 
-const getBroadcastUsers = async () => {
-  const { MONGO_URI_SECOND, TG_ADMIN_ID } = require('../../config/vars');
-  const TG_ADMIN = parseInt(TG_ADMIN_ID, 10);
-  let chatIds = [];
-
-  // 1. Try to fetch from secondary DB (users collection) if MONGO_URI_SECOND is configured
-  if (MONGO_URI_SECOND) {
-    try {
-      const { createConnection } = require('../../config/mongoose');
-      const connSecond = createConnection(MONGO_URI_SECOND);
-      if (connSecond) {
-        // Wait for connection to open
-        await new Promise((resolve, reject) => {
-          connSecond.once('open', resolve);
-          connSecond.once('error', reject);
-        }).catch(() => {});
-
-        const schema = require('../models/schema');
-        const usersModel = connSecond.model('users', schema);
-        const users = await usersModel.find({}, { id: 1 });
-        chatIds = users.map(u => u.id || u.uid).filter(Boolean);
-        await connSecond.close();
-      }
-    } catch (err) {
-      logger(`Error fetching users from secondary DB: ${err}`);
-    }
-  }
-
-  // 2. Fall back to counter collection in primary DB
-  if (chatIds.length === 0) {
-    try {
-      const docs = await counter.find({ url: { $exists: true } });
-      const primaryIds = docs
-        .map(d => parseInt(d.url, 10))
-        .filter(id => !isNaN(id) && id > 0);
-      chatIds = [...new Set(primaryIds)];
-    } catch (err) {
-      logger(`Error fetching users from primary DB counter: ${err}`);
-    }
-  }
-
-  // 3. Ensure the admin is included
-  if (TG_ADMIN && !chatIds.includes(TG_ADMIN)) {
-    chatIds.push(TG_ADMIN);
-  }
-
-  return chatIds;
-};
-
-const sendBroadcast = async (botHelper, text, isTest = false) => {
-  const adminId = botHelper.tgAdmin;
-  if (!adminId) {
-    throw new Error('Admin ID not set');
-  }
-
-  if (isTest) {
-    await botHelper.botMes(adminId, text, true);
-    return { success: 1, failed: 0, total: 1, isTest: true };
-  }
-
-  const chatIds = await getBroadcastUsers();
-  let success = 0;
-  let failed = 0;
-
-  for (const chatId of chatIds) {
-    try {
-      await botHelper.botMes(chatId, text, true);
-      success++;
-    } catch (err) {
-      logger(`Failed to send broadcast to ${chatId}: ${err}`);
-      failed++;
-    }
-    // Sleep 50ms to respect Telegram rate limits
-    await new Promise(resolve => setTimeout(resolve, 50));
-  }
-
-  return { success, failed, total: chatIds.length, isTest: false };
-};
-
 const reactivateUser = async (chatId) => {
   return
   const { MONGO_URI_SECOND } = require('../../config/vars');
@@ -361,7 +282,6 @@ module.exports.getCol = getCol;
 module.exports.get = get;
 module.exports.getLastCreatedLinks = getLastCreatedLinks;
 module.exports.getDbSizeStats = getDbSizeStats;
-module.exports.sendBroadcast = sendBroadcast;
 module.exports.reactivateUser = reactivateUser;
 
 

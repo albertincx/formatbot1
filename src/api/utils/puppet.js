@@ -37,45 +37,59 @@ const puppet = async (url, params) => {
   }
   logger('puppet start');
   logger(new Date());
+
+  let browser;
+  let page;
+
   try {
     logger(url);
-    const browser = await puppeteer.connect({browserWSEndpoint: ws});
-    const page = await browser.newPage();
-    const status = await page
-      .goto(url, {
+    browser = await puppeteer.connect({browserWSEndpoint: ws});
+    page = await browser.newPage();
+    let response;
+    try {
+      response = await page.goto(url, {
         waitUntil: 'load',
         timeout: 30000
-      })
-      .catch(() => page.close()
-        .then(() => page.content()));
-    if (!status.ok) {
-      logger('cannot open google.com');
-    } else {
-      logger('wait');
-      const scrollCount = scroll ? 6 : 3;
-      logger(scroll);
-      await timeout(5);
-      for (let scrollTime = 0; scrollTime < scrollCount; scrollTime += 1) {
-        await page.evaluate(sc => {
-          window.scrollBy(0, 200);
-          const scrollElement = document.getElementById(sc);
-          if (scrollElement) {
-            scrollElement.scrollTop += 200;
-          }
-        }, scroll);
-      }
-      await timeout(2);
-      logger('wait 2');
-      const content = await page.content();
-      await page.close();
-      logger('puppet end');
-      logger(new Date());
-      return content;
+      });
+    } catch (err) {
+      logger(`Navigation error: ${err.message}`);
     }
+
+    if (response && !response.ok()) {
+      logger(`HTTP status: ${response.status()} for ${url}`);
+    }
+
+    logger('wait');
+    const scrollCount = scroll ? 6 : 3;
+    logger(scroll);
+    await timeout(5);
+    for (let scrollTime = 0; scrollTime < scrollCount; scrollTime += 1) {
+      await page.evaluate(sc => {
+        window.scrollBy(0, 200);
+        const scrollElement = document.getElementById(sc);
+        if (scrollElement) {
+          scrollElement.scrollTop += 200;
+        }
+      }, scroll);
+    }
+    await timeout(2);
+    logger('wait 2');
+    const content = await page.content();
+    return content;
   } catch (e) {
     logger(e);
+  } finally {
+    if (page) {
+      await page.close().catch(() => {});
+    }
+    if (browser) {
+      browser.disconnect();
+    }
+    logger('puppet end');
+    logger(new Date());
   }
   return '';
 };
+
 module.exports = puppet;
 module.exports.getBrowser = getBrowser;
