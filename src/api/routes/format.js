@@ -76,11 +76,14 @@ const startOrHelp = (ctx, botHelper) => {
         db.reactivateUser(chatId).catch(err => console.error('Error reactivating user:', err));
     }
 
-    if (ctx && ctx.message.text && ctx.message.text.match(/\/start\s(.*?)/)) {
-        const cmd = ctx.message.text.match(/\/start\s(.*?)$/)[1];
-        if (cmd === 'support') {
-            support(ctx, botHelper);
-            return;
+    if (ctx && ctx.message.text) {
+        const match = ctx.message.text.match(/\/start\s(.*?)$/);
+        if (match && match[1]) {
+            const cmd = match[1];
+            if (cmd === 'support') {
+                support(ctx, botHelper);
+                return;
+            }
         }
     }
 

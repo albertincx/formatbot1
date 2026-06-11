@@ -96,10 +96,10 @@ const makeIvLink = async (urlParam, paramsObj) => {
 const parse = u => {
   if (u.match(GOOGLE_DOMAIN)) {
     let parsed = u.split(/es\/(.*?)\?/);
-    if (parsed) {
+    if (parsed && parsed[1]) {
       parsed = `${from64(parsed[1])}`;
-      parsed = parsed.match(/^\x08\x13".(.*)\//);
-      return parsed[1];
+      const match = parsed.match(/^\x08\x13".(.*)\//);
+      if (match && match[1]) return match[1];
     }
   }
 
