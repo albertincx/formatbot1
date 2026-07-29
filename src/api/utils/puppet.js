@@ -87,7 +87,7 @@ const puppet = async (url, params) => {
       await page.close().catch(() => {});
     }
     if (browser) {
-      browser.disconnect();
+      await browser.disconnect().catch(() => {});
     }
     logger('puppet end');
     logger(new Date());
