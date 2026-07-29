@@ -7,20 +7,20 @@
   "private": false,
   "license": "MIT",
   "engines": {
-    "yarn": "*",
-    "node": ">=18.0.0"
+    "yarn": ">=1.22.0",
+    "node": ">=20.0.0"
   },
   "scripts": {
     "precommit": "yarn lint",
     "start": "NODE_ENV=production node ./src/index.js",
-    "dev": "NODE_ENV=production nodemon ./src/index.js"
+    "dev": "NODE_ENV=development nodemon ./src/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:/albertincx/formatbot1.git"
+    "url": "git@github.com:albertincx/formatbot1.git"
   },
   "keywords": [
-    "intstantview",
+    "instantview",
     "corsabot",
     "format",
     "parsehtml",
@@ -30,32 +30,30 @@
   ],
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
-    "@postlight/parser": "^2.2.3",
     "amqplib": "^2.0.1",
     "atob": "^2.1.2",
     "co": "^4.6.0",
     "cron": "^4.4.0",
-    "dayjs": "^1.11.20",
+    "dayjs": "^1.11.21",
     "dotenv-safe": "^9.1.0",
     "express": "^5.2.1",
     "is-image": "^4.0.0",
     "is-image-url": "^1.1.8",
     "is-url": "^1.2.4",
     "jsbn": "^1.1.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.0",
     "lodash": "^4.18.1",
-    "mongoose": "^9.6.2",
+    "mongoose": "^9.8.1",
     "nodemon": "^3.1.14",
-    "pdfjs-dist": "^5.7.284",
-    "puppeteer": "^25.0.4",
-    "sanitize-html": "^2.17.4",
-    "showdown": "^2.1.0",
+    "pdfjs-dist": "^6.2.108",
+    "puppeteer": "^25.4.0",
+    "sanitize-html": "^2.17.6",
     "statuses": "^2.0.2",
     "sync-request": "^6.1.0",
     "telegraf": "4.16.3",
     "tgsend": "^0.0.9",
-    "trace-unhandled": "^2.0.1",
-    "undici": "^8.3.0",
+    "trace-unhandled": "^1.0.1",
+    "undici": "^8.9.0",
     "wget-improved": "^3.4.0"
   },
   "devDependencies": {
