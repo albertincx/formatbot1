@@ -1,5 +1,3 @@
-require('trace-unhandled/register');
-
 const botRoute = require('./api/routes/botroute');
 
 const botInstance = require('./config/bot');
