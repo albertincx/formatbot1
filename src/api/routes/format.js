@@ -332,8 +332,7 @@ const format = (bot, botHelper, skipCountBool) => {
                 logger(e);
                 return;
             }
-            logger('parsed');
-            logger(parsed.protocol);
+            logger('parsed proto ' + parsed.protocol);
             try {
                 if (link.match(/^(https?:\/\/)?(www.)?google/)) {
                     const matchUrl = link.match(/url=(.*?)($|&)/);
@@ -486,16 +485,23 @@ const format = (bot, botHelper, skipCountBool) => {
 
     let browserWs = null;
     if (!botHelper.config.no_puppet && !IS_PUPPET_DISABLED) {
+        logger('load chrome')
         puppet.getBrowser()
             .then(ws => {
                 browserWs = ws;
+                logger('loaded ws' + ws)
+                try {
+                    rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));
+                } catch (e) {
+                    botHelper.sendError(e);
+                }
             });
-    }
-
-    try {
-        rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));
-    } catch (e) {
-        botHelper.sendError(e);
+    } else {
+        try {
+            rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));
+        } catch (e) {
+            botHelper.sendError(e);
+        }
     }
 };
 

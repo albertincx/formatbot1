@@ -1,15 +1,10 @@
-const fs = require('fs');
-const Mercury = require('@postlight/parser');
-const {Readability} = require('@mozilla/readability');
 const sanitizeHtml = require('sanitize-html');
 const path = require('path');
 
 const {REST_API} = require('../../config/vars');
 
-const mercuryParse = require('./mercury');
-const fixImages = require('./fixImages');
+const htmlParser = require('./readability');
 const puppet = require('./puppet');
-const {getDom} = require('./dom');
 const {logger} = require('./logger');
 const {
   fetchTimeout,
@@ -58,38 +53,6 @@ class ParseHelper {
     this.custom = this.checkCustom();
   }
 
-  addExtractor() {
-    if (!this.domain) return;
-
-    const newExtractor = {
-      domain: this.domain,
-      extend: {
-        iframe: {
-          selectors: [['iframe[src*=youtube]', 'src']],
-          allowMultiple: true,
-        },
-      },
-    };
-
-    let selectors = null;
-    if (this.fb) {
-      selectors = ['.userContentWrapper'];
-    }
-
-    if (this.sites.vk) {
-      selectors = ['.wall_text'];
-    }
-    if (this.params.content) {
-      selectors = [this.params.content];
-    }
-    if (selectors) {
-      newExtractor.content = {selectors};
-    }
-    if (newExtractor) {
-      Mercury.addExtractor(newExtractor);
-    }
-  }
-
   checkCustom() {
     if (this.host.match(/facebook\.com/)) {
       this.fb = true;
@@ -115,23 +78,31 @@ class ParseHelper {
     let html = '';
     if (!this.params.isPuppet) {
       html = await puppet(link, this.params);
+      logger('pup html is ' + html.length);
+
       if (!this.params.isCached) {
         this.log(html, ASYNC_FILE);
       }
     }
+
     return html;
   }
 
   async fetchHtml(link) {
-    if (this.params.mozilla || (this.custom && !this.params.isCached)) {
+    logger('fetchHtml');
+    logger(this.custom);
+    logger(this.params.isCached);
+    if (this.custom && !this.params.isCached) {
       //
     } else {
+      logger(`custom skipping ${link}`);
       return '';
     }
     let content;
-    this.log(`this.params.isPuppet ${this.params.isPuppet}`);
+    logger(`this.params.isPuppet ${this.params.isPuppet}`);
     if (this.params.isPuppet) {
       content = await puppet(link, this.params);
+      logger('pup html 0 is ' + content.length);
       this.log(content, 'puppet.html');
     } else {
       try {
@@ -155,7 +126,7 @@ class ParseHelper {
       content = content.replace(/<br\s?\/>\n<br\s?\/>/gm, '\n<p></p>');
     }
     if (!content) {
-      throw new Error('empty content');
+      throw new Error('empty content fetch');
     }
     this.log(content, 'fixed_fetched.html');
 
@@ -182,41 +153,30 @@ class ParseHelper {
   }
 
   log(content, file) {
-    logger(content && `len - ${content.length}`);
+    let _len = content && content.length;
+    logger(`len - ${_len} ${_len < 1000 && content}`);
     if (this.params.isadmin) {
       logger(content, file);
     }
   }
 
   async parse() {
-    const mozillaParserEnabled = this.params.mozilla;
     const userUrl = this.link;
     const opts = {};
     const fetchedDocument = await this.fetchHtml(userUrl);
     if (fetchedDocument) {
       opts.html = Buffer.from(fetchedDocument);
     }
-    if (!mozillaParserEnabled) {
-      this.addExtractor();
-    }
 
     let result = {};
     if (this.params.isCached) {
       const cf = this.params.cachefile;
-      const cacheFile = cf || 'mercury.html';
+      const cacheFile = cf || 'parsed.html';
       this.log('html from cache');
       result.content = `${fs.readFileSync(`.conf/${cacheFile}`)}`;
     } else {
-      if (mozillaParserEnabled) {
-        logger('mozilla');
-        if (opts.html) {
-          result = new Readability(getDom(opts.html)).parse() || {};
-          this.log(result.content, 'mozilla.html');
-        }
-      } else {
-        result = await mercuryParse(userUrl, opts);
-        this.log(result.content, 'mercury.html');
-      }
+      result = await htmlParser(userUrl, opts);
+      this.log(result.content, 'parsed.html');
     }
     let {content} = result;
     this.log(content, 'before_content.html');
@@ -229,21 +189,18 @@ class ParseHelper {
     if (preContent.length === 0) {
       const html = await this.puppet(userUrl);
       if (html) {
-        result = await mercuryParse(userUrl, {html: Buffer.from(html)});
-        this.log(result.content, 'mercuryAsyncContent.html');
+        result = await htmlParser(userUrl, {html: Buffer.from(html)});
+        this.log(result.content, 'parsedAsyncContent.html');
       }
     }
-    const {
-      url: source,
-      iframe
-    } = result;
+    const {url: source, iframe} = result;
+
     let {title = ''} = result;
     if (iframe) {
       this.log(iframe, 'iframes.html');
     }
-    if (this.title) {
-      title = this.title;
-    }
+    if (this.title) title = this.title;
+
     content = result.content;
     const data = await race([
       this.fixHtml(content, iframe),

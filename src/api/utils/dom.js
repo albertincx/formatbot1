@@ -1,6 +1,4 @@
-const jsdom = require('jsdom');
-
-const {JSDOM} = jsdom;
+const {JSDOM} = require('jsdom');
 
 function domToNode(domNode) {
   if (domNode.nodeType === domNode.TEXT_NODE) {

@@ -49,8 +49,9 @@ const puppet = async (url, params) => {
     try {
       response = await page.goto(url, {
         waitUntil: 'load',
-        timeout: 30000
+        timeout: 5000
       });
+      logger('page loaded')
     } catch (err) {
       logger(`Navigation error: ${err.message}`);
     }
@@ -59,10 +60,12 @@ const puppet = async (url, params) => {
       logger(`HTTP status: ${response.status()} for ${url}`);
     }
 
-    logger('wait');
     const scrollCount = scroll ? 6 : 3;
     logger(scroll);
-    await timeout(5);
+    logger('wait scroll ' + scrollCount);
+    await timeout(3);
+    logger('waited 3 sec');
+
     for (let scrollTime = 0; scrollTime < scrollCount; scrollTime += 1) {
       await page.evaluate(sc => {
         window.scrollBy(0, 200);
@@ -72,9 +75,10 @@ const puppet = async (url, params) => {
         }
       }, scroll);
     }
-    await timeout(2);
-    logger('wait 2');
+    await timeout(3);
+    logger('wait 3');
     const content = await page.content();
+    logger('ppt len = ' + content.length);
     return content;
   } catch (e) {
     logger(e);

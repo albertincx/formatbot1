@@ -52,7 +52,7 @@ const makeIvLink = async (urlParam, paramsObj) => {
   }
 
   if (!content) {
-    throw new Error('empty content');
+    throw new Error('empty content mk iv');
   }
 
   const obj = {
