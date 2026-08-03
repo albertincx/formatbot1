@@ -8,12 +8,12 @@
   "license": "MIT",
   "engines": {
     "yarn": ">=1.22.0",
-    "node": ">=20.0.0"
+    "node": ">=21"
   },
   "scripts": {
     "precommit": "yarn lint",
-    "start": "NODE_ENV=production node ./src/index.js",
-    "dev": "NODE_ENV=development nodemon ./src/index.js"
+    "start": "NODE_ENV=production node --env-file=.env ./src/index.js",
+    "dev": "NODE_ENV=development nodemon --env-file=.env ./src/index.js"
   },
   "repository": {
     "type": "git",
@@ -35,7 +35,6 @@
     "co": "^4.6.0",
     "cron": "^4.4.0",
     "dayjs": "^1.11.21",
-    "dotenv-safe": "^9.1.0",
     "express": "^5.2.1",
     "is-image": "^4.0.0",
     "is-image-url": "^1.1.8",

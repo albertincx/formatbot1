@@ -14,6 +14,9 @@ const {parseEnvArray} = require('../api/utils');
 const TASKS_CHANNEL = R_MQ_MAIN_CHANNEL;
 
 let rChannel = null;
+let connection = null;
+let isConnecting = false;
+let registeredJob = null; // Сохраняем job для переподписки при реконнекте
 
 const starts = {
     start: process.hrtime(),
@@ -55,24 +58,68 @@ const resetTime = (q = TASKS_CHANNEL) => {
     starts[startName] = process.hrtime();
 };
 
-let connection = null;
-
-const startFirst = async () => {
+// Функция для установки соединения с автореконнектом
+const connectRabbit = async () => {
     if (!RABBIT_MQ_QUE) {
         console.log(messages.warningMQ());
-        return;
+        return null;
     }
+    if (connection) return connection;
+    if (isConnecting) return null;
 
+    isConnecting = true;
     try {
-        if (!connection) {
-            connection = await amqp.connect(RABBIT_MQ_QUE);
-        }
-        if (!rChannel) {
-            rChannel = await connection.createChannel();
-        }
+        connection = await amqp.connect(RABBIT_MQ_QUE);
+        isConnecting = false;
+        console.log('RabbitMQ connected successfully');
+
+        connection.on('error', (err) => {
+            logger('RabbitMQ connection error: ' + err.message);
+        });
+
+        connection.on('close', () => {
+            console.log('RabbitMQ connection closed. Reconnecting in 5s...');
+            connection = null;
+            rChannel = null;
+            setTimeout(async () => {
+                const newConn = await connectRabbit();
+                // Если соединение восстановилось и был зарегистрирован обработчик задач, переподписываемся
+                if (newConn && registeredJob) {
+                    runMqChannels(registeredJob);
+                }
+            }, 5000);
+        });
+
+        return connection;
     } catch (e) {
-        console.log('err rabbit');
+        isConnecting = false;
+        console.log('err rabbit connect, retrying in 5s...');
         logger(e);
+        setTimeout(async () => {
+            const newConn = await connectRabbit();
+            if (newConn && registeredJob) {
+                runMqChannels(registeredJob);
+            }
+        }, 5000);
+        return null;
+    }
+};
+
+const startFirst = async () => {
+    const conn = await connectRabbit();
+    if (conn && !rChannel) {
+        try {
+            rChannel = await conn.createChannel();
+            rChannel.on('error', (err) => {
+                logger('RabbitMQ main channel error: ' + err.message);
+            });
+            rChannel.on('close', () => {
+                rChannel = null;
+            });
+        } catch (e) {
+            console.log('err rabbit channel creation');
+            logger(e);
+        }
     }
 };
 
@@ -84,14 +131,17 @@ const createChan = async (queueName = TASKS_CHANNEL) => {
         return undefined;
     }
     try {
-        if (!connection) {
-            connection = await amqp.connect(RABBIT_MQ_QUE);
-        }
-        channel = await connection.createChannel();
+        const conn = await connectRabbit();
+        if (!conn) return undefined;
+
+        channel = await conn.createChannel();
+        channel.on('error', (err) => {
+            logger(`Channel error for ${queueName}: ` + err.message);
+        });
         await channel.prefetch(1);
         await channel.assertQueue(queueName, {durable: true});
     } catch (e) {
-        console.log('err rabbit 1');
+        console.log('err rabbit channel/queue setup');
         logger(e);
     }
 
@@ -109,30 +159,52 @@ const runMqChannel = async (job, qName) => {
         if (!channel) return;
         job.isClosed = false;
         channel.consume(queueName, message => {
+            // logger('queueName ');
             if (message) {
                 const {content} = message;
-                const task = JSON.parse(`${content}`);
+                let task;
+                try {
+                    task = JSON.parse(`${content}`);
+                } catch (parseErr) {
+                    console.log('error parsing task JSON');
+                    logger(parseErr);
+                    try {
+                        channel.ack(message);
+                    } catch (err) {
+                    }
+                    return;
+                }
+
                 if (queueName !== TASKS_CHANNEL) {
                     task.q = queueName;
                 }
                 job(task)
                     .then(() => {
-                        channel.ack(message);
+                        try {
+                            channel.ack(message);
+                        } catch (ackErr) {
+                            logger('Ack error: ' + ackErr.message);
+                        }
                     })
                     .catch(e => {
                         console.log('error job task');
                         console.log(e);
-                        channel.ack(message);
+                        try {
+                            channel.nack(message, false, false);
+                        } catch (nackErr) {
+                            logger('Nack error: ' + nackErr.message);
+                        }
                     });
             }
         });
     } catch (e) {
-        console.log('err rabbit job');
+        console.log('err rabbit job consumer');
         logger(e);
     }
 };
 
 const runMqChannels = job => {
+    registeredJob = job; // Запоминаем для восстановления после обрыва
     if (!RABBIT_MQ_QUE) {
         console.log(messages.warningMQ());
         return;
@@ -156,13 +228,10 @@ function shuffle(arr) {
     let temporaryValue;
     let randomIndex;
 
-    // While there remain elements to shuffle...
     while (currentIndex !== 0) {
-        // Pick a remaining element...
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex -= 1;
 
-        // And swap it with the current element.
         temporaryValue = arr[currentIndex];
         arr[currentIndex] = arr[randomIndex];
         arr[randomIndex] = temporaryValue;
@@ -207,10 +276,13 @@ const addToChannel = (taskParams, qName = TASKS_CHANNEL) => {
                 persistent: true,
             });
         } catch (e) {
-            console.log(e);
+            console.log('Send to queue error:', e);
         }
+    } else {
+        console.log('rChannel is not available to send message');
     }
 };
+
 const time = (queueName = TASKS_CHANNEL, start = false) => {
     if (queueName === TASKS_CHANNEL) {
         availableOne = !start;

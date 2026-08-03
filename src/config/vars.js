@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-const dotenv = require('dotenv-safe');
 
 const messages = require('../messages/format');
 
@@ -21,15 +20,10 @@ if (!fs.existsSync(blacklistFile)) {
   fs.writeFileSync(`${confFile}/blacklist.txt`, '');
 }
 
-dotenv.config({
-  allowEmptyValues: true,
-  path: envPath,
-  sample: path.join(__dirname, '../../.env.example'),
-});
-
 if (!fs.existsSync(envPath)) {
   unableToStart.push(messages.errorEnv());
 }
+
 const MQ_IS_OFF = env.NO_MQ === '1';
 const RABBIT_MQ_QUEUE = !MQ_IS_OFF && env.MESSAGE_QUEUE;
 
