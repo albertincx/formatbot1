@@ -78,7 +78,7 @@ const puppet = async (url, params) => {
     await timeout(3);
     logger('wait 3');
     const content = await page.content();
-    logger('ppt len = ' + content.length);
+    // logger('ppt len = ' + content.length);
     return content;
   } catch (e) {
     logger(e);
