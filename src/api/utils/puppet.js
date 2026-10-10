@@ -8,12 +8,13 @@ const getBrowser = async () => {
     '--disable-web-security',
     '--ignore-certificate-errors',
     '--no-sandbox',
-    '--ignore-autoplay-restrictions',
+    '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--ignore-autoplay-restrictions',
     '--disable-background-timer-throttling',
     '--lang=en',
     '--incognito',
-    '--disabled-setupid-sandbox',
   ];
   const opts = {args};
   if (HEADLESS !== '1') {

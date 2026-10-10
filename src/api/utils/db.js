@@ -189,15 +189,13 @@ const getLastCreatedLinks = async (limit = 10) => {
   return msg;
 };
 
-const getDbSizeStats = async (aaa_db='') => {
-    console.log('aaa_db')
-    console.log(aaa_db)
+const getDbSizeStats = async (db_name='') => {
   const mongoose = require('mongoose');
   let conn = mongoose.connection;
-  if (aaa_db === '0') conn = conn0
-  if (aaa_db === '1') conn = conn1
+  if (db_name === '0') conn = conn0
+  if (db_name === '1') conn = conn1
   if (!conn || !conn.db) {
-    return 'Нет активного подключения к БД';
+    return `Нет активного подключения к БД ${db_name}`;
   }
   try {
     const dbStatsRes = await conn.db.command({ dbStats: 1 });
@@ -212,7 +210,7 @@ const getDbSizeStats = async (aaa_db='') => {
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    let response = `📊 *Статистика базы данных MongoDB:*\n\n`;
+    let response = `📊 *Статистика базы данных MongoDB:*\n${db_name}\n`;
     response += `*База данных:* \`${dbStatsRes.db}\`\n`;
     response += `• Объем данных (dataSize): ${formatBytes(dbStatsRes.dataSize)}\n`;
     response += `• Объем на диске (storageSize): ${formatBytes(dbStatsRes.storageSize)}\n`;
