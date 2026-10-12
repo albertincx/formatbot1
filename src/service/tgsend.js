@@ -240,6 +240,10 @@ const broadCustom = async (ctx, txt, botHelper) => {
         return ctx.reply('Ошибка: нет подключения к БД в botHelper');
     }
     try {
+        const JUST_ME = '_me_'
+        const justMe = txt.match(JUST_ME)
+        txt = txt.replace(JUST_ME, '')
+
         const args = txt.replace(/^\/broad_custom\s+/i, '').trim().split(/\s+/);
         if (args.length < 3) {
             return ctx.reply('Использование:\nРассылка текста:\n/broad_custom <campaign_id> <limit> text:<текст>\n\nРассылка сообщения канала:\n/broad_custom <campaign_id> <limit> chan:<message_id>:<channel_id>\n\nРассылка по ссылке на канал:\n/broad_custom <campaign_id> <limit> chanlink:<t.me_link>');
@@ -248,7 +252,8 @@ const broadCustom = async (ctx, txt, botHelper) => {
         const cId = args[0];
         const limit = parseInt(args[1], 10) || 800;
         const typeAndContent = args.slice(2).join(' ');
-
+        // console.log(cId, limit, typeAndContent, justMe)
+        // return
         let mode = ''; // 'text' or 'chan'
         let content = ''; // text string or { mId, fromId }
 
@@ -312,7 +317,11 @@ const broadCustom = async (ctx, txt, botHelper) => {
         let start10 = cId.match(/^_10_/)
         if (start10) start = false
 
-        let filter = start ? {username: 'safiullin'} : { blocked: { $ne: true } }
+        let filter = {blocked: {$ne: true}}
+
+        if (justMe || start) {
+            filter = {username: 'safiullin'}
+        }
 
         const cursor = users.find(filter).limit(start10 ? 10 : 0).cursor();
         let updates = [];
@@ -407,8 +416,8 @@ const broadCustom = async (ctx, txt, botHelper) => {
                 try {
                     const usersModel = connSecond.model(USERS_COLLECTION, botHelper.schema);
                     await usersModel.updateMany(
-                        { $or: [{ id: { $in: blockedUserIds } }, { uid: { $in: blockedUserIds } }] },
-                        { $set: { blocked: true } }
+                        {$or: [{id: {$in: blockedUserIds}}, {uid: {$in: blockedUserIds}}]},
+                        {$set: {blocked: true}}
                     );
                     console.log(`[SOFT BLOCK] Bulk marked ${blockedUserIds.length} users as blocked.`);
                 } catch (e) {
@@ -549,20 +558,21 @@ const broadStartCustom = async (ctx, txt, botHelper) => {
         // Auto-Soft-Block users who blocked the bot
         if (blockedUserIds.length > 0) {
             try {
-                const { MONGO_URI_SECOND } = require('../../config/vars');
-                const { createConnection } = require('../../config/mongoose');
+                const {MONGO_URI_SECOND} = require('../../config/vars');
+                const {createConnection} = require('../../config/mongoose');
                 const connSecond = createConnection(MONGO_URI_SECOND);
                 if (connSecond) {
                     await new Promise((resolve, reject) => {
                         connSecond.once('open', resolve);
                         connSecond.once('error', reject);
-                    }).catch(() => {});
+                    }).catch(() => {
+                    });
 
                     const schema = botHelper.schema || require('../models/schema');
                     const usersModel = connSecond.model(USERS_COLLECTION, schema);
                     await usersModel.updateMany(
-                        { $or: [{ id: { $in: blockedUserIds } }, { uid: { $in: blockedUserIds } }] },
-                        { $set: { blocked: true } }
+                        {$or: [{id: {$in: blockedUserIds}}, {uid: {$in: blockedUserIds}}]},
+                        {$set: {blocked: true}}
                     );
                     console.log(`[SOFT BLOCK] Bulk marked ${blockedUserIds.length} users as blocked.`);
                     await connSecond.close();
