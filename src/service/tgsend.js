@@ -246,7 +246,11 @@ const broadCustom = async (ctx, txt, botHelper) => {
 
         const args = txt.replace(/^\/broad_custom\s+/i, '').trim().split(/\s+/);
         if (args.length < 3) {
-            return ctx.reply('Использование:\nРассылка текста:\n/broad_custom <campaign_id> <limit> text:<текст>\n\nРассылка сообщения канала:\n/broad_custom <campaign_id> <limit> chan:<message_id>:<channel_id>\n\nРассылка по ссылке на канал:\n/broad_custom <campaign_id> <limit> chanlink:<t.me_link>');
+            return ctx.reply('Использование:\n' +
+                'Рассылка текста:\n/broad_custom <campaign_id> <limit> text:<текст>\n\n' +
+                'Рассылка сообщения канала:\n/broad_custom <campaign_id> <limit> chan:<message_id>:<channel_id>\n\n' +
+                'Рассылка по ссылке на канал:\n/broad_custom <campaign_id> <limit> chanlink:<t.me_link> \n' +
+                ' _me_ = just me');
         }
 
         const cId = args[0];
