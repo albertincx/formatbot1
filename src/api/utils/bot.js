@@ -394,8 +394,9 @@ class BotHelper {
             return 'is not admin';
         }
 
-        if (ctx.message.text.match(/(createBroadcast)/)) this.conn = createConnection(MONGO_URI_SECOND);
-
+        if (ctx.message.text.match(/(createBroadcast|broad_custom)/)) {
+            this.conn = createConnection(MONGO_URI_SECOND);
+        }
         this.connSend = createConnection(MONGO_URI_BROAD);
         this.schema = new Schema({}, {
             strict: false,
