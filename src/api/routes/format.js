@@ -201,7 +201,7 @@ const format = (bot, botHelper, skipCountBool) => {
         if (
             message &&
             message.text &&
-            message.text.match(/(createBroadcast|startBroadcast|broad_custom|broad_start_custom|showcids|clearbroadcasts)/i)
+            message.text.match(/(createBroadcast|startBroadcast|showcids|clearbroadcasts|lastcid|getlastcid|last_cid)/i)
         ) {
             botHelper.startBroad(ctx)
             return;
