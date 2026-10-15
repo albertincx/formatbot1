@@ -262,7 +262,14 @@ ${RESULT}`;
     if (!error) {
       let mark = inline ? 'i' : '';
       if (isChanMesId) mark += 'c';
-      if (ivFromDb) mark += ' db';
+      if (ivFromDb) {
+        mark += ' (from db)';
+      } else {
+        mark += ' ⚡ fresh';
+      }
+      if (force) {
+        mark += ` (force: ${force.replace(/_/g, '-')})`;
+      }
 
       let logToGroup;
       if (!global.lastLogTime) {
@@ -271,9 +278,11 @@ ${RESULT}`;
       } else {
         logToGroup = isDateMoreADay(global.lastLogTime);
       }
-      // now it disabled by default
+      if (force || !ivFromDb) {
+        logToGroup = true;
+      }
       if (group && logToGroup) {
-        const text = `${mark ? `${mark} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
+        const text = `${mark ? `${mark.trim()} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
         botHelper.sendAdminMark(text, group);
         global.lastLogTime = +new Date();
       }
