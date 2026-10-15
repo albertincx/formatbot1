@@ -48,11 +48,18 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
 
   let {link} = task;
 
-  if (link.match(/^https?:\/\/t\.me\//)) {
+  if (!link || typeof link !== 'string' || link.match(/^https?:\/\/t\.me\//)) {
     return;
   }
 
-  const {host} = new url.URL(link);
+  let host;
+  try {
+    const parsedUrl = new url.URL(link);
+    host = parsedUrl.host;
+  } catch (e) {
+    console.log('Invalid URL in jobMessage task, skipping:', link);
+    return;
+  }
   let error = '';
   let isBroken = false;
   const resolveMsgId = false;

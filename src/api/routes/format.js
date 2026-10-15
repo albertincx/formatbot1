@@ -106,7 +106,7 @@ const format = (bot, botHelper, skipCountBool) => {
     bot.command('support', ctx => support(ctx, botHelper));
     bot.hears('⌨️ Hide keyboard', ctx => {
         try {
-            ctx.reply('Type /help to show.', keyboards.hide());
+            ctx.reply('Type /help to show', keyboards.hide());
         } catch (e) {
             botHelper.sendError(e);
         }
@@ -268,6 +268,9 @@ const format = (bot, botHelper, skipCountBool) => {
                         key: dbKeys.counter,
                         filter: {url: chatId, iv: 'pdf'},
                         project: 'af updatedAt'
+                    }).catch(err => {
+                        console.error('db get pdf counter error:', err);
+                        return null;
                     });
                     if (cnt) {
                         const now = Date.now();
@@ -335,8 +338,19 @@ const format = (bot, botHelper, skipCountBool) => {
             logger('parsed proto ' + parsed.protocol);
             try {
                 if (link.match(/^(https?:\/\/)?(www.)?google/)) {
-                    const matchUrl = link.match(/url=(.*?)($|&)/);
-                    if (matchUrl && matchUrl[1]) link = decodeURIComponent(matchUrl[1]);
+                    const matchUrl = link.match(/[?&](?:url|q)=(.*?)($|&)/);
+                    if (matchUrl && matchUrl[1]) {
+                        const decoded = decodeURIComponent(matchUrl[1]);
+                        if (decoded.match(/^https?:\/\//)) {
+                            link = decoded;
+                            try {
+                                parsed = new url.URL(link);
+                            } catch (e) {
+                                logger('exit wrong decoded google url');
+                                return;
+                            }
+                        }
+                    }
                 }
                 let _force = commandNoDb(text)
                 if (link.match(new RegExp(validRegex)) && !_force) {
@@ -462,24 +476,24 @@ const format = (bot, botHelper, skipCountBool) => {
     bot.on('channel_post', ctx =>
         addToQueue(ctx)
             .catch(e => {
-                console.log(e);
-                botHelper.sendError(`tg err1: ${JSON.stringify(e)}`)
+                console.error('tg err1:', e);
+                botHelper.sendError(`tg err1: ${e && (e.stack || e.message) ? (e.stack || e.message) : e}`);
             }),
     );
 
     bot.hears(/.*/, ctx =>
         addToQueue(ctx)
             .catch(e => {
-                console.log(e);
-                botHelper.sendError(`tg err2: ${JSON.stringify(e)}`)
+                console.error('tg err2:', e);
+                botHelper.sendError(`tg err2: ${e && (e.stack || e.message) ? (e.stack || e.message) : e}`);
             }),
     );
 
     bot.on('message', ctx =>
         addToQueue(ctx)
             .catch(e => {
-                console.log(e);
-                botHelper.sendError(`tg err3: ${JSON.stringify(e)}`)
+                console.error('tg err3:', e);
+                botHelper.sendError(`tg err3: ${e && (e.stack || e.message) ? (e.stack || e.message) : e}`);
             }),
     );
 
