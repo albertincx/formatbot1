@@ -79,13 +79,12 @@ const jobMessage = (botHelper, browserWs, skip) => async task => {
     let timeOutLink = false;
     let ivFromDb = false;
     let successIv = false;
+    const isAdm = botHelper.isAdmin(chatId) || (fromId && botHelper.isAdmin(fromId));
+
     try {
       let params = rabbitMq.getMqParams();
-      const isAdm = botHelper.isAdmin(chatId) || (fromId && botHelper.isAdmin(fromId));
+      if (isAdm) params.isadmin = true;
 
-      if (isAdm) {
-        params.isadmin = true;
-      }
       rabbitMq.timeStart();
       link = ivMaker.parse(link);
       const {
@@ -278,9 +277,8 @@ ${RESULT}`;
       } else {
         logToGroup = isDateMoreADay(global.lastLogTime);
       }
-      if (force || !ivFromDb) {
-        logToGroup = true;
-      }
+      if (isAdm && (force || !ivFromDb)) logToGroup = true;
+
       if (group && logToGroup) {
         const text = `${mark ? `${mark.trim()} ` : ''}[InstantView](${ivLink}) ${RESULT}\n${durationTime}`;
         botHelper.sendAdminMark(text, group);
