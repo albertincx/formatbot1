@@ -6,7 +6,7 @@ const {
   toUrl,
   fetchTimeout
 } = require('./index');
-const {convertPdfToHtml, getTextFromPDF} = require("./pdf");
+const {convertPdfToHtml, getTextFromPDF, convertMdToHtml, getTextFromMd} = require("./pdf");
 
 function from64(v) {
   return Buffer.from(v, 'base64');
@@ -24,6 +24,15 @@ const pdfToHtml = async (link) => {
   }
 }
 
+const mdToHtml = async (link) => {
+  try {
+    const mdPath = await getTextFromMd(link);
+    return convertMdToHtml(mdPath);
+  } catch (error) {
+    console.error('MD Conversion failed:', error);
+  }
+}
+
 const makeIvLink = async (urlParam, paramsObj) => {
   const url = toUrl(urlParam);
   let content, title;
@@ -34,7 +43,9 @@ const makeIvLink = async (urlParam, paramsObj) => {
   } = paramsObj;
 
   if (paramsObj.pdf) {
-    const contentPdf = await pdfToHtml(paramsObj.pdf);
+    const contentPdf = paramsObj.isMd
+      ? await mdToHtml(paramsObj.pdf)
+      : await pdfToHtml(paramsObj.pdf);
     title = paramsObj.pdfTitle;
     content = contentPdf;
   } else {

@@ -252,7 +252,7 @@ const format = (bot, botHelper, skipCountBool) => {
 
         let {text} = msg;
 
-        const isAdm = botHelper.isAdmin(chatId);
+        const isAdm = botHelper.isAdmin(chatId) || (from && botHelper.isAdmin(from.id));
         const rpl = rplToMsg;
         let pdfData = {};
 
@@ -260,8 +260,8 @@ const format = (bot, botHelper, skipCountBool) => {
             const {file_name, mime_type, file_id, file_size} = msg.document;
             if (!file_name) return;
             if (
-                file_name.match(/.pdf$/) &&
-                mime_type === 'application/pdf'
+                (file_name.match(/\.pdf$/i) && mime_type === 'application/pdf') ||
+                file_name.match(/\.md$/i)
             ) {
                 if (file_size < 4e6) {
                     const cnt = await db.get({
@@ -291,7 +291,8 @@ const format = (bot, botHelper, skipCountBool) => {
                         }
                     }
                     pdfData.pdf = file_id;
-                    pdfData.pdfTitle = file_name.replace(/[^a-z\s0-9]/gi, '').replace(/\s/g, '_');
+                    pdfData.pdfTitle = file_name.replace(/[^a-zа-яё\s0-9]/gi, '').replace(/\s/g, '_') || 'document';
+                    if (file_name.match(/\.md$/i)) pdfData.isMd = true;
                     text = PDF_LINK + encodeURI(file_name);
                 } else {
                     console.log('big pdf');

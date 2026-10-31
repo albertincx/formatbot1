@@ -96,4 +96,49 @@ const getTextFromPDF = (link) => {
     })
 }
 
-module.exports = {getTextFromPDF, convertPdfToHtml};
+const getTextFromMd = (link) => {
+    return new Promise((resolve, reject) => {
+        get(link, (r) => {
+            const filePath = `${docsDir}/tmp.md`;
+            const stream = createWriteStream(filePath);
+            r.pipe(stream);
+            r.on('error', reject);
+            stream.on('error', reject);
+            stream.on('finish', () => {
+                resolve(filePath);
+            });
+        }).on('error', reject);
+    });
+};
+
+async function convertMdToHtml(mdPath) {
+    try {
+        const mdText = await fs.readFile(mdPath, 'utf8');
+        const escapeHtml = (str) =>
+            str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+        const lines = mdText.split(/\r?\n/);
+        const paragraphs = lines
+            .map(line => `<p>${escapeHtml(line) || '<br>'}</p>`)
+            .join('\n');
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MD Content</title>
+</head>
+<body>
+${paragraphs}
+</body>
+</html>`;
+    } catch (error) {
+        console.error('Error converting MD:', error);
+        throw error;
+    }
+}
+
+module.exports = {getTextFromPDF, convertPdfToHtml, getTextFromMd, convertMdToHtml};
