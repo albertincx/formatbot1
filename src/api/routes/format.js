@@ -291,6 +291,7 @@ const format = (bot, botHelper, skipCountBool) => {
                         }
                     }
                     pdfData.pdf = file_id;
+                    pdfData.fileName = file_name;
                     pdfData.pdfTitle = file_name.replace(/[^a-zа-яё\s0-9]/gi, '').replace(/\s/g, '_') || 'document';
                     if (file_name.match(/\.md$/i)) pdfData.isMd = true;
                     text = PDF_LINK + encodeURI(file_name);
@@ -356,7 +357,7 @@ const format = (bot, botHelper, skipCountBool) => {
                 let _force = commandNoDb(text)
                 if (link.match(new RegExp(validRegex)) && !_force) {
                     ctx
-                        .reply(messages.showIvMessage('', link, link, parsed.host), {
+                        .reply(messages.showIvMessage('', link, parsed.host), {
                             parse_mode: botHelper.markdown(),
                         })
                         .catch(e => {

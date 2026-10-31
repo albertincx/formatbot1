@@ -3,7 +3,7 @@ module.exports = {
 
 - From a channel/group by "Forward" a message links.
 - By a direct text message links to me.`,
-  showIvMessage: (long, InstantViewUrl, sourceLink, sourceName = 'source') =>
+  showIvMessage: (long, sourceLink, sourceName = 'source') =>
     `${long ? `${long} ` : ''}from [${sourceName}](${sourceLink})`,
   broken: (link, helpMessage) =>
     `Sorry, but your [link](${link}) is broken, restricted, or content is empty${
