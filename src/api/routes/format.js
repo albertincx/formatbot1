@@ -294,7 +294,7 @@ const format = (bot, botHelper, skipCountBool) => {
                     pdfData.fileName = file_name;
                     pdfData.pdfTitle = file_name.replace(/[^a-zа-яё\s0-9]/gi, '').replace(/\s/g, '_') || 'document';
                     if (file_name.match(/\.md$/i)) pdfData.isMd = true;
-                    text = PDF_LINK + encodeURI(file_name);
+                    text = PDF_LINK + encodeURIComponent(file_name);
                 } else {
                     console.log('big pdf');
                     if (isChannelPost) return;

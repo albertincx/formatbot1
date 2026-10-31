@@ -8,14 +8,19 @@ const {
 const fs = require('fs').promises;
 const path = require('path');
 
+const escapeHtml = (str) =>
+    String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
 async function convertPdfToHtml(pdfPath, outputDir) {
     try {
         const pdfjsLib = await import ('pdfjs-dist/legacy/build/pdf.mjs');
-        // Ensure output directory exists
-        // await fs.mkdir(outputDir, {recursive: true});
+        const data = new Uint8Array(await fs.readFile(pdfPath));
 
         // Load the PDF document
-        const pdf = await pdfjsLib.getDocument(pdfPath).promise;
+        const pdf = await pdfjsLib.getDocument({data}).promise;
 
         // HTML template
         let htmlContent = `<!DOCTYPE html>
@@ -23,11 +28,6 @@ async function convertPdfToHtml(pdfPath, outputDir) {
 <head>
     <meta charset="UTF-8">
     <title>PDF Content</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .page { margin-bottom: 20px; border-bottom: 1px solid #ccc; }
-        .text-content { white-space: pre-wrap; }
-    </style>
 </head>
 <body>`;
 
@@ -38,17 +38,38 @@ async function convertPdfToHtml(pdfPath, outputDir) {
             // Extract text content
             const textContent = await page.getTextContent();
 
-            // Concatenate text items
-            const pageText = textContent.items
-                .map(item => item.str)
-                .join(' ');
+            // Build lines/paragraphs using hasEOL or empty str items
+            const lines = [];
+            let currentLine = '';
+            for (const item of textContent.items) {
+                const str = item.str || '';
+                if (!str && item.hasEOL) {
+                    if (currentLine.trim()) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                    continue;
+                }
+                currentLine += (currentLine && str ? ' ' : '') + str;
+                if (item.hasEOL) {
+                    if (currentLine.trim()) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                }
+            }
+            if (currentLine.trim()) {
+                lines.push(currentLine.trim());
+            }
 
-            // Add page to HTML
+            const paragraphs = lines.length
+                ? lines.map(line => `<p>${escapeHtml(line)}</p>`).join('\n        ')
+                : `<p>${escapeHtml(textContent.items.map(item => item.str).join(' '))}</p>`;
+
+            // Add page to HTML using Telegra.ph-compatible tags (h3, p)
             htmlContent += `
-      <div class="page" id="page-${pageNum}">
-        <h2>Page ${pageNum}</h2>
-        <div class="text-content">${pageText}</div>
-      </div>`;
+      <h3>Page ${pageNum}</h3>
+      ${paragraphs}`;
         }
 
         // Close HTML
@@ -56,12 +77,6 @@ async function convertPdfToHtml(pdfPath, outputDir) {
     </body>
 </html>`;
 
-        // Write HTML file
-        // const outputPath = path.join(outputDir, 'converted-pdf.html');
-        // await fs.writeFile(outputPath, htmlContent);
-
-        // console.log(`PDF converted to HTML: ${outputPath}`);
-        // return outputPath;
         return htmlContent;
     } catch (error) {
         console.error('Error converting PDF:', error);
@@ -69,9 +84,10 @@ async function convertPdfToHtml(pdfPath, outputDir) {
     }
 }
 
-const pdfExport = async (path) => {
+const pdfExport = async (filePath) => {
     const pdfjs = await import ('pdfjs-dist/legacy/build/pdf.mjs');
-    let doc = await pdfjs.getDocument(path).promise;
+    const data = new Uint8Array(await fs.readFile(filePath));
+    let doc = await pdfjs.getDocument({data}).promise;
     let page1 = await doc.getPage(1);
     let content = await page1.getTextContent();
     return content.items.map(function (item) {
@@ -82,18 +98,16 @@ const pdfExport = async (path) => {
 const getTextFromPDF = (link) => {
     return new Promise((resolve, reject) => {
         get(link, (r) => {
-            r.pipe(createWriteStream(`${docsDir}/tmp.pdf`));
+            const filePath = `${docsDir}/tmp.pdf`;
+            const stream = createWriteStream(filePath);
+            r.pipe(stream);
             r.on('error', reject);
-            r.on('end', () => {
-                // return `${docsDir}/tmp.pdf`;
-                resolve(`${docsDir}/tmp.pdf`);
-                // pdfExport(`${docsDir}/tmp.pdf`).then(data => {
-                //     console.log('data');
-                //     console.log(data);
-                // });
+            stream.on('error', reject);
+            stream.on('finish', () => {
+                resolve(filePath);
             });
-        })
-    })
+        }).on('error', reject);
+    });
 }
 
 const getTextFromMd = (link) => {
