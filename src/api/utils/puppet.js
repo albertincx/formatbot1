@@ -3,8 +3,36 @@ const {timeout, MAX_HTML_BYTES} = require('./index');
 const {logger} = require('./logger');
 const {HEADLESS} = require('../../config/vars');
 
+const IDLE_TIMEOUT_MS = parseInt(process.env.PUPPET_IDLE_TIMEOUT_MS, 10) || 90 * 1000;
+
 let activeBrowserWs = null;
 let activeBrowserProcess = null;
+let launchPromise = null;
+let idleTimer = null;
+let activeTasks = 0;
+
+const clearIdleTimer = () => {
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
+};
+
+const scheduleIdleClose = () => {
+  clearIdleTimer();
+  if (!activeBrowserWs || activeTasks > 0) return;
+  const delay = parseInt(process.env.PUPPET_IDLE_TIMEOUT_MS, 10) || IDLE_TIMEOUT_MS;
+  idleTimer = setTimeout(() => {
+    idleTimer = null;
+    if (activeTasks === 0 && activeBrowserWs) {
+      logger('puppet idle timeout reached, closing browser');
+      closeBrowser().catch(() => {});
+    }
+  }, delay);
+  if (typeof idleTimer.unref === 'function') {
+    idleTimer.unref();
+  }
+};
 
 const getBrowser = async () => {
   const args = [
@@ -29,14 +57,37 @@ const getBrowser = async () => {
   return puppeteer.launch(opts)
     .then(browser => {
       const browserWSEndpoint = browser.wsEndpoint();
+      const proc = browser.process();
       activeBrowserWs = browserWSEndpoint;
-      activeBrowserProcess = browser.process();
+      activeBrowserProcess = proc;
+      if (proc && typeof proc.once === 'function') {
+        proc.once('exit', () => {
+          if (activeBrowserWs === browserWSEndpoint) {
+            activeBrowserWs = null;
+            activeBrowserProcess = null;
+            clearIdleTimer();
+          }
+        });
+      }
       browser.disconnect();
       return browserWSEndpoint;
     });
 };
 
+const ensureBrowser = async () => {
+  if (activeBrowserWs) {
+    return activeBrowserWs;
+  }
+  if (!launchPromise) {
+    launchPromise = getBrowser().finally(() => {
+      launchPromise = null;
+    });
+  }
+  return launchPromise;
+};
+
 const closeBrowser = async () => {
+  clearIdleTimer();
   const ws = activeBrowserWs;
   const proc = activeBrowserProcess;
   activeBrowserWs = null;
@@ -71,13 +122,18 @@ const puppet = async (url, params) => {
   logger('puppet start');
   logger(new Date());
 
+  clearIdleTimer();
+  activeTasks += 1;
+  const isManaged = ws === 'lazy' || ws === true || ws === activeBrowserWs;
+
   let browser;
   let context;
   let page;
 
   try {
     logger(url);
-    browser = await puppeteer.connect({browserWSEndpoint: ws});
+    const targetWs = (ws === 'lazy' || ws === true) ? await ensureBrowser() : ws;
+    browser = await puppeteer.connect({browserWSEndpoint: targetWs});
     context = await browser.createBrowserContext();
     page = await context.newPage();
     page.setDefaultTimeout(10000);
@@ -134,6 +190,10 @@ const puppet = async (url, params) => {
     }
     if (browser) {
       await browser.disconnect().catch(() => {});
+    }
+    activeTasks = Math.max(0, activeTasks - 1);
+    if (isManaged && activeTasks === 0) {
+      scheduleIdleClose();
     }
     logger('puppet end');
     logger(new Date());

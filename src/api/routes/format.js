@@ -499,25 +499,11 @@ const format = (bot, botHelper, skipCountBool) => {
             }),
     );
 
-    let browserWs = null;
-    if (!botHelper.config.no_puppet && !IS_PUPPET_DISABLED) {
-        logger('load chrome')
-        puppet.getBrowser()
-            .then(ws => {
-                browserWs = ws;
-                logger('loaded ws' + ws)
-                try {
-                    rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));
-                } catch (e) {
-                    botHelper.sendError(e);
-                }
-            });
-    } else {
-        try {
-            rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));
-        } catch (e) {
-            botHelper.sendError(e);
-        }
+    const browserWs = (!botHelper.config.no_puppet && !IS_PUPPET_DISABLED) ? 'lazy' : null;
+    try {
+        rabbitMq.runMqChannels(jobMessage(botHelper, browserWs, skipCountBool));
+    } catch (e) {
+        botHelper.sendError(e);
     }
 };
 
