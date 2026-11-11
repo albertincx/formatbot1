@@ -150,14 +150,27 @@ const botRoute = (bot, conn) => {
     }
   });
 
-  bot.command(['restartApp', 'restartapp'], ({message}) => {
+  const isStaleAdminCommand = message =>
+    message && message.date && (Math.floor(Date.now() / 1000) - message.date > 30);
+
+  bot.command(['restartApp', 'restartapp'], async ctx => {
+    const {message, update} = ctx;
     if (botHelper.isAdmin(message.from.id)) {
+      if (isStaleAdminCommand(message)) return;
+      if (update && update.update_id) {
+        await ctx.telegram.callApi('getUpdates', {offset: update.update_id + 1, limit: 1, timeout: 0}).catch(() => {});
+      }
       botHelper.restartApp();
     }
   });
 
-  bot.command(['gitPull', 'gitpull'], ({message}) => {
+  bot.command(['gitPull', 'gitpull'], async ctx => {
+    const {message, update} = ctx;
     if (botHelper.isAdmin(message.from.id)) {
+      if (isStaleAdminCommand(message)) return;
+      if (update && update.update_id) {
+        await ctx.telegram.callApi('getUpdates', {offset: update.update_id + 1, limit: 1, timeout: 0}).catch(() => {});
+      }
       botHelper.sendAdmin('Executing git pull...', message.chat.id);
       botHelper.gitPull(message.chat.id);
     }
