@@ -1,6 +1,9 @@
 const broadcast = require('../../service/tgsend');
 
 const fs = require('fs');
+const path = require('path');
+const childProcess = require('child_process');
+const REPO_ROOT = path.resolve(__dirname, '../../..');
 const {
     TG_ADMIN_ID,
     TG_BUGS_GROUP,
@@ -330,24 +333,36 @@ class BotHelper {
     }
 
     restartApp() {
-        const {spawn} = require('child_process');
-        spawn('pm2', ['restart', 'Format'], {
+        const pm2Target = process.env.pm_id || process.env.name || 'Format';
+        const child = childProcess.spawn('pm2', ['restart', pm2Target], {
+            cwd: REPO_ROOT,
             stdio: 'ignore',
             detached: true,
-        })
-            .unref();
+        });
+        child.on('error', err => {
+            console.error('pm2 restart error:', err.message);
+        });
+        child.unref();
         this.sendAdmin('restarted');
     }
 
     gitPull(chatId) {
-        const {spawn} = require('child_process');
         const env = {
             ...process.env,
             GIT_TERMINAL_PROMPT: '0',
             GIT_SSH_COMMAND: 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new'
         };
-        const gPull = spawn('git pull', {shell: true, env});
+        const gPull = childProcess.spawn('git', ['pull'], {cwd: REPO_ROOT, env});
         let log = 'Git Pull Output:\n';
+        let settled = false;
+
+        const timer = setTimeout(() => {
+            if (!settled) {
+                log += '\nTimed out after 30s';
+                gPull.kill('SIGTERM');
+            }
+        }, 30000);
+
         gPull.stdout.on('data', data => {
             log += `${data}`;
         });
@@ -358,15 +373,19 @@ class BotHelper {
             log += `\nSpawn err: ${err.message}`;
         });
         gPull.on('close', async (code) => {
+            settled = true;
+            clearTimeout(timer);
             log += `\nExit code: ${code}`;
+            console.log(log);
             logger(log);
+            const trimmedLog = log.length > 3500 ? `...${log.slice(-3500)}` : log;
             if (code === 0) {
-                await this.sendAdmin(log + '\n\nStatus: Success! Restarting bot...', chatId);
+                await this.sendAdmin(trimmedLog + '\n\nStatus: Success! Restarting bot...', chatId);
                 setTimeout(() => {
                     this.restartApp();
                 }, 1000);
             } else {
-                await this.sendAdmin(log + '\n\nStatus: Failed! Bot will not restart.', chatId);
+                await this.sendAdmin(trimmedLog + '\n\nStatus: Failed! Bot will not restart.', chatId);
             }
         });
     }
