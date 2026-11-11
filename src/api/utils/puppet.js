@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const {timeout} = require('./index');
+const {timeout, MAX_HTML_BYTES} = require('./index');
 const {logger} = require('./logger');
 const {HEADLESS} = require('../../config/vars');
 
@@ -113,6 +113,13 @@ const puppet = async (url, params) => {
     }
     await timeout(3);
     logger('wait 3');
+    const htmlLength = await page.evaluate(() => (
+      document.documentElement ? document.documentElement.outerHTML.length : 0
+    ));
+    if (htmlLength > MAX_HTML_BYTES) {
+      logger(`puppet html too large: ${htmlLength}`);
+      return '';
+    }
     const content = await page.content();
     // logger('ppt len = ' + content.length);
     return content;

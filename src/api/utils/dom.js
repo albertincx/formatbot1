@@ -1,4 +1,6 @@
-const {JSDOM} = require('jsdom');
+const {JSDOM, VirtualConsole} = require('jsdom');
+
+const virtualConsole = new VirtualConsole();
 
 function domToNode(domNode) {
   if (domNode.nodeType === domNode.TEXT_NODE) {
@@ -28,11 +30,15 @@ function domToNode(domNode) {
   return nodeElement;
 }
 
-const getDom = html => new JSDOM(`<!DOCTYPE html>${html}`).window.document;
+const getDom = html => new JSDOM(`<!DOCTYPE html>${html}`, {virtualConsole}).window.document;
 
 const toDomNode = html => {
-  const dom = getDom(html);
-  return domToNode(dom.body).children;
+  const dom = new JSDOM(`<!DOCTYPE html>${html}`, {virtualConsole});
+  try {
+    return domToNode(dom.window.document.body).children;
+  } finally {
+    dom.window.close();
+  }
 };
 
 module.exports.toDomNode = toDomNode;

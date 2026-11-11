@@ -1,8 +1,10 @@
 const {Readability} = require('@mozilla/readability');
-const {JSDOM} = require('jsdom');
+const {JSDOM, VirtualConsole} = require('jsdom');
 
 const {logger} = require('./logger');
-const {fetchTimeout} = require("./index");
+const {fetchTextWithLimit, MAX_HTML_BYTES} = require("./index");
+
+const virtualConsole = new VirtualConsole();
 
 const parse = async (url, options = {}) => {
     let result = '';
@@ -10,16 +12,24 @@ const parse = async (url, options = {}) => {
     if (!html) {
         try {
             logger('readability start');
-            let _html = await fetchTimeout(url, options).then(r => r.text());
+            html = await fetchTextWithLimit(url, options);
             logger('readability end');
-            html = _html
-        } catch {
+        } catch (e) {
+            logger(e);
             throw new Error('Mercury failed');
         }
     }
     if (html) {
-        const doc = new JSDOM(html, {url}).window.document;
-        result = new Readability(doc).parse();
+        const byteLength = Buffer.isBuffer(html) ? html.length : Buffer.byteLength(html);
+        if (byteLength > MAX_HTML_BYTES) {
+            throw new Error(`HTML content too large (${byteLength} bytes)`);
+        }
+        const dom = new JSDOM(html, {url, virtualConsole});
+        try {
+            result = new Readability(dom.window.document).parse();
+        } finally {
+            dom.window.close();
+        }
     }
     return result;
 };

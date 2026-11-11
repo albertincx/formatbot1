@@ -4,7 +4,8 @@ const ParseHelper = require('./parseHelper');
 const db = require('./db');
 const {
   toUrl,
-  fetchTimeout
+  fetchTimeout,
+  MAX_HTML_BYTES
 } = require('./index');
 const {convertPdfToHtml, getTextFromPDF, convertMdToHtml, getTextFromMd} = require("./pdf");
 
@@ -136,12 +137,18 @@ const isText = async (urlParam, q) => {
     const response = await fetchTimeout(url);
     const {
       url: newUrl,
-      headers
+      headers,
+      body
     } = response;
+
+    if (body) {
+      await body.cancel().catch(() => {});
+    }
 
     url = newUrl;
     const contentType = headers.get('content-type') || '';
-    startsText = contentType.startsWith('text/');
+    const contentLength = Number(headers.get('content-length'));
+    startsText = contentType.startsWith('text/') && (!contentLength || contentLength <= MAX_HTML_BYTES);
   } catch (e) {
     logger(e);
   }

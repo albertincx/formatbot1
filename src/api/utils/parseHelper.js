@@ -7,7 +7,7 @@ const htmlParser = require('./readability');
 const puppet = require('./puppet');
 const {logger} = require('./logger');
 const {
-  fetchTimeout,
+  fetchTextWithLimit,
   timeout
 } = require('./index');
 
@@ -106,8 +106,7 @@ class ParseHelper {
       this.log(content, 'puppet.html');
     } else {
       try {
-        content = await fetchTimeout(link)
-          .then(r => r.text());
+        content = await fetchTextWithLimit(link);
       } catch (e) {
         logger(e);
         content = '';
