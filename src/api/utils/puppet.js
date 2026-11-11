@@ -3,6 +3,9 @@ const {timeout} = require('./index');
 const {logger} = require('./logger');
 const {HEADLESS} = require('../../config/vars');
 
+let activeBrowserWs = null;
+let activeBrowserProcess = null;
+
 const getBrowser = async () => {
   const args = [
     '--disable-web-security',
@@ -11,6 +14,9 @@ const getBrowser = async () => {
     '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
     '--disable-gpu',
+    '--disable-software-rasterizer',
+    '--disable-extensions',
+    '--mute-audio',
     '--ignore-autoplay-restrictions',
     '--disable-background-timer-throttling',
     '--lang=en',
@@ -23,9 +29,35 @@ const getBrowser = async () => {
   return puppeteer.launch(opts)
     .then(browser => {
       const browserWSEndpoint = browser.wsEndpoint();
+      activeBrowserWs = browserWSEndpoint;
+      activeBrowserProcess = browser.process();
       browser.disconnect();
       return browserWSEndpoint;
     });
+};
+
+const closeBrowser = async () => {
+  const ws = activeBrowserWs;
+  const proc = activeBrowserProcess;
+  activeBrowserWs = null;
+  activeBrowserProcess = null;
+
+  if (ws) {
+    try {
+      const browser = await puppeteer.connect({browserWSEndpoint: ws});
+      await browser.close();
+      return;
+    } catch (e) {
+      logger(`closeBrowser connect/close error: ${e.message}`);
+    }
+  }
+  if (proc && !proc.killed) {
+    try {
+      proc.kill('SIGTERM');
+    } catch (e) {
+      logger(`closeBrowser kill error: ${e.message}`);
+    }
+  }
 };
 
 const puppet = async (url, params) => {
@@ -40,12 +72,15 @@ const puppet = async (url, params) => {
   logger(new Date());
 
   let browser;
+  let context;
   let page;
 
   try {
     logger(url);
     browser = await puppeteer.connect({browserWSEndpoint: ws});
-    page = await browser.newPage();
+    context = await browser.createBrowserContext();
+    page = await context.newPage();
+    page.setDefaultTimeout(10000);
     let response;
     try {
       response = await page.goto(url, {
@@ -84,8 +119,11 @@ const puppet = async (url, params) => {
   } catch (e) {
     logger(e);
   } finally {
-    if (page) {
+    if (page && !page.isClosed()) {
       await page.close().catch(() => {});
+    }
+    if (context) {
+      await context.close().catch(() => {});
     }
     if (browser) {
       await browser.disconnect().catch(() => {});
@@ -98,3 +136,4 @@ const puppet = async (url, params) => {
 
 module.exports = puppet;
 module.exports.getBrowser = getBrowser;
+module.exports.closeBrowser = closeBrowser;

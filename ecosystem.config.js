@@ -17,8 +17,8 @@ module.exports = {
       ".test",
       ".git"
     ],
-    max_memory_restart: '400M',
-    node_args: "--env-file=.env --max-old-space-size=300", // Caps the V8 heap at 300MB
+    max_memory_restart: '250M',
+    node_args: "--env-file=.env --max-old-space-size=192", // Caps the V8 heap at 192MB
     env: {
       NODE_ENV: "production"
     }
